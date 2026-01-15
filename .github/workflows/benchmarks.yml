@@ -1,0 +1,119 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Hiroharu Sugawara
+# Part of BoltzTraP.jl
+
+name: Benchmarks
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      create_pr:
+        description: 'Create PR with benchmark results'
+        type: boolean
+        default: false
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Python setup with conda (BoltzTraP2 requires spglib C headers)
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-activate-base: true
+          python-version: '3.12'
+          channels: conda-forge
+          channel-priority: strict
+
+      - name: Install BoltzTraP2 and pyFFTW
+        shell: bash -el {0}
+        run: |
+          conda install -y boltztrap2 pyfftw
+
+      # Julia setup
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11'
+
+      - name: Cache Julia packages
+        uses: julia-actions/cache@v2
+
+      - name: Install Julia dependencies
+        run: |
+          julia --project -e 'using Pkg; Pkg.instantiate()'
+          julia --project -e 'using Pkg; Pkg.add(["Plots", "JSON", "NPZ"])'
+
+      # Run benchmarks
+      - name: Run Python benchmark
+        shell: bash -el {0}
+        run: python benchmarks/scaling_benchmark.py
+
+      - name: Run Julia benchmark
+        run: julia --project benchmarks/scaling_benchmark.jl
+
+      # Generate figure
+      - name: Generate figure
+        run: julia --project benchmarks/generate_figure.jl
+
+      # Upload artifacts
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            benchmarks/scaling_results_python.json
+            benchmarks/scaling_results_julia.json
+            benchmarks/benchmark.png
+
+      # Create PR (Release or manual with flag)
+      - name: Create PR with benchmark results
+        if: github.event_name == 'release' || inputs.create_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configure git
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Create branch
+          BRANCH_NAME="benchmark-update-${{ github.run_id }}"
+          git checkout -b $BRANCH_NAME
+
+          # Commit changes
+          git add benchmarks/benchmark.png
+          git add benchmarks/scaling_results_*.json
+          git commit -m "Update benchmark results from CI"
+
+          # Push and create PR
+          git push origin $BRANCH_NAME
+          gh pr create \
+            --title "Update benchmark.png from CI" \
+            --body "## Benchmark Results
+
+          Auto-generated from GitHub Actions benchmark workflow.
+
+          - **Trigger**: ${{ github.event_name }}
+          - **Run ID**: ${{ github.run_id }}
+          - **Runner**: ubuntu-latest (4 core x64, 16GB RAM)
+
+          ### Files Updated
+          - \`benchmarks/benchmark.png\` - Performance comparison figure
+          - \`benchmarks/scaling_results_python.json\`
+          - \`benchmarks/scaling_results_julia.json\`
+
+          ### Manual Step
+          After merging, copy \`benchmarks/benchmark.png\` to \`paper/benchmark.png\`:
+          \`\`\`
+          cp benchmarks/benchmark.png paper/benchmark.png
+          \`\`\`" \
+            --base main

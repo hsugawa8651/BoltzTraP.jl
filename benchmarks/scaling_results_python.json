@@ -1,0 +1,38 @@
+{
+  "language": "Python",
+  "version": "3.12.2",
+  "package": "BoltzTraP2",
+  "pyfftw": true,
+  "timestamp": "2026-01-14T14:42:16.128765+00:00",
+  "parameters": {
+    "temperature_K": 300.0,
+    "dos_bins": 500,
+    "n_runs": 5
+  },
+  "results": [
+    {
+      "kpoints": 1000,
+      "total_ms": 1795.2341660275124,
+      "interpolate_ms": 631.0975830128882,
+      "integrate_ms": 1151.003708015196,
+      "std_ms": 80.05017457960614,
+      "peak_memory_MiB": 103.62766933441162
+    },
+    {
+      "kpoints": 2000,
+      "total_ms": 2483.162749966141,
+      "interpolate_ms": 870.2630419866182,
+      "integrate_ms": 1613.7689999886788,
+      "std_ms": 29.434035269805584,
+      "peak_memory_MiB": 197.9191083908081
+    },
+    {
+      "kpoints": 4000,
+      "total_ms": 3676.3642909936607,
+      "interpolate_ms": 1011.3290000008419,
+      "integrate_ms": 2623.4256669995375,
+      "std_ms": 113.24898978312574,
+      "peak_memory_MiB": 426.9738349914551
+    }
+  ]
+}

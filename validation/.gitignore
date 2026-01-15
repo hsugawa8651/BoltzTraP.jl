@@ -1,0 +1,5 @@
+# Generated comparison figures
+*.png
+
+# Generated transport results
+*_new.jld2

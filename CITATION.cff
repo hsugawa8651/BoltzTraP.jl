@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: "BoltzTraP.jl: Julia implementation of BoltzTraP2"
+message: "If you use this software, please cite both BoltzTraP.jl and the original BoltzTraP2 paper."
+type: software
+authors:
+  - family-names: Sugawara
+    given-names: Hiroharu
+    email: hsugawa@gmail.com
+repository-code: "https://github.com/hsugawa8651/BoltzTraP.jl"
+license: GPL-3.0-or-later
+version: 0.1.0
+date-released: 2026-01-05
+keywords:
+  - band structure
+  - interpolation
+  - transport coefficients
+  - Boltzmann transport
+  - Julia
+references:
+  - type: article
+    authors:
+      - family-names: Madsen
+        given-names: Georg K. H.
+      - family-names: Carrete
+        given-names: Jesús
+      - family-names: Verstraete
+        given-names: Matthieu J.
+    title: "BoltzTraP2, a program for interpolating band structures and calculating semi-classical transport coefficients"
+    journal: "Computer Physics Communications"
+    volume: 231
+    start: 140
+    end: 145
+    year: 2018
+    doi: "10.1016/j.cpc.2018.05.010"

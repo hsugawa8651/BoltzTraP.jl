@@ -1,0 +1,37 @@
+{
+  "parameters": {
+    "n_runs": 5,
+    "dos_bins": 500,
+    "temperature_K": 300.0
+  },
+  "language": "Julia",
+  "package": "BoltzTraP.jl",
+  "results": [
+    {
+      "interpolate_ms": 212.985083,
+      "peak_memory_MiB": 539.1097717285156,
+      "total_ms": 526.141166,
+      "std_ms": 102.5986197450666,
+      "integrate_ms": 308.981292,
+      "kpoints": 1000
+    },
+    {
+      "interpolate_ms": 406.71329099999997,
+      "peak_memory_MiB": 1041.9935913085938,
+      "total_ms": 1139.467333,
+      "std_ms": 58.42415051053467,
+      "integrate_ms": 732.560375,
+      "kpoints": 2000
+    },
+    {
+      "interpolate_ms": 788.96275,
+      "peak_memory_MiB": 2230.1421966552734,
+      "total_ms": 2084.682625,
+      "std_ms": 44.02012965007877,
+      "integrate_ms": 1344.424208,
+      "kpoints": 4000
+    }
+  ],
+  "timestamp": "2026-01-14T14:43:19Z",
+  "version": "1.11.6"
+}

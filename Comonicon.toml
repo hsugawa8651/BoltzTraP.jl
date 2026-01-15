@@ -1,0 +1,8 @@
+name = "boltztrap"
+
+[install]
+completion = true
+optimize = 2
+
+[application]
+incremental = true
