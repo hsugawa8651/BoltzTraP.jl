@@ -124,9 +124,9 @@ save_integrate_csv("transport.csv", transport)
 | `T` | K | Temperature |
 | `mu` | Ha | Chemical potential |
 | `N` | - | Carrier concentration |
-| `sigma_xx`, `sigma_yy`, `sigma_zz` | S/(m*s) | Conductivity/tau diagonal |
-| `S_xx`, `S_yy`, `S_zz` | V/K | Seebeck coefficient diagonal |
-| `kappa_xx`, `kappa_yy`, `kappa_zz` | W/(m*K*s) | Thermal conductivity/tau diagonal |
+| `sigma_xx`, `sigma_yy`, `sigma_zz` | S/(m·s) | σ/τ (electrical conductivity / relaxation time) |
+| `S_xx`, `S_yy`, `S_zz` | V/K | S (Seebeck coefficient) |
+| `kappa_xx`, `kappa_yy`, `kappa_zz` | W/(m·K·s) | κ₀/τ (electronic thermal conductivity / relaxation time) |
 
 ---
 

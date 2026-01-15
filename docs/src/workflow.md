@@ -57,6 +57,7 @@ All workflows follow the same pattern:
 
 ```julia
 # Direct (no intermediate file)
+# Note: "./Si.vasp" is a directory containing vasprun.xml and POSCAR
 interp = run_interpolate("./Si.vasp")
 transport = run_integrate(interp; temperatures=[300.0])
 
