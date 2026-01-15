@@ -311,15 +311,24 @@ Compute the electronic contribution to the heat capacity.
 
 # Arguments
 
-  - `epsilon`: energy grid (Ha)
-  - `dos`: density of states
-  - `μ_range`: chemical potential values (Ha)
-  - `T_range`: temperature values (K)
+  - `epsilon`: energy grid (npts,), in Hartree
+  - `dos`: density of states (npts,), from `BTPDOS` or `TransportResult.dos`
+  - `μ_range`: chemical potential values (nμ,), in Hartree
+  - `T_range`: temperature values (nT,), in Kelvin
   - `dosweight`: spin degeneracy (2.0 for unpolarized, 1.0 for polarized)
 
 # Returns
 
 Matrix of shape (nT, nμ) with heat capacity in SI units (J/K).
+
+# Example
+
+```julia
+# From TransportResult
+transport = run_integrate("si_interp.jld2"; temperatures=[300.0])
+cv = calc_cv(transport.epsilon, transport.dos,
+             transport.mu_values, transport.temperatures)
+```
 """
 function calc_cv(epsilon, dos, μ_range, T_range; dosweight = 2.0)
     nT = length(T_range)
