@@ -52,7 +52,7 @@ end
 
 function _detect_qe(directory::String)
     # QE uses data-file-schema.xml or data-file.xml in *.save directory
-    for item in readdir(directory; join=true)
+    for item in readdir(directory; join = true)
         if isdir(item) && endswith(item, ".save")
             if isfile(joinpath(item, "data-file-schema.xml")) ||
                isfile(joinpath(item, "data-file.xml"))
@@ -61,13 +61,13 @@ function _detect_qe(directory::String)
         end
     end
     # Also check for direct XML files
-    for item in readdir(directory; join=true)
+    for item in readdir(directory; join = true)
         if isfile(item) && endswith(item, ".xml")
             # Quick check for QE signature in first 10 lines
             try
                 found = false
                 open(item) do f
-                    for _ in 1:10
+                    for _ = 1:10
                         eof(f) && break
                         line = readline(f)
                         if occursin("qes:", line) || occursin("espresso", lowercase(line))
@@ -107,12 +107,15 @@ Try registered loaders in reverse order (VASP first, then QE, etc.).
 Throw an error if no compatible format is found.
 
 # Arguments
-- `directory`: Path to directory containing DFT output files
+
+  - `directory`: Path to directory containing DFT output files
 
 # Returns
-- [`DFTData`](@ref) with band structure data (same format as [`load_vasp`](@ref), [`load_qe`](@ref)).
+
+  - [`DFTData`](@ref) with band structure data (same format as [`load_vasp`](@ref), [`load_qe`](@ref)).
 
 # Example
+
 ```julia
 # Auto-detect format
 data = load_dft("./calculation")
@@ -163,6 +166,7 @@ end
 Check which DFT format is detected in the directory without loading.
 
 # Returns
+
 Format name (e.g., "VASP", "QE") or `nothing` if no format detected.
 """
 function detected_format(directory::String)

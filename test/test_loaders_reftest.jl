@@ -55,27 +55,27 @@ Compare Julia loader output against Python reference data.
 - For nspin=1: Compare Julia ebands[:,:,1] with Python ebands
 - For nspin=2: Compare Julia ebands flattened with Python ebands
 =#
-function compare_loader_output(data, ref; rtol=1e-8, atol=1e-10, skip_nelect=false)
+function compare_loader_output(data, ref; rtol = 1e-8, atol = 1e-10, skip_nelect = false)
     # Lattice vectors: Julia columns = Python rows (after transpose in generator)
-    @test isapprox(data.lattice, ref["lattvec"]; rtol=rtol, atol=atol)
+    @test isapprox(data.lattice, ref["lattvec"]; rtol = rtol, atol = atol)
 
     # Positions: Julia (3, natom), Python (natom, 3)
-    @test isapprox(data.positions', ref["positions"]; rtol=rtol, atol=atol)
+    @test isapprox(data.positions', ref["positions"]; rtol = rtol, atol = atol)
 
     # Species: Compare decoded strings
     ref_symbols = decode_symbols(ref["symbols"])
     @test data.species == ref_symbols
 
     # K-points: Julia (3, nkpts), Python (nkpts, 3)
-    @test isapprox(data.kpoints', ref["kpoints"]; rtol=rtol, atol=atol)
+    @test isapprox(data.kpoints', ref["kpoints"]; rtol = rtol, atol = atol)
 
     # Fermi level
-    @test isapprox(data.fermi, ref["fermi"]; rtol=rtol, atol=atol)
+    @test isapprox(data.fermi, ref["fermi"]; rtol = rtol, atol = atol)
 
     # Number of electrons
     # GENE format doesn't store nelect, Julia uses -1.0 as placeholder
     if !skip_nelect
-        @test isapprox(data.nelect, ref["nelect"]; rtol=rtol, atol=atol)
+        @test isapprox(data.nelect, ref["nelect"]; rtol = rtol, atol = atol)
     end
 
     # Band energies: Handle shape difference
@@ -85,16 +85,16 @@ function compare_loader_output(data, ref; rtol=1e-8, atol=1e-10, skip_nelect=fal
 
     if julia_nspin == 1 && python_nspin == 1
         # Non-spin-polarized: Julia (nbands, nkpts, 1), Python (nbands, nkpts)
-        @test isapprox(data.ebands[:, :, 1], ref_ebands; rtol=rtol, atol=atol)
+        @test isapprox(data.ebands[:, :, 1], ref_ebands; rtol = rtol, atol = atol)
     elseif julia_nspin == 1 && python_nspin == 2
         # SOC case: Python uses nspin=2 for dosweight but ebands is NOT doubled
         # Julia stores as NSpin=1 (single spin channel)
-        @test isapprox(data.ebands[:, :, 1], ref_ebands; rtol=rtol, atol=atol)
+        @test isapprox(data.ebands[:, :, 1], ref_ebands; rtol = rtol, atol = atol)
     elseif julia_nspin == 2 && python_nspin == 2
         # Spin-polarized: Python flattens spin channels into band dimension
         # Julia (nbands, nkpts, 2) -> Python (nbands*2, nkpts)
         julia_flattened = vcat(data.ebands[:, :, 1], data.ebands[:, :, 2])
-        @test isapprox(julia_flattened, ref_ebands; rtol=rtol, atol=atol)
+        @test isapprox(julia_flattened, ref_ebands; rtol = rtol, atol = atol)
     else
         # Mismatch in spin handling
         @test julia_nspin == python_nspin
@@ -102,7 +102,6 @@ function compare_loader_output(data, ref; rtol=1e-8, atol=1e-10, skip_nelect=fal
 end
 
 @testset "Loader Reference Tests" begin
-
     @testset "VASP loader" begin
         test_cases = [
             # (npz_file, data_dir, description, is_spin_polarized)
@@ -145,8 +144,18 @@ end
             # (npz_file, data_dir, description, is_spin_polarized)
             ("qe_si.npz", "Si.ESPRESSO/out", "Si - non-magnetic semiconductor", false),
             ("qe_fe.npz", "Fe.ESPRESSO.collinear/out", "Fe - collinear magnetic", true),
-            ("qe_cri3.npz", "CrI3.ESPRESSO.antiferro/out", "CrI3 - antiferromagnetic", true),
-            ("qe_nitinol.npz", "nitinol.ESPRESSO/out", "NiTi - monoclinic structure", false),
+            (
+                "qe_cri3.npz",
+                "CrI3.ESPRESSO.antiferro/out",
+                "CrI3 - antiferromagnetic",
+                true,
+            ),
+            (
+                "qe_nitinol.npz",
+                "nitinol.ESPRESSO/out",
+                "NiTi - monoclinic structure",
+                false,
+            ),
         ]
 
         for (npz_file, data_dir, description, is_spin) in test_cases
@@ -221,9 +230,8 @@ end
 
     @testset "GENE loader" begin
         test_cases = [
-            # (npz_file, data_dir, description, is_spin_polarized)
-            ("gene_si.npz", "Si.GENE", "Si - non-magnetic semiconductor", false),
-        ]
+        # (npz_file, data_dir, description, is_spin_polarized)
+            ("gene_si.npz", "Si.GENE", "Si - non-magnetic semiconductor", false),]
 
         for (npz_file, data_dir, description, is_spin) in test_cases
             @testset "$description" begin
@@ -251,7 +259,7 @@ end
                 @test nspin(data) == expected_nspin
 
                 # GENE format doesn't store nelect, so skip that check
-                compare_loader_output(data, ref; skip_nelect=true)
+                compare_loader_output(data, ref; skip_nelect = true)
             end
         end
     end
@@ -276,7 +284,7 @@ end
                 @test nspin(data) == 1
 
                 # Compare with reference (skip nelect as GENE doesn't store it)
-                compare_loader_output(data, ref; skip_nelect=true)
+                compare_loader_output(data, ref; skip_nelect = true)
 
                 # Verify triclinic angles
                 a1, a2, a3 = data.lattice[:, 1], data.lattice[:, 2], data.lattice[:, 3]
@@ -303,38 +311,37 @@ end
             @test_skip "NCDatasets not available"
         else
             test_cases = [
-                # (npz_file, data_dir, description, is_spin_polarized)
-                ("abinit_si.npz", "Si.abinit", "Si - non-magnetic semiconductor", false),
-            ]
+            # (npz_file, data_dir, description, is_spin_polarized)
+                ("abinit_si.npz", "Si.abinit", "Si - non-magnetic semiconductor", false),]
 
             for (npz_file, data_dir, description, is_spin) in test_cases
                 @testset "$description" begin
                     npz_path = joinpath(REFTEST_DATA, npz_file)
                     data_path = joinpath(BOLTZTRAP_DATA, data_dir)
 
-                if !isfile(npz_path)
-                    @warn "Reference data not found: $npz_path"
-                    @test_skip "Reference data not found"
-                    continue
+                    if !isfile(npz_path)
+                        @warn "Reference data not found: $npz_path"
+                        @test_skip "Reference data not found"
+                        continue
+                    end
+
+                    if !isdir(data_path)
+                        @warn "Test data not found: $data_path"
+                        @test_skip "Test data not found"
+                        continue
+                    end
+
+                    ref = npzread(npz_path)
+                    data = load_abinit(data_path)
+
+                    # DFTData{NSpin} type check
+                    expected_nspin = is_spin ? 2 : 1
+                    @test data isa DFTData{expected_nspin}
+                    @test nspin(data) == expected_nspin
+
+                    compare_loader_output(data, ref)
                 end
-
-                if !isdir(data_path)
-                    @warn "Test data not found: $data_path"
-                    @test_skip "Test data not found"
-                    continue
-                end
-
-                ref = npzread(npz_path)
-                data = load_abinit(data_path)
-
-                # DFTData{NSpin} type check
-                expected_nspin = is_spin ? 2 : 1
-                @test data isa DFTData{expected_nspin}
-                @test nspin(data) == expected_nspin
-
-                compare_loader_output(data, ref)
             end
-        end
         end  # else HAS_NCDATASETS
     end
 
@@ -386,7 +393,8 @@ end
                     @testset "$format_name" begin
                         # Construct data path
                         if has_subdir
-                            data_path = joinpath(BOLTZTRAP_DATA, "$(dir_prefix).$cell_type", "out")
+                            data_path =
+                                joinpath(BOLTZTRAP_DATA, "$(dir_prefix).$cell_type", "out")
                         else
                             data_path = joinpath(BOLTZTRAP_DATA, "$(dir_prefix).$cell_type")
                         end
@@ -414,7 +422,13 @@ end
                         # Use relaxed tolerance for synthetic data (XML/text format precision limits)
                         # GENE doesn't store nelect, Wien2k calculates it from occupancy (may differ)
                         skip_nelect = format_name in ("GENE", "Wien2k")
-                        compare_loader_output(data, ref; skip_nelect = skip_nelect, rtol = 1e-7, atol = 1e-9)
+                        compare_loader_output(
+                            data,
+                            ref;
+                            skip_nelect = skip_nelect,
+                            rtol = 1e-7,
+                            atol = 1e-9,
+                        )
                     end
                 end
             end
@@ -493,5 +507,4 @@ end
             # This is expected behavior for package extensions
         end
     end
-
 end

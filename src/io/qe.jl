@@ -6,18 +6,124 @@ using LinearAlgebra: I, det
 
 # Chemical symbols for element name validation
 const CHEMICAL_SYMBOLS = [
-    "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
-    "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
-    "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
-    "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr",
-    "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
-    "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd",
-    "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb",
-    "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",
-    "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
-    "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
-    "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds",
-    "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og",
+    "H",
+    "He",
+    "Li",
+    "Be",
+    "B",
+    "C",
+    "N",
+    "O",
+    "F",
+    "Ne",
+    "Na",
+    "Mg",
+    "Al",
+    "Si",
+    "P",
+    "S",
+    "Cl",
+    "Ar",
+    "K",
+    "Ca",
+    "Sc",
+    "Ti",
+    "V",
+    "Cr",
+    "Mn",
+    "Fe",
+    "Co",
+    "Ni",
+    "Cu",
+    "Zn",
+    "Ga",
+    "Ge",
+    "As",
+    "Se",
+    "Br",
+    "Kr",
+    "Rb",
+    "Sr",
+    "Y",
+    "Zr",
+    "Nb",
+    "Mo",
+    "Tc",
+    "Ru",
+    "Rh",
+    "Pd",
+    "Ag",
+    "Cd",
+    "In",
+    "Sn",
+    "Sb",
+    "Te",
+    "I",
+    "Xe",
+    "Cs",
+    "Ba",
+    "La",
+    "Ce",
+    "Pr",
+    "Nd",
+    "Pm",
+    "Sm",
+    "Eu",
+    "Gd",
+    "Tb",
+    "Dy",
+    "Ho",
+    "Er",
+    "Tm",
+    "Yb",
+    "Lu",
+    "Hf",
+    "Ta",
+    "W",
+    "Re",
+    "Os",
+    "Ir",
+    "Pt",
+    "Au",
+    "Hg",
+    "Tl",
+    "Pb",
+    "Bi",
+    "Po",
+    "At",
+    "Rn",
+    "Fr",
+    "Ra",
+    "Ac",
+    "Th",
+    "Pa",
+    "U",
+    "Np",
+    "Pu",
+    "Am",
+    "Cm",
+    "Bk",
+    "Cf",
+    "Es",
+    "Fm",
+    "Md",
+    "No",
+    "Lr",
+    "Rf",
+    "Db",
+    "Sg",
+    "Bh",
+    "Hs",
+    "Mt",
+    "Ds",
+    "Rg",
+    "Cn",
+    "Nh",
+    "Fl",
+    "Mc",
+    "Lv",
+    "Ts",
+    "Og",
 ]
 
 #=
@@ -61,7 +167,7 @@ function _unpack_qe_element(name::AbstractString)
 
     # No separator: find largest valid element match from start
     normalized = _normalize_element_case(name)
-    for i in length(normalized):-1:1
+    for i = length(normalized):-1:1
         substring = normalized[1:i]
         if substring in CHEMICAL_SYMBOLS
             return substring
@@ -115,15 +221,15 @@ function read_qe_bands_gnu(filename::String)
     nbands = length(bands_data)
     nkpts = length(bands_data[1])
 
-    kdist = [bands_data[1][ik][1] for ik in 1:nkpts]
+    kdist = [bands_data[1][ik][1] for ik = 1:nkpts]
     ebands = zeros(nbands, nkpts)
-    for ib in 1:nbands
-        for ik in 1:nkpts
+    for ib = 1:nbands
+        for ik = 1:nkpts
             ebands[ib, ik] = bands_data[ib][ik][2]
         end
     end
 
-    return (kdist=kdist, ebands=ebands)
+    return (kdist = kdist, ebands = ebands)
 end
 
 #=
@@ -151,7 +257,7 @@ function read_qe_kpoints(filename::String)
     ebands = zeros(nbnd, nks)
 
     line_idx = 2
-    for ik in 1:nks
+    for ik = 1:nks
         # K-point line: kx ky kz
         kline = split(strip(lines[line_idx]))
         kpoints[1, ik] = parse(Float64, kline[1])
@@ -171,7 +277,7 @@ function read_qe_kpoints(filename::String)
         ebands[:, ik] = energies[1:nbnd]
     end
 
-    return (kpoints=kpoints, ebands=ebands)
+    return (kpoints = kpoints, ebands = ebands)
 end
 
 #=
@@ -204,7 +310,7 @@ function read_qe_xml(filename::String)
     cell_match = match(r"<output>.*?<atomic_structure[^>]*>.*?<cell>(.*?)</cell>"s, content)
     if !isnothing(cell_match)
         cell_content = cell_match.captures[1]
-        for i in 1:3
+        for i = 1:3
             pattern = Regex("<a$i>(.*?)</a$i>")
             m = match(pattern, cell_content)
             if !isnothing(m)
@@ -214,7 +320,7 @@ function read_qe_xml(filename::String)
         end
     else
         # Fallback: use first occurrence
-        for i in 1:3
+        for i = 1:3
             pattern = Regex("<a$i>(.*?)</a$i>")
             m = match(pattern, content)
             if !isnothing(m)
@@ -229,7 +335,7 @@ function read_qe_xml(filename::String)
     rlat_match = match(r"<reciprocal_lattice>(.*?)</reciprocal_lattice>"s, content)
     if !isnothing(rlat_match)
         rlat_content = rlat_match.captures[1]
-        for i in 1:3
+        for i = 1:3
             pattern = Regex("<b$i>(.*?)</b$i>")
             m = match(pattern, rlat_content)
             if !isnothing(m)
@@ -350,7 +456,7 @@ function read_qe_xml(filename::String)
     # Transform k-points from Cartesian to fractional coordinates
     # k_frac = rlattvec \ k_cart (solve rlattvec * k_frac = k_cart)
     kpoints = zeros(3, nk)
-    for ik in 1:nk
+    for ik = 1:nk
         kpoints[:, ik] = rlattvec \ kpoints_cart[:, ik]
     end
     # Wrap to [-0.5, 0.5] like Python BoltzTraP2
@@ -362,7 +468,10 @@ function read_qe_xml(filename::String)
     species = String[]
 
     # Look for atomic_positions in output section
-    output_struct_match = match(r"<output>.*?<atomic_structure[^>]*>.*?<atomic_positions>(.*?)</atomic_positions>"s, content)
+    output_struct_match = match(
+        r"<output>.*?<atomic_structure[^>]*>.*?<atomic_positions>(.*?)</atomic_positions>"s,
+        content,
+    )
     if !isnothing(output_struct_match)
         atom_pattern = r"<atom[^>]*name=\"([^\"]+)\"[^>]*>(.*?)</atom>"s
         for m in eachmatch(atom_pattern, output_struct_match.captures[1])
@@ -373,7 +482,10 @@ function read_qe_xml(filename::String)
         end
     else
         # Fallback: first atomic_structure block
-        atomic_struct_match = match(r"<atomic_structure[^>]*>.*?<atomic_positions>(.*?)</atomic_positions>"s, content)
+        atomic_struct_match = match(
+            r"<atomic_structure[^>]*>.*?<atomic_positions>(.*?)</atomic_positions>"s,
+            content,
+        )
         if !isnothing(atomic_struct_match)
             atom_pattern = r"<atom[^>]*name=\"([^\"]+)\"[^>]*>(.*?)</atom>"s
             for m in eachmatch(atom_pattern, atomic_struct_match.captures[1])
@@ -393,22 +505,22 @@ function read_qe_xml(filename::String)
     # Then wrap to [0, 1) range
     natoms = size(positions_cart, 2)
     positions = zeros(3, natoms)
-    for ia in 1:natoms
+    for ia = 1:natoms
         frac = lattice \ positions_cart[:, ia]
         positions[:, ia] = frac .- floor.(frac)  # Wrap to [0, 1)
     end
 
     return (
-        lattice=lattice,
-        positions=positions,
-        species=species,
-        kpoints=kpoints,
-        weights=weights,
-        ebands=ebands_raw,
-        occupations=occupations_raw,
-        fermi=fermi,
-        nelect=nelect,
-        nspin=nspin,
+        lattice = lattice,
+        positions = positions,
+        species = species,
+        kpoints = kpoints,
+        weights = weights,
+        ebands = ebands_raw,
+        occupations = occupations_raw,
+        fermi = fermi,
+        nelect = nelect,
+        nspin = nspin,
     )
 end
 
@@ -443,7 +555,7 @@ function read_qe_output(filename::String)
         m = match(r"k\s*=\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)", line)
         if !isnothing(m)
             # Extract k-point
-            kpt = [parse(Float64, m.captures[j]) for j in 1:3]
+            kpt = [parse(Float64, m.captures[j]) for j = 1:3]
             push!(kpoints_list, kpt)
 
             # Skip to next non-empty line (eigenvalues)
@@ -455,9 +567,12 @@ function read_qe_output(filename::String)
                 eline = strip(lines[i])
 
                 # Stop if we hit another k-point or specific markers
-                if startswith(eline, "k =") || startswith(eline, "the Fermi") ||
-                   startswith(eline, "highest") || startswith(eline, "Writing") ||
-                   startswith(eline, "End of") || occursin("CPU", eline)
+                if startswith(eline, "k =") ||
+                   startswith(eline, "the Fermi") ||
+                   startswith(eline, "highest") ||
+                   startswith(eline, "Writing") ||
+                   startswith(eline, "End of") ||
+                   occursin("CPU", eline)
                     break
                 end
 
@@ -493,12 +608,12 @@ function read_qe_output(filename::String)
     kpoints = zeros(3, nkpts)
     ebands = zeros(nbands, nkpts)
 
-    for ik in 1:nkpts
+    for ik = 1:nkpts
         kpoints[:, ik] = kpoints_list[ik]
         ebands[:, ik] = ebands_list[ik][1:nbands]
     end
 
-    return (kpoints=kpoints, ebands=ebands)
+    return (kpoints = kpoints, ebands = ebands)
 end
 
 """
@@ -511,20 +626,20 @@ Returns [`DFTData`](@ref) for non-magnetic or spin-polarized.
 All data in atomic units (Hartree, Bohr).
 
 # Arguments
-- `directory`: Path to QE output directory containing XML file
+
+  - `directory`: Path to QE output directory containing XML file
 
 # Returns
-- [`DFTData`](@ref) with NSpin ∈ {1, 2}
+
+  - [`DFTData`](@ref) with NSpin ∈ {1, 2}
 """
 function load_qe(directory::String)
     # Find XML file
     xml_file = nothing
 
     # Try common locations
-    candidates = [
-        joinpath(directory, "data-file-schema.xml"),
-        joinpath(directory, "data-file.xml"),
-    ]
+    candidates =
+        [joinpath(directory, "data-file-schema.xml"), joinpath(directory, "data-file.xml")]
 
     # Search for *.xml files directly in the directory
     if isdir(directory)
@@ -571,7 +686,7 @@ function load_qe(directory::String)
     # Need to reshape to (nbands, nkpts, nspin)
     ebands_3d = zeros(nbands, nkpts, nspin_val)
     occupations_3d = zeros(nbands, nkpts, nspin_val)
-    for ispin in 1:nspin_val
+    for ispin = 1:nspin_val
         band_start = (ispin - 1) * nbands + 1
         band_end = ispin * nbands
         ebands_3d[:, :, ispin] = raw.ebands[band_start:band_end, :]

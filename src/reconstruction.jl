@@ -14,7 +14,7 @@ Determine FFT grid dimensions from equivalence classes.
 =#
 function determine_fft_dims(equivalences)
     allvec = vcat([Matrix(equiv) for equiv in equivalences]...)
-    maxabs = maximum(abs.(allvec), dims=1)
+    maxabs = maximum(abs.(allvec), dims = 1)
     return Tuple(2 .* vec(maxabs) .+ 1)
 end
 
@@ -39,7 +39,7 @@ function _flatten_coeffs(bandcoeff::AbstractVector, equivalences::Vector)
     @inbounds for (c, equiv) in zip(bandcoeff, equivalences)
         nstar = size(equiv, 1)
         c_norm = c / nstar
-        for _ in 1:nstar
+        for _ = 1:nstar
             flat[k] = c_norm
             k += 1
         end
@@ -103,7 +103,7 @@ function _getBTPbands_kernel!(
     vgrid2 = zeros(ComplexF64, dims)
     vgrid3 = zeros(ComplexF64, dims)
 
-    for iband in 1:nbands
+    for iband = 1:nbands
         flat_coeffs = _flatten_coeffs(coeffs[iband, :], equivalences)
         _fill_grids!(egrid, vgrid1, vgrid2, vgrid3, flat_coeffs, allvec_t, all_indices)
 
@@ -114,7 +114,7 @@ function _getBTPbands_kernel!(
             vb2 = scale .* real.(vec(plan * vgrid2))
             vb3 = scale .* real.(vec(plan * vgrid3))
 
-            @inbounds for k in 1:npts
+            @inbounds for k = 1:npts
                 vvband[iband, 1, 1, k] = vb1[k] * vb1[k]
                 vvband[iband, 1, 2, k] = vb1[k] * vb2[k]
                 vvband[iband, 1, 3, k] = vb1[k] * vb3[k]
@@ -146,7 +146,7 @@ Uses function barrier pattern for performance optimization:
 Note: lattvec is expected in Bohr (atomic units) and is converted to Ångström
 internally to match Python BoltzTraP2's velocity calculation conventions.
 =#
-function getBTPbands(coeffs, equivalences, lattvec; compute_velocity=true)
+function getBTPbands(coeffs, equivalences, lattvec; compute_velocity = true)
     dims = determine_fft_dims(equivalences)
     nbands = size(coeffs, 1)
     npts = prod(dims)
@@ -167,11 +167,12 @@ function getBTPbands(coeffs, equivalences, lattvec; compute_velocity=true)
     all_indices = Vector{CartesianIndex{3}}(undef, total_pts)
     k = 1
     for equiv in equivalences
-        for ir in 1:size(equiv, 1)
+        for ir = 1:size(equiv, 1)
             r1 = equiv[ir, 1]
             r2 = equiv[ir, 2]
             r3 = equiv[ir, 3]
-            all_indices[k] = CartesianIndex(mod(r1, d1) + 1, mod(r2, d2) + 1, mod(r3, d3) + 1)
+            all_indices[k] =
+                CartesianIndex(mod(r1, d1) + 1, mod(r2, d2) + 1, mod(r3, d3) + 1)
             k += 1
         end
     end
@@ -181,7 +182,16 @@ function getBTPbands(coeffs, equivalences, lattvec; compute_velocity=true)
     vvband = compute_velocity ? zeros(nbands, 3, 3, npts) : nothing
 
     # Call type-stable inner kernel
-    _getBTPbands_kernel!(eband, vvband, coeffs, equivalences, allvec_t, all_indices, dims, plan)
+    _getBTPbands_kernel!(
+        eband,
+        vvband,
+        coeffs,
+        equivalences,
+        allvec_t,
+        all_indices,
+        dims,
+        plan,
+    )
 
     return eband, vvband
 end
@@ -196,7 +206,7 @@ Uses the same optimization strategy as getBTPbands:
 2. Each thread gets its own work arrays
 3. Fills all 4 grids in a single loop per band
 =#
-function getBTPbands_parallel(coeffs, equivalences, lattvec; compute_velocity=true)
+function getBTPbands_parallel(coeffs, equivalences, lattvec; compute_velocity = true)
     dims = determine_fft_dims(equivalences)
     nbands = size(coeffs, 1)
     npts = prod(dims)
@@ -213,11 +223,12 @@ function getBTPbands_parallel(coeffs, equivalences, lattvec; compute_velocity=tr
     all_indices = Vector{CartesianIndex{3}}(undef, total_pts)
     k = 1
     for equiv in equivalences
-        for ir in 1:size(equiv, 1)
+        for ir = 1:size(equiv, 1)
             r1 = equiv[ir, 1]
             r2 = equiv[ir, 2]
             r3 = equiv[ir, 3]
-            all_indices[k] = CartesianIndex(mod(r1, d1) + 1, mod(r2, d2) + 1, mod(r3, d3) + 1)
+            all_indices[k] =
+                CartesianIndex(mod(r1, d1) + 1, mod(r2, d2) + 1, mod(r3, d3) + 1)
             k += 1
         end
     end
@@ -227,7 +238,7 @@ function getBTPbands_parallel(coeffs, equivalences, lattvec; compute_velocity=tr
     vvband = compute_velocity ? zeros(nbands, 3, 3, npts) : nothing
 
     # Parallel processing with thread-local work arrays
-    Threads.@threads for iband in 1:nbands
+    Threads.@threads for iband = 1:nbands
         # Thread-local work arrays
         egrid = zeros(ComplexF64, dims)
         vgrid1 = zeros(ComplexF64, dims)
@@ -244,7 +255,7 @@ function getBTPbands_parallel(coeffs, equivalences, lattvec; compute_velocity=tr
             vb2 = scale .* real.(vec(plan * vgrid2))
             vb3 = scale .* real.(vec(plan * vgrid3))
 
-            @inbounds for k in 1:npts
+            @inbounds for k = 1:npts
                 vvband[iband, 1, 1, k] = vb1[k] * vb1[k]
                 vvband[iband, 1, 2, k] = vb1[k] * vb2[k]
                 vvband[iband, 1, 3, k] = vb1[k] * vb3[k]

@@ -41,7 +41,7 @@ function get_equivalences(
     end
 
     # Convert to Vector of SVectors for internal functions
-    pos_vec = [SVector{3,Float64}(positions[i, :]) for i in 1:size(positions, 1)]
+    pos_vec = [SVector{3,Float64}(positions[i, :]) for i = 1:size(positions, 1)]
 
     # Get number of rotations
     nrot = calc_nrotations(lattvec, pos_vec, types, magmom; symprec)
@@ -53,7 +53,8 @@ function get_equivalences(
     bounds = compute_bounds(lattvec, radius)
 
     # Compute equivalence classes
-    equivalences = calc_sphere_quotient_set(lattvec, pos_vec, types, magmom, radius, bounds; symprec)
+    equivalences =
+        calc_sphere_quotient_set(lattvec, pos_vec, types, magmom, radius, bounds; symprec)
 
     return equivalences, radius, nrot
 end
@@ -64,11 +65,13 @@ end
 Run interpolation workflow on [`DFTData`](@ref) from loaders.
 
 # Arguments
-- `data`: [`DFTData`](@ref) from loaders ([`load_vasp`](@ref), [`load_qe`](@ref), [`load_wien2k`](@ref), [`load_gene`](@ref), [`load_abinit`](@ref), [`load_dftk`](@ref))
+
+  - `data`: [`DFTData`](@ref) from loaders ([`load_vasp`](@ref), [`load_qe`](@ref), [`load_wien2k`](@ref), [`load_gene`](@ref), [`load_abinit`](@ref), [`load_dftk`](@ref))
 
 See `run_interpolate(::NamedTuple; kwargs...)` for keyword arguments.
 
 # Returns
+
 [`InterpolationResult`](@ref) containing coefficients, equivalences, and metadata.
 """
 function run_interpolate(
@@ -119,7 +122,7 @@ function run_interpolate(data::DFTData{N}; kwargs...) where {N}
     error(
         "Spin-polarized calculations (nspin=$N) are not supported in v0.1.\n" *
         "Only non-magnetic materials (DFTData{1}) are supported.\n" *
-        "See: https://hsugawa8651.github.io/BoltzTraP.jl for supported features."
+        "See: https://hsugawa8651.github.io/BoltzTraP.jl for supported features.",
     )
 end
 
@@ -129,35 +132,39 @@ end
 Run interpolation workflow on pre-loaded band structure data (legacy interface).
 
 # Arguments
-- `data`: NamedTuple with band structure data (for backward compatibility)
+
+  - `data`: NamedTuple with band structure data (for backward compatibility)
 
 # Keyword Arguments
-- `source="unknown"`: Data source description for metadata
-- `output=nothing`: Output file path (no file saved if `nothing`)
-- `kpoints=5000`: Target number of k-points/equivalences
-- `multiplier=nothing`: Enhancement factor for k-points (alternative to `kpoints`)
-- `emin=-Inf`: Minimum energy relative to Fermi in Ha (no filter if `-Inf`)
-- `emax=+Inf`: Maximum energy relative to Fermi in Ha (no filter if `+Inf`)
-- `absolute=false`: Interpret emin/emax as absolute energies
-- `verbose=false`: Print progress information
-- `symprec=1e-5`: Symmetry precision
+
+  - `source="unknown"`: Data source description for metadata
+  - `output=nothing`: Output file path (no file saved if `nothing`)
+  - `kpoints=5000`: Target number of k-points/equivalences
+  - `multiplier=nothing`: Enhancement factor for k-points (alternative to `kpoints`)
+  - `emin=-Inf`: Minimum energy relative to Fermi in Ha (no filter if `-Inf`)
+  - `emax=+Inf`: Maximum energy relative to Fermi in Ha (no filter if `+Inf`)
+  - `absolute=false`: Interpret emin/emax as absolute energies
+  - `verbose=false`: Print progress information
+  - `symprec=1e-5`: Symmetry precision
 
 # Returns
+
 [`InterpolationResult`](@ref) containing coefficients, equivalences, and metadata.
 
 # Example
+
 ```julia
 # From VASP
 data = load_vasp("./Si.vasp")
-result = run_interpolate(data; source="VASP", kpoints=5000)
+result = run_interpolate(data; source = "VASP", kpoints = 5000)
 
 # From QE
 data = load_qe("./Si.qe")
-result = run_interpolate(data; source="QE")
+result = run_interpolate(data; source = "QE")
 
 # From DFTK (requires DFTK.jl loaded)
 data = load_dftk(scfres)
-result = run_interpolate(data; source="DFTK")
+result = run_interpolate(data; source = "DFTK")
 ```
 
 See also: [`load_vasp`](@ref), [`load_qe`](@ref), [`load_dftk`](@ref)
@@ -204,13 +211,14 @@ function run_interpolate(
 
     # 3. Get space group info
     sginfo = get_spacegroup_info(lattvec, positions', types; symprec)
-    verbose && println("  Space group: $(sginfo.spacegroup_number) ($(sginfo.international_symbol))")
+    verbose && println(
+        "  Space group: $(sginfo.spacegroup_number) ($(sginfo.international_symbol))",
+    )
 
     # 4. Compute equivalences
     verbose && println("Computing equivalences for ~$nkpt_target k-points...")
-    equivalences, radius, nrot = get_equivalences(
-        lattvec, positions', types, nothing, nkpt_target; symprec
-    )
+    equivalences, radius, nrot =
+        get_equivalences(lattvec, positions', types, nothing, nkpt_target; symprec)
     verbose && println("  Rotations: $nrot")
     verbose && println("  Radius: $(round(radius, digits=2))")
     verbose && println("  Equivalences: $(length(equivalences))")
@@ -236,8 +244,8 @@ function run_interpolate(
     end
 
     # Find bands within energy range
-    band_min = minimum(ebands_raw, dims=2)[:]
-    band_max = maximum(ebands_raw, dims=2)[:]
+    band_min = minimum(ebands_raw, dims = 2)[:]
+    band_max = maximum(ebands_raw, dims = 2)[:]
     band_mask = (band_max .>= emin_abs) .& (band_min .<= emax_abs)
     selected_bands = findall(band_mask)
 
@@ -247,7 +255,9 @@ function run_interpolate(
 
     ebands = ebands_raw[selected_bands, :]
     verbose && println("  Bands: $(length(selected_bands))/$nbands_total selected")
-    verbose && println("  Energy range: [$(round(emin_abs, digits=6)), $(round(emax_abs, digits=6))] Ha")
+    verbose && println(
+        "  Energy range: [$(round(emin_abs, digits=6)), $(round(emax_abs, digits=6))] Ha",
+    )
 
     # 6. Convert equivalences to matrix format for FourierInterpolator
     equiv_matrices = [hcat(eq...)' for eq in equivalences]
@@ -279,7 +289,7 @@ function run_interpolate(
         "spacegroup_symbol" => sginfo.international_symbol,
     )
 
-    result = InterpolationResult(interp; atoms=atoms, metadata=metadata)
+    result = InterpolationResult(interp; atoms = atoms, metadata = metadata)
 
     # 9. Save if output specified
     if !isnothing(output)
@@ -297,24 +307,28 @@ end
 Run the complete interpolation workflow on VASP data.
 
 # Arguments
-- `directory`: Path to directory containing vasprun.xml
+
+  - `directory`: Path to directory containing vasprun.xml
 
 # Keyword Arguments
-- `output=nothing`: Output file path (no file saved if `nothing`)
-- `kpoints=5000`: Target number of k-points/equivalences
-- `multiplier=nothing`: Enhancement factor for k-points (alternative to `kpoints`)
-- `emin=-Inf`: Minimum energy relative to Fermi in Ha (no filter if `-Inf`)
-- `emax=+Inf`: Maximum energy relative to Fermi in Ha (no filter if `+Inf`)
-- `absolute=false`: Interpret emin/emax as absolute energies
-- `verbose=false`: Print progress information
-- `symprec=1e-5`: Symmetry precision
+
+  - `output=nothing`: Output file path (no file saved if `nothing`)
+  - `kpoints=5000`: Target number of k-points/equivalences
+  - `multiplier=nothing`: Enhancement factor for k-points (alternative to `kpoints`)
+  - `emin=-Inf`: Minimum energy relative to Fermi in Ha (no filter if `-Inf`)
+  - `emax=+Inf`: Maximum energy relative to Fermi in Ha (no filter if `+Inf`)
+  - `absolute=false`: Interpret emin/emax as absolute energies
+  - `verbose=false`: Print progress information
+  - `symprec=1e-5`: Symmetry precision
 
 # Returns
+
 [`InterpolationResult`](@ref) containing coefficients, equivalences, and metadata.
 
 # Example
+
 ```julia
-result = run_interpolate("./Si.vasp"; kpoints=5000, verbose=true)
+result = run_interpolate("./Si.vasp"; kpoints = 5000, verbose = true)
 ```
 
 See also: [`run_integrate`](@ref), [`save_interpolation`](@ref)
@@ -342,7 +356,7 @@ function run_interpolate(
     verbose && println("Loading VASP data from $directory...")
     data = load_vasp(directory)
 
-    @debug "VASP data loaded" nkpts=size(data.kpoints,2) nbands=size(data.ebands,1) fermi=data.fermi
+    @debug "VASP data loaded" nkpts=size(data.kpoints, 2) nbands=size(data.ebands, 1) fermi=data.fermi
 
     return run_interpolate(
         data;
@@ -367,32 +381,36 @@ end
 Compute transport coefficients from interpolation result.
 
 # Arguments
-- `interp`: [`InterpolationResult`](@ref) from [`run_interpolate`](@ref)
-- `input`: Path to interpolation result file (.jld2) - alternative to `interp`
-- `mur`: Chemical potential values in Hartree (positional argument, optional).
-  Same name as Python BoltzTraP2 for compatibility.
+
+  - `interp`: [`InterpolationResult`](@ref) from [`run_interpolate`](@ref)
+  - `input`: Path to interpolation result file (.jld2) - alternative to `interp`
+  - `mur`: Chemical potential values in Hartree (positional argument, optional).
+    Same name as Python BoltzTraP2 for compatibility.
 
 # Keyword Arguments
-- `temperatures=[300.0]`: Vector of temperatures in K
-- `output=nothing`: Output file path (no file saved if `nothing`)
-- `bins=0`: Number of DOS histogram bins (auto if `0`)
-- `verbose=false`: Print progress information
+
+  - `temperatures=[300.0]`: Vector of temperatures in K
+  - `output=nothing`: Output file path (no file saved if `nothing`)
+  - `bins=0`: Number of DOS histogram bins (auto if `0`)
+  - `verbose=false`: Print progress information
 
 # Returns
+
 [`TransportResult`](@ref) containing σ, S, κ tensors, DOS, and metadata.
 
 # Examples
+
 ```julia
 # Direct from InterpolationResult (μ auto-generated)
 interp = run_interpolate("./Si.vasp")
-transport = run_integrate(interp; temperatures=[300.0])
+transport = run_integrate(interp; temperatures = [300.0])
 
 # From file
-transport = run_integrate("si_interp.jld2"; temperatures=[200.0, 300.0, 400.0])
+transport = run_integrate("si_interp.jld2"; temperatures = [200.0, 300.0, 400.0])
 
 # With explicit μ grid (positional argument, same as Python BoltzTraP2)
-mur = range(-0.5, 0.5, length=100) .* EV_TO_HA  # eV to Ha
-transport = run_integrate(interp, mur; temperatures=[300.0])
+mur = range(-0.5, 0.5, length = 100) .* EV_TO_HA  # eV to Ha
+transport = run_integrate(interp, mur; temperatures = [300.0])
 ```
 
 See also: [`run_interpolate`](@ref), [`save_integrate`](@ref)
@@ -427,13 +445,17 @@ function run_integrate(
     eband, vvband = getBTPbands(interp.coeffs, interp.equivalences, interp.lattvec)
     nbands, npts = size(eband)
     verbose && println("  Bands: $nbands, FFT points: $npts")
-    verbose && println("  Energy range: [$(round(minimum(eband), digits=4)), $(round(maximum(eband), digits=4))] Ha")
+    verbose && println(
+        "  Energy range: [$(round(minimum(eband), digits=4)), $(round(maximum(eband), digits=4))] Ha",
+    )
 
     # 2. Compute DOS and transport DOS
     npts_dos = bins > 0 ? bins : 500
     verbose && println("Computing DOS (bins=$npts_dos)...")
-    epsilon, dos, vvdos = BTPDOS(eband, vvband; npts=npts_dos)
-    verbose && println("  DOS energy range: [$(round(epsilon[1], digits=4)), $(round(epsilon[end], digits=4))] Ha")
+    epsilon, dos, vvdos = BTPDOS(eband, vvband; npts = npts_dos)
+    verbose && println(
+        "  DOS energy range: [$(round(epsilon[1], digits=4)), $(round(epsilon[end], digits=4))] Ha",
+    )
 
     # 3. Determine μ range (auto-generate from DOS grid)
     # margin = 9 * kB * T_max (ensures ~1e-4 accuracy at edges)
@@ -448,7 +470,9 @@ function run_integrate(
 
     μ_indices = findall(e -> e > μ_min && e < μ_max, epsilon)
     μ_range = epsilon[μ_indices]
-    verbose && println("  μ range (auto): $(length(μ_range)) points in [$(round(μ_min, digits=4)), $(round(μ_max, digits=4))] Ha")
+    verbose && println(
+        "  μ range (auto): $(length(μ_range)) points in [$(round(μ_min, digits=4)), $(round(μ_max, digits=4))] Ha",
+    )
 
     # 4. Solve for intrinsic chemical potential at each temperature
     verbose && println("Computing intrinsic μ for each temperature...")
@@ -456,12 +480,21 @@ function run_integrate(
     nT = length(Tr)
     μ0 = zeros(nT)
     for (iT, T) in enumerate(Tr)
-        μ0[iT] = solve_for_mu(epsilon, dos, nelect, T; dosweight, refine=true, try_center=true)
+        μ0[iT] = solve_for_mu(
+            epsilon,
+            dos,
+            nelect,
+            T;
+            dosweight,
+            refine = true,
+            try_center = true,
+        )
         verbose && println("  T=$(T)K: μ0=$(round(μ0[iT], digits=6)) Ha")
     end
 
     # Refined Fermi level (T=0)
-    fermi_Ha = solve_for_mu(epsilon, dos, nelect, 0.0; dosweight, refine=true, try_center=true)
+    fermi_Ha =
+        solve_for_mu(epsilon, dos, nelect, 0.0; dosweight, refine = true, try_center = true)
     verbose && println("  Refined Fermi: $(round(fermi_Ha, digits=6)) Ha")
 
     # 5. Compute Fermi integrals
@@ -511,15 +544,7 @@ function run_integrate(
         "dos" => dos,
     )
 
-    result = TransportResult(
-        Tr,
-        μ_range_eV,
-        σ_out,
-        S_out,
-        κ_out,
-        dos_info,
-        result_metadata,
-    )
+    result = TransportResult(Tr, μ_range_eV, σ_out, S_out, κ_out, dos_info, result_metadata)
 
     # 9. Save if output specified
     if !isnothing(output)
@@ -565,11 +590,13 @@ function run_integrate(
     # 2. Compute DOS and transport DOS
     npts_dos = bins > 0 ? bins : 500
     verbose && println("Computing DOS (bins=$npts_dos)...")
-    epsilon, dos, vvdos = BTPDOS(eband, vvband; npts=npts_dos)
+    epsilon, dos, vvdos = BTPDOS(eband, vvband; npts = npts_dos)
 
     # 3. Use provided μ range (same as Python BoltzTraP2 `mur` argument)
     μ_range = collect(Float64, mur)
-    verbose && println("  μ range (provided): $(length(μ_range)) points in [$(round(minimum(μ_range), digits=4)), $(round(maximum(μ_range), digits=4))] Ha")
+    verbose && println(
+        "  μ range (provided): $(length(μ_range)) points in [$(round(minimum(μ_range), digits=4)), $(round(maximum(μ_range), digits=4))] Ha",
+    )
 
     # 4. Solve for intrinsic chemical potential at each temperature
     verbose && println("Computing intrinsic μ for each temperature...")
@@ -577,12 +604,21 @@ function run_integrate(
     nT = length(Tr)
     μ0 = zeros(nT)
     for (iT, T) in enumerate(Tr)
-        μ0[iT] = solve_for_mu(epsilon, dos, nelect, T; dosweight, refine=true, try_center=true)
+        μ0[iT] = solve_for_mu(
+            epsilon,
+            dos,
+            nelect,
+            T;
+            dosweight,
+            refine = true,
+            try_center = true,
+        )
         verbose && println("  T=$(T)K: μ0=$(round(μ0[iT], digits=6)) Ha")
     end
 
     # Refined Fermi level (T=0)
-    fermi_Ha = solve_for_mu(epsilon, dos, nelect, 0.0; dosweight, refine=true, try_center=true)
+    fermi_Ha =
+        solve_for_mu(epsilon, dos, nelect, 0.0; dosweight, refine = true, try_center = true)
     verbose && println("  Refined Fermi: $(round(fermi_Ha, digits=6)) Ha")
 
     # 5. Compute Fermi integrals
@@ -630,15 +666,7 @@ function run_integrate(
         "dos" => dos,
     )
 
-    result = TransportResult(
-        Tr,
-        μ_range_eV,
-        σ_out,
-        S_out,
-        κ_out,
-        dos_info,
-        result_metadata,
-    )
+    result = TransportResult(Tr, μ_range_eV, σ_out, S_out, κ_out, dos_info, result_metadata)
 
     # 9. Save if output specified
     if !isnothing(output)
@@ -669,7 +697,9 @@ function run_integrate(
     verbose && println("Loading interpolation data from $input...")
     interp = load_interpolation(input)
 
-    @debug "Interpolation data loaded" nbands=size(interp.coeffs,1) nequiv=length(interp.equivalences)
+    @debug "Interpolation data loaded" nbands=size(interp.coeffs, 1) nequiv=length(
+        interp.equivalences,
+    )
 
     return run_integrate(interp; temperatures, output, bins, verbose)
 end
@@ -695,7 +725,6 @@ function run_integrate(
     return run_integrate(interp, mur; temperatures, output, bins, verbose)
 end
 
-
 # ============================================================================ 
 # Electron count and chemical potential functions
 # ============================================================================ 
@@ -715,7 +744,13 @@ Compute the electron count by integrating over the DOS.
 # Returns
 Electron count (negative value for comparison with N0).
 =#
-function calc_N(epsilon::AbstractVector, dos::AbstractVector, μ::Real, T::Real; dosweight::Real=2.0)
+function calc_N(
+    epsilon::AbstractVector,
+    dos::AbstractVector,
+    μ::Real,
+    T::Real;
+    dosweight::Real = 2.0,
+)
     if T == 0.0
         # Zero temperature: step function
         occ = ifelse.(epsilon .< μ, 1.0, 0.0)
@@ -760,9 +795,9 @@ function solve_for_mu(
     dos::AbstractVector,
     N0::Real,
     T::Real;
-    dosweight::Real=2.0,
-    refine::Bool=false,
-    try_center::Bool=false,
+    dosweight::Real = 2.0,
+    refine::Bool = false,
+    try_center::Bool = false,
 )
     n = length(epsilon)
 
@@ -803,7 +838,9 @@ function solve_for_mu(
         kBT = T * KB_AU
 
         # If μ is in a gap and far enough from edges, move to center
-        if try_center && kBT > 0 && min(hepsilon - μ, μ - lepsilon) >= FD_XMAX_GAP * kBT / 2.0
+        if try_center &&
+           kBT > 0 &&
+           min(hepsilon - μ, μ - lepsilon) >= FD_XMAX_GAP * kBT / 2.0
             pos = round(Int, 0.5 * (lpos + hpos))
             μ = epsilon[pos]
             center = true
@@ -820,7 +857,8 @@ function solve_for_mu(
             lmu, hmu = epsilon[lo], epsilon[hi]
             μ = _bisection_root(
                 μ_arg -> calc_N(epsilon, dos, μ_arg, T; dosweight) + N0,
-                lmu, hmu
+                lmu,
+                hmu,
             )
         end
     end
@@ -834,7 +872,7 @@ end
 Find root of f in interval [a, b] using bisection method.
 Return midpoint if root is not bracketed (fa * fb > 0).
 =#
-function _bisection_root(f, a::Real, b::Real; tol::Real=1e-12, maxiter::Int=100)
+function _bisection_root(f, a::Real, b::Real; tol::Real = 1e-12, maxiter::Int = 100)
     fa, fb = f(a), f(b)
 
     # Check if root is bracketed
@@ -843,7 +881,7 @@ function _bisection_root(f, a::Real, b::Real; tol::Real=1e-12, maxiter::Int=100)
         return 0.5 * (a + b)
     end
 
-    for _ in 1:maxiter
+    for _ = 1:maxiter
         c = 0.5 * (a + b)
         if (b - a) < tol
             return c

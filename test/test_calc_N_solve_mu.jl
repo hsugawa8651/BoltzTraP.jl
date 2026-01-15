@@ -31,7 +31,7 @@ using BoltzTraP: calc_N, solve_for_mu
             for (iμ, μ) in enumerate(mu_test)
                 N_julia = calc_N(epsilon, dos, μ, T; dosweight)
                 N_python = calc_N_ref[iT, iμ]
-                @test isapprox(N_julia, N_python; rtol=1e-6)
+                @test isapprox(N_julia, N_python; rtol = 1e-6)
             end
         end
     end
@@ -41,7 +41,15 @@ using BoltzTraP: calc_N, solve_for_mu
             for (iN, N0) in enumerate(N0_test)
                 μ_ref = solve_mu_basic_ref[iT, iN]
                 if !isnan(μ_ref)
-                    μ_julia = solve_for_mu(epsilon, dos, N0, T; dosweight, refine=false, try_center=false)
+                    μ_julia = solve_for_mu(
+                        epsilon,
+                        dos,
+                        N0,
+                        T;
+                        dosweight,
+                        refine = false,
+                        try_center = false,
+                    )
                     # Allow tolerance of 1 histogram bin
                     @test abs(μ_julia - μ_ref) <= de + 1e-10
                 end
@@ -54,7 +62,15 @@ using BoltzTraP: calc_N, solve_for_mu
             for (iN, N0) in enumerate(N0_test)
                 μ_ref = solve_mu_refine_ref[iT, iN]
                 if !isnan(μ_ref)
-                    μ_julia = solve_for_mu(epsilon, dos, N0, T; dosweight, refine=true, try_center=false)
+                    μ_julia = solve_for_mu(
+                        epsilon,
+                        dos,
+                        N0,
+                        T;
+                        dosweight,
+                        refine = true,
+                        try_center = false,
+                    )
                     # At T=0, bisection behavior may differ slightly; allow 2 bins
                     tol = T == 0.0 ? 2 * de : de / 10
                     @test abs(μ_julia - μ_ref) <= tol
@@ -68,7 +84,15 @@ using BoltzTraP: calc_N, solve_for_mu
             for (iN, N0) in enumerate(N0_test)
                 μ_ref = solve_mu_center_ref[iT, iN]
                 if !isnan(μ_ref)
-                    μ_julia = solve_for_mu(epsilon, dos, N0, T; dosweight, refine=true, try_center=true)
+                    μ_julia = solve_for_mu(
+                        epsilon,
+                        dos,
+                        N0,
+                        T;
+                        dosweight,
+                        refine = true,
+                        try_center = true,
+                    )
                     # At T=0, bisection behavior may differ slightly; allow 2 bins
                     tol = T == 0.0 ? 2 * de : de / 10
                     @test abs(μ_julia - μ_ref) <= tol

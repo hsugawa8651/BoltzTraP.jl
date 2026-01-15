@@ -11,25 +11,29 @@ Type definitions for BoltzTraP.jl.
 Container for DFT calculation results with spin parameter.
 
 # Type Parameter
-- `NSpin::Int`: Number of spin channels
-  - `1`: Non-spin-polarized (non-magnetic)
-  - `2`: Spin-polarized (collinear magnetic, ISPIN=2)
+
+  - `NSpin::Int`: Number of spin channels
+
+      + `1`: Non-spin-polarized (non-magnetic)
+      + `2`: Spin-polarized (collinear magnetic, ISPIN=2)
 
 # Fields
-- `lattice::Matrix{Float64}`: Lattice vectors (3×3) in Bohr, columns are vectors
-- `positions::Matrix{Float64}`: Atomic positions (3×natom) in fractional coordinates
-- `species::Vector{String}`: Element symbols
-- `kpoints::Matrix{Float64}`: K-points (3×nkpts) in fractional coordinates
-- `weights::Vector{Float64}`: K-point weights (nkpts,)
-- `ebands::Array{Float64,3}`: Band energies (nbands, nkpts, nspin) in Hartree
-- `occupations::Array{Float64,3}`: Occupations (nbands, nkpts, nspin)
-- `fermi::Float64`: Fermi energy in Hartree
-- `nelect::Float64`: Number of electrons
-- `magmom::Union{Nothing,Vector{Float64},Matrix{Float64}}`: Magnetic moments (optional)
+
+  - `lattice::Matrix{Float64}`: Lattice vectors (3×3) in Bohr, columns are vectors
+  - `positions::Matrix{Float64}`: Atomic positions (3×natom) in fractional coordinates
+  - `species::Vector{String}`: Element symbols
+  - `kpoints::Matrix{Float64}`: K-points (3×nkpts) in fractional coordinates
+  - `weights::Vector{Float64}`: K-point weights (nkpts,)
+  - `ebands::Array{Float64,3}`: Band energies (nbands, nkpts, nspin) in Hartree
+  - `occupations::Array{Float64,3}`: Occupations (nbands, nkpts, nspin)
+  - `fermi::Float64`: Fermi energy in Hartree
+  - `nelect::Float64`: Number of electrons
+  - `magmom::Union{Nothing,Vector{Float64},Matrix{Float64}}`: Magnetic moments (optional)
 
 # Notes
-- Non-collinear (spinor) calculations are not supported in v0.1
-- When `NSpin=2`, bands from both spin channels are stored separately
+
+  - Non-collinear (spinor) calculations are not supported in v0.1
+  - When `NSpin=2`, bands from both spin channels are stored separately
 """
 struct DFTData{NSpin}
     lattice::Matrix{Float64}

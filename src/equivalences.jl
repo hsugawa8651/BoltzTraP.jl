@@ -24,9 +24,9 @@ function lattice_points_in_sphere(lattvec, radius, bounds)
     sqnorms = Vector{Float64}()
 
     for I in CartesianIndices((
-        -bounds[1]:bounds[1],
-        -bounds[2]:bounds[2],
-        -bounds[3]:bounds[3],
+        (-bounds[1]):bounds[1],
+        (-bounds[2]):bounds[2],
+        (-bounds[3]):bounds[3],
     ))
         n = SVector{3,Int}(Tuple(I))
         norm_sq = n' * metric * n
@@ -72,7 +72,7 @@ function compute_equivalence_classes(points, sqnorms, rotations, symprec = 1e-5)
     # Mapping: -1 means not yet assigned
     mapping = fill(-1, n)
 
-    for i in 1:n
+    for i = 1:n
         point = points[i]
         sqnorm = sqnorms[i]
 
@@ -121,7 +121,7 @@ Group points into their equivalence classes.
 - Vector of matrices, where each matrix contains all equivalent points (as rows)
 =#
 function group_by_equivalence(points, mapping)
-    classes = Dict{Int, Vector{SVector{3,Int}}}()
+    classes = Dict{Int,Vector{SVector{3,Int}}}()
     for (i, rep) in enumerate(mapping)
         if !haskey(classes, rep)
             classes[rep] = SVector{3,Int}[]
@@ -178,8 +178,16 @@ function calc_sphere_quotient_set(
     bounds::AbstractVector{<:Integer};
     symprec::Real = 1e-5,
 )
-    pos_vec = [SVector{3,Float64}(positions[i, :]) for i in 1:size(positions, 1)]
-    return calc_sphere_quotient_set(lattvec, pos_vec, types, magmom, radius, bounds; symprec)
+    pos_vec = [SVector{3,Float64}(positions[i, :]) for i = 1:size(positions, 1)]
+    return calc_sphere_quotient_set(
+        lattvec,
+        pos_vec,
+        types,
+        magmom,
+        radius,
+        bounds;
+        symprec,
+    )
 end
 
 function calc_sphere_quotient_set(

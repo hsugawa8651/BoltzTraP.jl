@@ -16,7 +16,7 @@ Get symmetry rotation matrices for a crystal structure.
 # Returns
 - `rotations`: Vector of 3×3 integer rotation matrices
 =#
-function get_rotations(cell; magmoms=nothing, symprec=1e-5)
+function get_rotations(cell; magmoms = nothing, symprec = 1e-5)
     # TODO: Implement using Spglib.jl
     # For non-magnetic: get_dataset(cell, symprec).rotations
     # For collinear: get_symmetry_with_collinear_spin

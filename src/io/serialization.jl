@@ -17,22 +17,24 @@ using Dates
 Container for interpolation results from [`run_interpolate`](@ref).
 
 # Fields
-- `coeffs`: Fourier coefficients (nbands × neq)
-- `equivalences`: Vector of equivalence class matrices
-- `lattvec`: 3×3 lattice vectors (columns, in Bohr)
-- `atoms`: Atomic structure (positions, types) - optional
-- `metadata`: Dictionary with additional information
+
+  - `coeffs`: Fourier coefficients (nbands × neq)
+  - `equivalences`: Vector of equivalence class matrices
+  - `lattvec`: 3×3 lattice vectors (columns, in Bohr)
+  - `atoms`: Atomic structure (positions, types) - optional
+  - `metadata`: Dictionary with additional information
 
 # Metadata Keys
-- `fermi_energy`: Fermi energy in Ha
-- `nelect`: Number of electrons
-- `dosweight`: DOS weight (2.0 for non-spin-polarized)
-- `selected_bands`: Band indices used (UnitRange)
-- `spacegroup_number`: International space group number (1-230)
-- `spacegroup_symbol`: Space group symbol (e.g., "Fd-3m")
-- `source_file`: Original DFT file path
-- `creation_date`: ISO 8601 timestamp
-- `generator`: "BoltzTraP.jl"
+
+  - `fermi_energy`: Fermi energy in Ha
+  - `nelect`: Number of electrons
+  - `dosweight`: DOS weight (2.0 for non-spin-polarized)
+  - `selected_bands`: Band indices used (UnitRange)
+  - `spacegroup_number`: International space group number (1-230)
+  - `spacegroup_symbol`: Space group symbol (e.g., "Fd-3m")
+  - `source_file`: Original DFT file path
+  - `creation_date`: ISO 8601 timestamp
+  - `generator`: "BoltzTraP.jl"
 
 See also: [`run_interpolate`](@ref), [`run_integrate`](@ref), [`save_interpolation`](@ref), [`load_interpolation`](@ref)
 """
@@ -49,7 +51,11 @@ end
 
 Create InterpolationResult from a FourierInterpolator.
 """
-function InterpolationResult(interp::FourierInterpolator; atoms=nothing, metadata=Dict{String,Any}())
+function InterpolationResult(
+    interp::FourierInterpolator;
+    atoms = nothing,
+    metadata = Dict{String,Any}(),
+)
     # Convert equivalences to plain Matrix{Int} for serialization
     equivs = [Matrix{Int}(eq) for eq in interp.equivalences]
     lattvec = Matrix{Float64}(interp.lattvec)
@@ -74,13 +80,14 @@ Container for transport coefficients from [`run_integrate`](@ref).
 Contains transport coefficients and other quantities computed by BZ integration.
 
 # Fields
-- `temperatures`: Temperature array in Kelvin (K)
-- `mu_values`: Chemical potential array in eV
-- `sigma`: Electrical conductivity/τ tensor (3×3×nT×nμ)
-- `seebeck`: Seebeck coefficient tensor (3×3×nT×nμ) in V/K
-- `kappa`: Electronic thermal conductivity/τ tensor (3×3×nT×nμ)
-- `dos`: Density of states data (optional Dict with `epsilon`, `dos`, `vvdos`)
-- `metadata`: Dictionary with source info, creation date, etc.
+
+  - `temperatures`: Temperature array in Kelvin (K)
+  - `mu_values`: Chemical potential array in eV
+  - `sigma`: Electrical conductivity/τ tensor (3×3×nT×nμ)
+  - `seebeck`: Seebeck coefficient tensor (3×3×nT×nμ) in V/K
+  - `kappa`: Electronic thermal conductivity/τ tensor (3×3×nT×nμ)
+  - `dos`: Density of states data (optional Dict with `epsilon`, `dos`, `vvdos`)
+  - `metadata`: Dictionary with source info, creation date, etc.
 
 See also: [`run_integrate`](@ref), [`save_integrate`](@ref), [`load_integrate`](@ref)
 """
@@ -105,8 +112,9 @@ end
 Save interpolation results to file.
 
 Supported formats:
-- `.jld2`: Julia native (HDF5-based, fast)
-- `.bt2`: Python BoltzTraP2 compatible (JSON + LZMA)
+
+  - `.jld2`: Julia native (HDF5-based, fast)
+  - `.bt2`: Python BoltzTraP2 compatible (JSON + LZMA)
 """
 function save_interpolation(filename::String, result::InterpolationResult)
     ext = splitext(filename)[2]
@@ -148,8 +156,9 @@ end
 Save integration results to file.
 
 Supported formats:
-- `.jld2`: Julia native (full data)
-- `.csv`: Text format (scalar averages only)
+
+  - `.jld2`: Julia native (full data)
+  - `.csv`: Text format (scalar averages only)
 """
 function save_integrate(filename::String, result::TransportResult)
     ext = splitext(filename)[2]
@@ -183,12 +192,13 @@ end
 # ============================================================================
 
 function save_interpolation_jld2(filename::String, result::InterpolationResult)
-    jldsave(filename;
-        coeffs=result.coeffs,
-        equivalences=result.equivalences,
-        lattvec=result.lattvec,
-        atoms=result.atoms,
-        metadata=result.metadata
+    jldsave(
+        filename;
+        coeffs = result.coeffs,
+        equivalences = result.equivalences,
+        lattvec = result.lattvec,
+        atoms = result.atoms,
+        metadata = result.metadata,
     )
 end
 
@@ -199,19 +209,20 @@ function load_interpolation_jld2(filename::String)
         data["equivalences"],
         data["lattvec"],
         get(data, "atoms", nothing),
-        get(data, "metadata", Dict{String,Any}())
+        get(data, "metadata", Dict{String,Any}()),
     )
 end
 
 function save_integrate_jld2(filename::String, result::TransportResult)
-    jldsave(filename;
-        temperatures=result.temperatures,
-        mu_values=result.mu_values,
-        sigma=result.sigma,
-        seebeck=result.seebeck,
-        kappa=result.kappa,
-        dos=result.dos,
-        metadata=result.metadata
+    jldsave(
+        filename;
+        temperatures = result.temperatures,
+        mu_values = result.mu_values,
+        sigma = result.sigma,
+        seebeck = result.seebeck,
+        kappa = result.kappa,
+        dos = result.dos,
+        metadata = result.metadata,
     )
 end
 
@@ -224,7 +235,7 @@ function load_integrate_jld2(filename::String)
         data["seebeck"],
         data["kappa"],
         get(data, "dos", nothing),
-        get(data, "metadata", Dict{String,Any}())
+        get(data, "metadata", Dict{String,Any}()),
     )
 end
 
@@ -248,7 +259,7 @@ function to_bt2_dict(result::InterpolationResult)
         "atoms" => result.atoms,
         "metadata" => result.metadata,
         "format_version" => "1.0",
-        "generator" => "BoltzTraP.jl"
+        "generator" => "BoltzTraP.jl",
     )
 end
 
@@ -262,8 +273,8 @@ function from_bt2_dict(data::Dict)
     coeffs = complex.(coeffs_real, coeffs_imag)
 
     # Reconstruct equivalences
-    equivalences = [reduce(vcat, [reshape(row, 1, :) for row in eq])
-                    for eq in data["equivalences"]]
+    equivalences =
+        [reduce(vcat, [reshape(row, 1, :) for row in eq]) for eq in data["equivalences"]]
     equivalences = [Matrix{Int}(eq) for eq in equivalences]
 
     # Reconstruct lattice vectors
@@ -299,8 +310,10 @@ Check if data is in Python BoltzTraP2 format.
 Python format: [data, equivalences, coeffs, metadata] array with BoltzTraP2_type markers.
 =#
 function _is_python_bt2_format(data)
-    data isa AbstractVector && length(data) == 4 &&
-    data[1] isa AbstractDict && get(data[1], "BoltzTraP2_type", "") == "DFTData"
+    data isa AbstractVector &&
+        length(data) == 4 &&
+        data[1] isa AbstractDict &&
+        get(data[1], "BoltzTraP2_type", "") == "DFTData"
 end
 
 #=
@@ -316,8 +329,10 @@ function _convert_python_bt2_array(obj)
             real_data = obj["real"]
             imag_data = obj["imag"]
             # Convert nested vectors to matrix (nbands × neq)
-            real_part = reduce(vcat, [reshape(collect(Float64, row), 1, :) for row in real_data])
-            imag_part = reduce(vcat, [reshape(collect(Float64, row), 1, :) for row in imag_data])
+            real_part =
+                reduce(vcat, [reshape(collect(Float64, row), 1, :) for row in real_data])
+            imag_part =
+                reduce(vcat, [reshape(collect(Float64, row), 1, :) for row in imag_data])
             return complex.(real_part, imag_part)
         else
             # Regular array
@@ -405,11 +420,12 @@ Cell data may be wrapped in BoltzTraP2_type format.
 =#
 function _extract_cell_matrix(cell_data)
     # Check if cell is wrapped in BoltzTraP2_type format
-    actual_data = if cell_data isa AbstractDict && get(cell_data, "BoltzTraP2_type", "") == "Array"
-        cell_data["data"]
-    else
-        cell_data
-    end
+    actual_data =
+        if cell_data isa AbstractDict && get(cell_data, "BoltzTraP2_type", "") == "Array"
+            cell_data["data"]
+        else
+            cell_data
+        end
 
     # actual_data is a 3x3 nested array (each row is a lattice vector)
     rows = Vector{Vector{Float64}}()
@@ -492,24 +508,33 @@ function save_integrate_csv(filename::String, result::TransportResult)
         println(io, "#")
         println(io, "T,mu,sigma,S,kappa_e")
 
-        for iT in 1:nT
+        for iT = 1:nT
             T = result.temperatures[iT]
-            for iμ in 1:nμ
+            for iμ = 1:nμ
                 μ = result.mu_values[iμ]
 
                 # Trace averages (diagonal elements)
-                σ_avg = (result.sigma[1, 1, iT, iμ] +
-                         result.sigma[2, 2, iT, iμ] +
-                         result.sigma[3, 3, iT, iμ]) / 3
+                σ_avg =
+                    (
+                        result.sigma[1, 1, iT, iμ] +
+                        result.sigma[2, 2, iT, iμ] +
+                        result.sigma[3, 3, iT, iμ]
+                    ) / 3
 
-                S_avg = (result.seebeck[1, 1, iT, iμ] +
-                         result.seebeck[2, 2, iT, iμ] +
-                         result.seebeck[3, 3, iT, iμ]) / 3
+                S_avg =
+                    (
+                        result.seebeck[1, 1, iT, iμ] +
+                        result.seebeck[2, 2, iT, iμ] +
+                        result.seebeck[3, 3, iT, iμ]
+                    ) / 3
                 S_avg_uV = S_avg * 1e6  # Convert V/K to μV/K
 
-                κ_avg = (result.kappa[1, 1, iT, iμ] +
-                         result.kappa[2, 2, iT, iμ] +
-                         result.kappa[3, 3, iT, iμ]) / 3
+                κ_avg =
+                    (
+                        result.kappa[1, 1, iT, iμ] +
+                        result.kappa[2, 2, iT, iμ] +
+                        result.kappa[3, 3, iT, iμ]
+                    ) / 3
 
                 println(io, "$T,$μ,$σ_avg,$S_avg_uV,$κ_avg")
             end
@@ -531,11 +556,14 @@ function save_integrate_trace_csv(filename::String, result::TransportResult)
         println(io, "# BoltzTraP.jl Transport Results (Diagonal Components)")
         println(io, "# Generated: $(now())")
         println(io, "#")
-        println(io, "T,mu,sigma_xx,sigma_yy,sigma_zz,S_xx,S_yy,S_zz,kappa_xx,kappa_yy,kappa_zz")
+        println(
+            io,
+            "T,mu,sigma_xx,sigma_yy,sigma_zz,S_xx,S_yy,S_zz,kappa_xx,kappa_yy,kappa_zz",
+        )
 
-        for iT in 1:nT
+        for iT = 1:nT
             T = result.temperatures[iT]
-            for iμ in 1:nμ
+            for iμ = 1:nμ
                 μ = result.mu_values[iμ]
 
                 σ_xx = result.sigma[1, 1, iT, iμ]
@@ -566,8 +594,14 @@ end
 Legacy API - saves interpolation data.
 Prefer using `save_interpolation` with InterpolationResult or FourierInterpolator.
 =#
-function save_calculation(filename::String, lattvec, equivalences, coeffs;
-    atoms=nothing, metadata=nothing)
+function save_calculation(
+    filename::String,
+    lattvec,
+    equivalences,
+    coeffs;
+    atoms = nothing,
+    metadata = nothing,
+)
     meta = isnothing(metadata) ? Dict{String,Any}() : metadata
     equivs = [Matrix{Int}(eq) for eq in equivalences]
     result = InterpolationResult(coeffs, equivs, Matrix{Float64}(lattvec), atoms, meta)
@@ -582,6 +616,11 @@ Prefer using `load_interpolation` which returns InterpolationResult.
 =#
 function load_calculation(filename::String)
     result = load_interpolation(filename)
-    return (result.lattvec, result.equivalences, result.coeffs, result.atoms, result.metadata)
+    return (
+        result.lattvec,
+        result.equivalences,
+        result.coeffs,
+        result.atoms,
+        result.metadata,
+    )
 end
-

@@ -17,9 +17,9 @@ using BoltzTraP
     kpoints = [0.0 0.5; 0.0 0.5; 0.0 0.5]  # 3×2
     weights = [0.5, 0.5]
     ebands_nspin1 = reshape([-0.1, 0.1, -0.15, 0.05], 2, 2, 1)  # 2 bands, 2 kpts, 1 spin
-    ebands_nspin2 = cat(ebands_nspin1, ebands_nspin1 .+ 0.01; dims=3)  # 2 spins
+    ebands_nspin2 = cat(ebands_nspin1, ebands_nspin1 .+ 0.01; dims = 3)  # 2 spins
     occupations_nspin1 = reshape([1.0, 0.0, 1.0, 0.0], 2, 2, 1)
-    occupations_nspin2 = cat(occupations_nspin1, occupations_nspin1; dims=3)
+    occupations_nspin2 = cat(occupations_nspin1, occupations_nspin1; dims = 3)
     fermi = 0.0
     nelect = 4.0
 
@@ -231,5 +231,4 @@ using BoltzTraP
         @test typeof(data2) == DFTData{2}
         @test isconcretetype(typeof(data2))
     end
-
 end

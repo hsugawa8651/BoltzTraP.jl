@@ -11,7 +11,7 @@ using StaticArrays
 
     # Create minimal test data
     coeffs = rand(ComplexF64, 4, 100)
-    equivalences = [rand(-5:5, 10, 3) for _ in 1:100]
+    equivalences = [rand(-5:5, 10, 3) for _ = 1:100]
     lattvec = SMatrix{3,3}(rand(3, 3))
 
     @testset "InterpolationResult contains spintype" begin
@@ -66,7 +66,15 @@ using StaticArrays
             "spintype" => "Unpolarized",
         )
 
-        result = TransportResult(temperatures, mu_values, sigma, seebeck, kappa, nothing, metadata)
+        result = TransportResult(
+            temperatures,
+            mu_values,
+            sigma,
+            seebeck,
+            kappa,
+            nothing,
+            metadata,
+        )
 
         @test haskey(result.metadata, "spintype")
         @test result.metadata["spintype"] == "Unpolarized"
@@ -80,12 +88,17 @@ using StaticArrays
         sigma = zeros(3, 3, nT, nμ)
         seebeck = zeros(3, 3, nT, nμ)
         kappa = zeros(3, 3, nT, nμ)
-        metadata = Dict{String,Any}(
-            "source" => "test",
-            "spintype" => "Unpolarized",
-        )
+        metadata = Dict{String,Any}("source" => "test", "spintype" => "Unpolarized")
 
-        result = TransportResult(temperatures, mu_values, sigma, seebeck, kappa, nothing, metadata)
+        result = TransportResult(
+            temperatures,
+            mu_values,
+            sigma,
+            seebeck,
+            kappa,
+            nothing,
+            metadata,
+        )
 
         mktempdir() do dir
             path = joinpath(dir, "test_transport.jld2")
@@ -96,5 +109,4 @@ using StaticArrays
             @test loaded.metadata["spintype"] == "Unpolarized"
         end
     end
-
 end

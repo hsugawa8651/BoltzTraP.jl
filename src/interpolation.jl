@@ -69,21 +69,27 @@ end
 
 # Error dispatch for non-AbstractInterpolator types
 function interpolate_bands(interp, kpoints)
-    throw(ArgumentError(
-        "interpolate_bands expects a concrete subtype of AbstractInterpolator, got $(typeof(interp))."
-    ))
+    throw(
+        ArgumentError(
+            "interpolate_bands expects a concrete subtype of AbstractInterpolator, got $(typeof(interp)).",
+        ),
+    )
 end
 
 function interpolate_velocities(interp, kpoints)
-    throw(ArgumentError(
-        "interpolate_velocities expects a concrete subtype of AbstractInterpolator, got $(typeof(interp))."
-    ))
+    throw(
+        ArgumentError(
+            "interpolate_velocities expects a concrete subtype of AbstractInterpolator, got $(typeof(interp)).",
+        ),
+    )
 end
 
 function interpolate(interp, kpoints)
-    throw(ArgumentError(
-        "interpolate expects a concrete subtype of AbstractInterpolator, got $(typeof(interp))."
-    ))
+    throw(
+        ArgumentError(
+            "interpolate expects a concrete subtype of AbstractInterpolator, got $(typeof(interp)).",
+        ),
+    )
 end
 
 # ============================================================================
@@ -106,9 +112,13 @@ Convenience function that creates a FourierInterpolator and interpolates at new 
 - `ebands`: Interpolated band energies (nbands × nk_new)
 - `vbands`: Group velocities (3 × nbands × nk_new)
 =#
-function interpolate(kpoints::AbstractMatrix, energies::AbstractMatrix,
-                     equivalences::Vector, lattvec::AbstractMatrix,
-                     new_kpoints::AbstractMatrix)
+function interpolate(
+    kpoints::AbstractMatrix,
+    energies::AbstractMatrix,
+    equivalences::Vector,
+    lattvec::AbstractMatrix,
+    new_kpoints::AbstractMatrix,
+)
     interp = FourierInterpolator(kpoints, energies, equivalences, lattvec)
     return interpolate(interp, new_kpoints)
 end
@@ -121,9 +131,13 @@ Convenience function that creates a FourierInterpolator and interpolates band en
 # Returns
 - `ebands`: Interpolated band energies (nbands × nk_new)
 =#
-function interpolate_bands(kpoints::AbstractMatrix, energies::AbstractMatrix,
-                           equivalences::Vector, lattvec::AbstractMatrix,
-                           new_kpoints::AbstractMatrix)
+function interpolate_bands(
+    kpoints::AbstractMatrix,
+    energies::AbstractMatrix,
+    equivalences::Vector,
+    lattvec::AbstractMatrix,
+    new_kpoints::AbstractMatrix,
+)
     interp = FourierInterpolator(kpoints, energies, equivalences, lattvec)
     return interpolate_bands(interp, new_kpoints)
 end
@@ -136,9 +150,13 @@ Convenience function that creates a FourierInterpolator and interpolates group v
 # Returns
 - `vbands`: Group velocities (3 × nbands × nk_new)
 =#
-function interpolate_velocities(kpoints::AbstractMatrix, energies::AbstractMatrix,
-                                equivalences::Vector, lattvec::AbstractMatrix,
-                                new_kpoints::AbstractMatrix)
+function interpolate_velocities(
+    kpoints::AbstractMatrix,
+    energies::AbstractMatrix,
+    equivalences::Vector,
+    lattvec::AbstractMatrix,
+    new_kpoints::AbstractMatrix,
+)
     interp = FourierInterpolator(kpoints, energies, equivalences, lattvec)
     return interpolate_velocities(interp, new_kpoints)
 end
@@ -190,12 +208,14 @@ nbands(interp::FourierInterpolator) = size(interp.coeffs, 1)
 
 # Implement abstract interface
 function interpolate_bands(interp::FourierInterpolator, kpoints)
-    ebands, _ = getBands(kpoints, interp.equivalences, Matrix(interp.lattvec), interp.coeffs)
+    ebands, _ =
+        getBands(kpoints, interp.equivalences, Matrix(interp.lattvec), interp.coeffs)
     return ebands
 end
 
 function interpolate_velocities(interp::FourierInterpolator, kpoints)
-    _, vbands = getBands(kpoints, interp.equivalences, Matrix(interp.lattvec), interp.coeffs)
+    _, vbands =
+        getBands(kpoints, interp.equivalences, Matrix(interp.lattvec), interp.coeffs)
     return vbands
 end
 
@@ -231,13 +251,12 @@ function compute_phase_factors(kpoints, equivalences)
         # Vectorized: matrix multiply (nk, 3) * (3, nstar) -> (nk, nstar)
         dot_products = kpoints * equiv'
         # exp and sum over stars (dims=2)
-        phase_sum = sum(exp.(tpii .* dot_products), dims=2)
+        phase_sum = sum(exp.(tpii .* dot_products), dims = 2)
         phase[:, j] = vec(phase_sum) ./ nstar
     end
 
     return phase
 end
-
 
 #=
     compute_regularization_weights(equivalences, lattvec; C1=0.75, C2=0.75)
@@ -247,7 +266,7 @@ Compute regularization weights for Fourier fitting.
 Uses the form: ρ(x) = 1 / ((1 - C1*x²)² + C2*x⁶)
 where x = |R| / |R₁| (normalized by first non-zero R).
 =#
-function compute_regularization_weights(equivalences, lattvec; C1=0.75, C2=0.75)
+function compute_regularization_weights(equivalences, lattvec; C1 = 0.75, C2 = 0.75)
     # Get representative vectors and their norms
     Rvecs = [equiv[1, :] for equiv in equivalences]
     norms = [norm(lattvec' * R) for R in Rvecs]
@@ -289,10 +308,10 @@ function fitde3D(kpoints, energies, equivalences, lattvec)
 
     # Energy differences (relative to last k-point)
     # De has shape (nbands, nk-1) in Julia, corresponds to De.T in Python
-    De = energies[:, 1:end-1] .- energies[:, end:end]
+    De = energies[:, 1:(end-1)] .- energies[:, end:end]
 
     # Phase differences: phaseR (nk-1, neq)
-    phaseR = phase[1:end-1, :] .- phase[end:end, :]
+    phaseR = phase[1:(end-1), :] .- phase[end:end, :]
 
     # Build regularized matrix (matches Python exactly)
     # Python: Hmat = (phaseR[:, 1:] @ (phaseR[:, 1:] * rhoi[1:]).conj().T).real
@@ -358,7 +377,7 @@ function getBands(kpoints, equivalences, lattvec, coeffs)
         phase0 = exp.(tpii .* dot_products)
 
         # Sum over stars, normalized
-        phase[j, :] = vec(sum(phase0, dims=2)) ./ ns
+        phase[j, :] = vec(sum(phase0, dims = 2)) ./ ns
 
         # Velocity phase factor: 1j * lattvec @ equiv.T
         # vv = (3, ns)
@@ -378,11 +397,10 @@ function getBands(kpoints, equivalences, lattvec, coeffs)
     # We want (3, nbands, nk)
     # Note: Negate to match Python sign convention
     vgrid = zeros(3, nbands, nk)
-    for idir in 1:3
+    for idir = 1:3
         # phaseR[:, :, idir] is (neq, nk)
         vgrid[idir, :, :] = -real(coeffs * phaseR[:, :, idir])
     end
 
     return egrid, vgrid
 end
-

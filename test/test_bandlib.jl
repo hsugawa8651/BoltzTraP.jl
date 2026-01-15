@@ -10,16 +10,15 @@ using Random
 using Statistics: mean
 
 @testset "Band Library (transport)" begin
-
     TEST_DIR = @__DIR__
     DATA_DIR = joinpath(TEST_DIR, "data")
 
     @testset "DOS parabolic band" begin
         # Generate a set of electron energies from a single parabolic band
         L = 5.0
-        x = range(-L, L, length=201)
-        y = range(-L, L, length=201)
-        z = range(-L, L, length=201)
+        x = range(-L, L, length = 201)
+        y = range(-L, L, length = 201)
+        z = range(-L, L, length = 201)
 
         # Create points and filter to sphere
         points = [(xi, yi, zi) for xi in x for yi in y for zi in z]
@@ -69,7 +68,7 @@ using Statistics: mean
 
     @testset "Fermi-Dirac integration" begin
         # Test basic Fermi-Dirac integration properties
-        epsilon = collect(range(-0.1, 0.1, length=1000))
+        epsilon = collect(range(-0.1, 0.1, length = 1000))
         de = epsilon[2] - epsilon[1]
 
         # Parabolic DOS
@@ -146,18 +145,18 @@ using Statistics: mean
         @test ndims(kappa_ref) == 4
 
         # Conductivity should be positive (diagonal elements)
-        @test all(all(cond_ref[:, :, i, i] .>= 0) for i in 1:3)
+        @test all(all(cond_ref[:, :, i, i] .>= 0) for i = 1:3)
     end
 
     @testset "calc_N temperature dependence" begin
         # |N| should be monotonically increasing with T for a single band
-        epsilon = collect(range(0.0, 0.1, length=1000))
+        epsilon = collect(range(0.0, 0.1, length = 1000))
         de = epsilon[2] - epsilon[1]
         dos = sqrt.(epsilon)
         dos ./= sum(dos) * de
 
         μ = 0.05 * maximum(epsilon)
-        T_range = range(50.0, 600.0, length=20)
+        T_range = range(50.0, 600.0, length = 20)
 
         N_vals = Float64[]
         for T in T_range
@@ -175,7 +174,7 @@ using Statistics: mean
 
     @testset "Heat capacity properties" begin
         # Test basic properties of heat capacity calculation
-        epsilon = collect(range(0.0, 0.1, length=10000))
+        epsilon = collect(range(0.0, 0.1, length = 10000))
         de = epsilon[2] - epsilon[1]
         dos = sqrt.(epsilon)
         dos ./= sum(dos) * de
@@ -190,8 +189,8 @@ using Statistics: mean
         df1 = BoltzTraP.dfermi_dirac_de(epsilon, μ, kT1)
         df2 = BoltzTraP.dfermi_dirac_de(epsilon, μ, kT2)
 
-        cv1 = -sum((epsilon .- μ).^2 .* df1 .* dos) * de
-        cv2 = -sum((epsilon .- μ).^2 .* df2 .* dos) * de
+        cv1 = -sum((epsilon .- μ) .^ 2 .* df1 .* dos) * de
+        cv2 = -sum((epsilon .- μ) .^ 2 .* df2 .* dos) * de
 
         # Higher T should have higher cv (more thermal smearing)
         @test cv2 > cv1
@@ -201,4 +200,33 @@ using Statistics: mean
         @test cv2 > 0
     end
 
+    @testset "calc_cv reference test" begin
+        # Load Python BoltzTraP2 reference data
+        REFTEST_DATA = joinpath(@__DIR__, "..", "reftest", "data")
+        ref_file = joinpath(REFTEST_DATA, "cv_reference.npz")
+        if !isfile(ref_file)
+            @warn "Reference file not found: $ref_file"
+            @test_skip "Reference data not available"
+            return
+        end
+
+        ref = npzread(ref_file)
+
+        # Call Julia calc_cv
+        cv = BoltzTraP.calc_cv(
+            ref["epsilon"],
+            ref["dos"],
+            ref["mu_range"],
+            ref["T_range"];
+            dosweight = ref["dosweight"],
+        )
+
+        # Test shape: (nT, nμ)
+        @test size(cv) == (length(ref["T_range"]), length(ref["mu_range"]))
+
+        # Test values match Python BoltzTraP2
+        # Note: rtol=1e-5 due to small difference in KB_AU values between
+        # Julia (CODATA 2018) and Python BoltzTraP2 (different source)
+        @test isapprox(cv, ref["cv"], rtol = 1e-5)
+    end
 end

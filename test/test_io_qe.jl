@@ -6,7 +6,6 @@ using Test
 using BoltzTraP: read_qe_bands_gnu, read_qe_kpoints, read_qe_xml, read_qe_output
 
 @testset "Quantum ESPRESSO I/O" begin
-
     @testset "read_qe_bands_gnu" begin
         # Create a minimal bands.dat.gnu file
         # Format: k_distance energy
@@ -237,5 +236,4 @@ using BoltzTraP: read_qe_bands_gnu, read_qe_kpoints, read_qe_xml, read_qe_output
             @test data.ebands[6, 1] ≈ 9.2345
         end
     end
-
 end

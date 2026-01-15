@@ -31,19 +31,19 @@ for band energies. Support VASP, Quantum ESPRESSO, and other formats.
 
 # Arguments
 
-- `directory`: Directory containing DFT output files
+  - `directory`: Directory containing DFT output files
 
 # Options
 
-- `-f, --format <fmt>`: DFT format (auto, vasp, qe). Default: auto-detect
-- `-o, --output <file>`: Output file path (default: based on input directory)
-- `-k, --kpoints <n>`: Target number of k-points/equivalences (default: 5000)
-- `-m, --multiplier <n>`: Multiplier for k-points (alternative to --kpoints)
-- `--emin <e>`: Minimum energy relative to Fermi in Ha (default: -Inf)
-- `--emax <e>`: Maximum energy relative to Fermi in Ha (default: +Inf)
-- `--absolute`: Interpret emin/emax as absolute energies
-- `-v, --verbose`: Print progress information
-- `--debug`: Enable debug logging (detailed internal info)
+  - `-f, --format <fmt>`: DFT format (auto, vasp, qe). Default: auto-detect
+  - `-o, --output <file>`: Output file path (default: based on input directory)
+  - `-k, --kpoints <n>`: Target number of k-points/equivalences (default: 5000)
+  - `-m, --multiplier <n>`: Multiplier for k-points (alternative to --kpoints)
+  - `--emin <e>`: Minimum energy relative to Fermi in Ha (default: -Inf)
+  - `--emax <e>`: Maximum energy relative to Fermi in Ha (default: +Inf)
+  - `--absolute`: Interpret emin/emax as absolute energies
+  - `-v, --verbose`: Print progress information
+  - `--debug`: Enable debug logging (detailed internal info)
 
 # Examples
 
@@ -106,7 +106,7 @@ boltztrap interpolate ./calculation --debug  # with debug output
         error("Unknown format: $format. Supported: auto, vasp, qe")
     end
 
-    @debug "DFT data loaded" format nkpts=size(data.kpoints,2) nbands=size(data.ebands,1)
+    @debug "DFT data loaded" format nkpts=size(data.kpoints, 2) nbands=size(data.ebands, 1)
 
     # Run interpolation
     result = run_interpolate(
@@ -138,18 +138,19 @@ Seebeck coefficient, and thermal conductivity.
 
 # Arguments
 
-- `input`: Path to interpolation result file (.jld2 or .bt2)
+  - `input`: Path to interpolation result file (.jld2 or .bt2)
 
 # Options
 
-- `-t, --temperature <T>`: Temperature(s) in K. Formats:
-    - Single value: `"300"` → [300.0]
-    - Range: `"100:500:50"` (start:stop:step) → [100.0, 150.0, 200.0, ..., 500.0]
-    - List: `"100,200,300"` → [100.0, 200.0, 300.0]
-- `-o, --output <file>`: Output file path (default: based on input)
-- `-b, --bins <n>`: Number of DOS histogram bins (default: auto)
-- `-v, --verbose`: Print progress information
-- `--debug`: Enable debug logging (detailed internal info)
+  - `-t, --temperature <T>`: Temperature(s) in K. Formats:
+
+      + Single value: `"300"` → [300.0]
+      + Range: `"100:500:50"` (start:stop:step) → [100.0, 150.0, 200.0, ..., 500.0]
+      + List: `"100,200,300"` → [100.0, 200.0, 300.0]
+  - `-o, --output <file>`: Output file path (default: based on input)
+  - `-b, --bins <n>`: Number of DOS histogram bins (default: auto)
+  - `-v, --verbose`: Print progress information
+  - `--debug`: Enable debug logging (detailed internal info)
 
 # Examples
 
@@ -248,7 +249,7 @@ transport result files (.jld2).
 
 # Arguments
 
-- `file`: Path to result file (.jld2 or .bt2)
+  - `file`: Path to result file (.jld2 or .bt2)
 
 # Examples
 
@@ -274,10 +275,15 @@ Parse tensor component string to indices.
 function _parse_component(s::String)::Tuple{Int,Int}
     s = lowercase(strip(s))
     component_map = Dict(
-        "xx" => (1, 1), "yy" => (2, 2), "zz" => (3, 3),
-        "xy" => (1, 2), "yx" => (2, 1),
-        "xz" => (1, 3), "zx" => (3, 1),
-        "yz" => (2, 3), "zy" => (3, 2),
+        "xx" => (1, 1),
+        "yy" => (2, 2),
+        "zz" => (3, 3),
+        "xy" => (1, 2),
+        "yx" => (2, 1),
+        "xz" => (1, 3),
+        "zx" => (3, 1),
+        "yz" => (2, 3),
+        "zy" => (3, 2),
     )
     if haskey(component_map, s)
         return component_map[s]
@@ -340,16 +346,16 @@ chemical potential or temperature.
 
 # Arguments
 
-- `file`: Path to transport result file (.jld2)
+  - `file`: Path to transport result file (.jld2)
 
 # Options
 
-- `-q, --quantity <name>`: Quantity to plot (sigma, seebeck, kappa, dos, n). Default: sigma
-- `-c, --component <ij>`: Tensor component (xx, yy, zz, xy, xz, yz). Default: xx
-- `-a, --abscissa <var>`: X-axis variable (mu or T). Default: mu
-- `-t, --temperature <T>`: Temperature in K for mu plot. Default: 300
-- `-m, --mu <μ>`: Chemical potential in Ha for T plot. Default: Fermi energy
-- `-o, --output <file>`: Output file (PNG/PDF). Default: display
+  - `-q, --quantity <name>`: Quantity to plot (sigma, seebeck, kappa, dos, n). Default: sigma
+  - `-c, --component <ij>`: Tensor component (xx, yy, zz, xy, xz, yz). Default: xx
+  - `-a, --abscissa <var>`: X-axis variable (mu or T). Default: mu
+  - `-t, --temperature <T>`: Temperature in K for mu plot. Default: 300
+  - `-m, --mu <μ>`: Chemical potential in Ha for T plot. Default: Fermi energy
+  - `-o, --output <file>`: Output file (PNG/PDF). Default: display
 
 # Examples
 
@@ -432,7 +438,8 @@ boltztrap plot transport.jld2 -q sigma -t 300 -o sigma_300K.png
         mu_eV = mu_values .- fermi_eV  # Both in eV now
 
         p = Plots.plot(
-            mu_eV, y_data;
+            mu_eV,
+            y_data;
             xlabel = "μ - εF (eV)",
             ylabel = qlabel,
             title = "$(uppercase(quantity)) at T = $(round(actual_T; digits=1)) K",
@@ -467,7 +474,8 @@ boltztrap plot transport.jld2 -q sigma -t 300 -o sigma_300K.png
         mu_rel_eV = actual_mu - fermi_eV  # Both in eV
 
         p = Plots.plot(
-            temperatures, y_data;
+            temperatures,
+            y_data;
             xlabel = "Temperature (K)",
             ylabel = qlabel,
             title = "$(uppercase(quantity)) at μ - εF = $(round(mu_rel_eV; digits=3)) eV",
@@ -501,7 +509,7 @@ function _parse_kpath_string(kpath_str::String)
     if length(parts) < 2
         error(
             "Invalid kpath format. Expected: 'label:x,y,z;...|path1-path2-...' " *
-            "Example: 'G:0,0,0;X:0.5,0,0.5;L:0.5,0.5,0.5|G-X-L-G'"
+            "Example: 'G:0,0,0;X:0.5,0,0.5;L:0.5,0.5,0.5|G-X-L-G'",
         )
     end
 
@@ -525,7 +533,7 @@ function _parse_kpath_string(kpath_str::String)
 
     # Parse paths (remaining parts)
     path_segments = Vector{Vector{String}}()
-    for i in 2:length(parts)
+    for i = 2:length(parts)
         path_str = strip(parts[i])
         isempty(path_str) && continue
         labels = String.(strip.(split(path_str, "-")))
@@ -556,16 +564,16 @@ For .bt2 files without spacegroup metadata, use --kpath to specify manually.
 
 # Arguments
 
-- `file`: Path to interpolation result file (.jld2 or .bt2)
+  - `file`: Path to interpolation result file (.jld2 or .bt2)
 
 # Options
 
-- `-n, --npoints <n>`: Number of k-points per path segment. Default: 100
-- `--emin <e>`: Minimum energy relative to Fermi [eV]. Default: -5.0
-- `--emax <e>`: Maximum energy relative to Fermi [eV]. Default: 5.0
-- `--no-fermi`: Hide Fermi level line
-- `--kpath <spec>`: Manual k-path specification (required for .bt2 without spacegroup)
-- `-o, --output <file>`: Output file (PNG/PDF). Default: display
+  - `-n, --npoints <n>`: Number of k-points per path segment. Default: 100
+  - `--emin <e>`: Minimum energy relative to Fermi [eV]. Default: -5.0
+  - `--emax <e>`: Maximum energy relative to Fermi [eV]. Default: 5.0
+  - `--no-fermi`: Hide Fermi level line
+  - `--kpath <spec>`: Manual k-path specification (required for .bt2 without spacegroup)
+  - `-o, --output <file>`: Output file (PNG/PDF). Default: display
 
 # K-path format
 
@@ -617,11 +625,13 @@ boltztrap plotbands si_interp.bt2 --kpath "G:0,0,0;X:0.5,0,0.5|G-X-G"
             error(
                 "Space group not found in file. " *
                 "Use --kpath to specify k-path manually, or use a .jld2 file with spacegroup metadata.\n" *
-                "Example: --kpath \"G:0,0,0;X:0.5,0,0.5;L:0.5,0.5,0.5|G-X-L-G\""
+                "Example: --kpath \"G:0,0,0;X:0.5,0,0.5;L:0.5,0.5,0.5|G-X-L-G\"",
             )
         end
         println("Plotting band structure...")
-        println("  Space group: $(result.metadata["spacegroup_number"]) ($(get(result.metadata, "spacegroup_symbol", "")))")
+        println(
+            "  Space group: $(result.metadata["spacegroup_number"]) ($(get(result.metadata, "spacegroup_symbol", "")))",
+        )
     end
 
     println("  K-points per segment: $npoints")
@@ -654,11 +664,11 @@ Julia implementation of BoltzTraP2.
 
 # Commands
 
-- `interpolate`: Interpolate band structure from DFT data
-- `integrate`: Compute transport coefficients
-- `describe`: Display file information
-- `plot`: Plot transport coefficients
-- `plotbands`: Plot band structure along k-path
+  - `interpolate`: Interpolate band structure from DFT data
+  - `integrate`: Compute transport coefficients
+  - `describe`: Display file information
+  - `plot`: Plot transport coefficients
+  - `plotbands`: Plot band structure along k-path
 
 # Examples
 

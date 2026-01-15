@@ -39,13 +39,25 @@ using BoltzTraP
     # Band energies in Hartree (simple parabolic-like)
     ebands = reshape([
         # k1    k2    k3    k4
-        -0.3, -0.2, -0.2, -0.1,  # band 1 (valence-like)
-        0.1, 0.2, 0.2, 0.3,   # band 2 (conduction-like)
+        -0.3,
+        -0.2,
+        -0.2,
+        -0.1,  # band 1 (valence-like)
+        0.1,
+        0.2,
+        0.2,
+        0.3,   # band 2 (conduction-like)
     ], 2, 4, 1)
 
     occupations = reshape([
-        2.0, 2.0, 2.0, 2.0,  # band 1 fully occupied
-        0.0, 0.0, 0.0, 0.0,  # band 2 empty
+        2.0,
+        2.0,
+        2.0,
+        2.0,  # band 1 fully occupied
+        0.0,
+        0.0,
+        0.0,
+        0.0,  # band 2 empty
     ], 2, 4, 1)
 
     fermi = 0.0  # Ha
@@ -99,8 +111,7 @@ using BoltzTraP
         )
 
         # Both should throw SingularException (insufficient k-points for fitting)
-        @test_throws LinearAlgebra.SingularException run_interpolate(data_dft; kpoints=10)
-        @test_throws LinearAlgebra.SingularException run_interpolate(data_nt; kpoints=10)
+        @test_throws LinearAlgebra.SingularException run_interpolate(data_dft; kpoints = 10)
+        @test_throws LinearAlgebra.SingularException run_interpolate(data_nt; kpoints = 10)
     end
-
 end

@@ -37,15 +37,16 @@ end
 Validate lattice vectors.
 
 # Checks
-- Shape is (3, 3)
-- Vectors are non-zero
-- Volume is positive
+
+  - Shape is (3, 3)
+  - Vectors are non-zero
+  - Volume is positive
 """
 function validate_lattice(lattice)
     @test size(lattice) == (3, 3)
 
     # Each lattice vector should have non-zero length
-    for i in 1:3
+    for i = 1:3
         @test norm(lattice[:, i]) > 1e-10
     end
 
@@ -62,8 +63,9 @@ end
 Validate atomic positions.
 
 # Checks
-- Shape is (3, natoms)
-- Fractional coordinates are in valid range
+
+  - Shape is (3, natoms)
+  - Fractional coordinates are in valid range
 """
 function validate_positions(positions, natoms)
     @test size(positions) == (3, natoms)
@@ -79,8 +81,9 @@ end
 Validate species list.
 
 # Checks
-- Length matches natoms
-- All species are non-empty strings
+
+  - Length matches natoms
+  - All species are non-empty strings
 """
 function validate_species(species, natoms)
     @test length(species) == natoms
@@ -104,7 +107,7 @@ function get_lattice_angles(lattice)
     beta = acosd(clamp(cos_beta, -1, 1))
     gamma = acosd(clamp(cos_gamma, -1, 1))
 
-    return (alpha=alpha, beta=beta, gamma=gamma)
+    return (alpha = alpha, beta = beta, gamma = gamma)
 end
 
 """
@@ -113,9 +116,10 @@ end
 Comprehensive structure validation.
 
 # Returns
+
 NamedTuple with natoms, volume, volume_per_atom, species_counts
 """
-function validate_structure(data; min_atoms=1)
+function validate_structure(data; min_atoms = 1)
     natoms = size(data.positions, 2)
     @test natoms >= min_atoms
 
@@ -132,8 +136,13 @@ function validate_structure(data; min_atoms=1)
     volume_per_atom = volume / natoms
     angles = get_lattice_angles(data.lattice)
 
-    return (natoms=natoms, volume=volume, volume_per_atom=volume_per_atom,
-            species_counts=species_counts, angles=angles)
+    return (
+        natoms = natoms,
+        volume = volume,
+        volume_per_atom = volume_per_atom,
+        species_counts = species_counts,
+        angles = angles,
+    )
 end
 
 """
@@ -142,10 +151,11 @@ end
 Compare structures from two loaders for the same material (relaxed comparison).
 
 # Checks
-- Same species composition (element counts match)
-- Similar volume per atom (within tolerance)
+
+  - Same species composition (element counts match)
+  - Similar volume per atom (within tolerance)
 """
-function compare_structures_relaxed(data1, data2; vol_rtol=0.05)
+function compare_structures_relaxed(data1, data2; vol_rtol = 0.05)
     info1 = validate_structure(data1)
     info2 = validate_structure(data2)
 
@@ -153,9 +163,9 @@ function compare_structures_relaxed(data1, data2; vol_rtol=0.05)
     @test info1.species_counts == info2.species_counts
 
     # Similar volume per atom
-    @test isapprox(info1.volume_per_atom, info2.volume_per_atom; rtol=vol_rtol)
+    @test isapprox(info1.volume_per_atom, info2.volume_per_atom; rtol = vol_rtol)
 
-    return (info1=info1, info2=info2)
+    return (info1 = info1, info2 = info2)
 end
 
 # =============================================================================
@@ -163,7 +173,6 @@ end
 # =============================================================================
 
 @testset "Structure Validation" begin
-
     @testset "VASP structures" begin
         test_cases = [
             # (dirname, min_atoms, expected_species)
@@ -181,7 +190,7 @@ end
                 end
 
                 data = load_vasp(data_path)
-                info = validate_structure(data; min_atoms=min_atoms)
+                info = validate_structure(data; min_atoms = min_atoms)
 
                 # Check species composition
                 @test info.species_counts == expected_species
@@ -205,7 +214,7 @@ end
                 end
 
                 data = load_qe(data_path)
-                info = validate_structure(data; min_atoms=min_atoms)
+                info = validate_structure(data; min_atoms = min_atoms)
 
                 @test info.species_counts == expected_species
             end
@@ -229,7 +238,7 @@ end
                 end
 
                 data = load_wien2k(data_path)
-                info = validate_structure(data; min_atoms=min_atoms)
+                info = validate_structure(data; min_atoms = min_atoms)
 
                 @test info.species_counts == expected_species
             end
@@ -246,7 +255,7 @@ end
                 @test_skip "load_abinit not available (NCDatasets extension not loaded)"
             else
                 data = load_abinit(data_path)
-                info = validate_structure(data; min_atoms=2)
+                info = validate_structure(data; min_atoms = 2)
 
                 @test info.species_counts == Dict("Si" => 2)
             end
@@ -260,14 +269,13 @@ end
                 @test_skip "Test data not found"
             else
                 data = load_gene(data_path)
-                info = validate_structure(data; min_atoms=1)
+                info = validate_structure(data; min_atoms = 1)
 
                 # Li should be present
                 @test haskey(info.species_counts, "Li")
                 @test info.species_counts["Li"] >= 1
             end
         end
-
     end
 
     # =========================================================================
@@ -275,7 +283,6 @@ end
     # =========================================================================
 
     @testset "Cross-loader consistency" begin
-
         @testset "Li: VASP vs Wien2k vs GENE" begin
             vasp_path = joinpath(BOLTZTRAP_DATA, "Li.vasp")
             wien2k_path = joinpath(BOLTZTRAP_DATA, "Li.W2K")
@@ -299,8 +306,16 @@ end
                 @test haskey(info_gene.species_counts, "Li")
 
                 # Volume per atom should be similar (within 5%)
-                @test isapprox(info_vasp.volume_per_atom, info_wien2k.volume_per_atom; rtol=0.05)
-                @test isapprox(info_vasp.volume_per_atom, info_gene.volume_per_atom; rtol=0.05)
+                @test isapprox(
+                    info_vasp.volume_per_atom,
+                    info_wien2k.volume_per_atom;
+                    rtol = 0.05,
+                )
+                @test isapprox(
+                    info_vasp.volume_per_atom,
+                    info_gene.volume_per_atom;
+                    rtol = 0.05,
+                )
             end
         end
 
@@ -328,8 +343,16 @@ end
                 @test haskey(info_qe.species_counts, "Si")
 
                 # Volume per atom should be similar (within 5%)
-                @test isapprox(info_vasp.volume_per_atom, info_wien2k.volume_per_atom; rtol=0.05)
-                @test isapprox(info_vasp.volume_per_atom, info_qe.volume_per_atom; rtol=0.05)
+                @test isapprox(
+                    info_vasp.volume_per_atom,
+                    info_wien2k.volume_per_atom;
+                    rtol = 0.05,
+                )
+                @test isapprox(
+                    info_vasp.volume_per_atom,
+                    info_qe.volume_per_atom;
+                    rtol = 0.05,
+                )
 
                 # Include ABINIT if NCDatasets extension is loaded
                 if isdir(abinit_path) && HAS_NCDATASETS
@@ -337,10 +360,13 @@ end
                     info_abinit = validate_structure(abinit_data)
 
                     @test haskey(info_abinit.species_counts, "Si")
-                    @test isapprox(info_vasp.volume_per_atom, info_abinit.volume_per_atom; rtol=0.05)
+                    @test isapprox(
+                        info_vasp.volume_per_atom,
+                        info_abinit.volume_per_atom;
+                        rtol = 0.05,
+                    )
                 end
             end
         end
-
     end
 end
