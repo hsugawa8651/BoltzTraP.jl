@@ -3,6 +3,7 @@
 [![CI](https://github.com/hsugawa8651/BoltzTraP.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/hsugawa8651/BoltzTraP.jl/actions/workflows/CI.yml)
 [![Documentation](https://github.com/hsugawa8651/BoltzTraP.jl/actions/workflows/docs.yml/badge.svg)](https://hsugawa8651.github.io/BoltzTraP.jl)
 [![codecov](https://codecov.io/gh/hsugawa8651/BoltzTraP.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/hsugawa8651/BoltzTraP.jl)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18253186.svg)](https://doi.org/10.5281/zenodo.18253186)
 
 Julia port of [BoltzTraP2 v25.11.1](https://pypi.org/project/BoltzTraP2/25.11.1/) ([source](https://gitlab.com/sousaw/BoltzTraP2)), a band structure interpolation and transport coefficient calculator.
 
@@ -67,6 +68,16 @@ The synthetic test data was generated using pymatgen (MIT), ASE (LGPL-2.1), and 
 ## Contributing
 
 Bug reports and feature requests are welcome via [GitHub Issues](https://github.com/hsugawa8651/BoltzTraP.jl/issues).
+
+## Citation
+
+If you use BoltzTraP.jl in your research, please cite both:
+
+**BoltzTraP.jl:**
+> Sugawara, H. (2026). BoltzTraP.jl: Julia port of BoltzTraP2 for band structure interpolation and transport coefficient calculation (Version 0.1.0) [Computer software]. https://doi.org/10.5281/zenodo.18253186
+
+**Original BoltzTraP2:**
+> Madsen, G. K., Carrete, J., & Verstraete, M. J. (2018). BoltzTraP2, a program for interpolating band structures and calculating semi-classical transport coefficients. *Computer Physics Communications*, 231, 140-145. [doi:10.1016/j.cpc.2018.05.010](https://doi.org/10.1016/j.cpc.2018.05.010)
 
 ## License
 
