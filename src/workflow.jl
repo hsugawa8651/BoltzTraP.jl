@@ -898,3 +898,41 @@ function _bisection_root(f, a::Real, b::Real; tol::Real = 1e-12, maxiter::Int = 
 
     return 0.5 * (a + b)
 end
+
+# ============================================================================
+# Convenience methods for TransportResult
+# ============================================================================
+
+"""
+    calc_cv(transport::TransportResult) -> Matrix{Float64}
+
+Compute the electronic contribution to the heat capacity from transport results.
+
+This is a convenience method that extracts all necessary data from the
+[`TransportResult`](@ref) struct. The `epsilon`, `dos`, `temperatures`,
+`mu_values`, and `dosweight` are automatically retrieved.
+
+# Returns
+
+Matrix of shape (nT, nμ) with heat capacity in SI units (J/K).
+
+# Example
+
+```julia
+transport = run_integrate("si_interp.jld2"; temperatures=[300.0])
+cv = calc_cv(transport)
+```
+
+See also: [`calc_cv(epsilon, dos, μ_range, T_range; dosweight)`](@ref calc_cv)
+"""
+function calc_cv(transport::TransportResult)
+    if isnothing(transport.dos)
+        error("TransportResult does not contain DOS data")
+    end
+
+    epsilon = transport.dos["epsilon_Ha"]
+    dos = transport.dos["dos"]
+    dosweight = get(transport.metadata, "dosweight", 2.0)
+
+    return calc_cv(epsilon, dos, transport.mu_values, transport.temperatures; dosweight)
+end

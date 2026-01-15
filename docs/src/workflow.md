@@ -184,6 +184,7 @@ This is used internally by [`run_interpolate`](@ref) and [`load_dft`](@ref) for 
 
 - [Interpolation](@ref) - `run_interpolate` details
 - [Integration](@ref) - `run_integrate` details
+- [Utilities](@ref utilities) - `calc_cv` and other utility functions
 - [Plotting](@ref) - Visualization functions
 - [Input Formats](@ref input-formats) - DFT input formats and loaders
 - [Output Formats](@ref output-formats) - Result file formats

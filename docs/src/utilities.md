@@ -1,4 +1,4 @@
-# Utility Functions
+# [Utility Functions](@id utilities)
 
 Additional functions for band structure analysis and transport calculations.
 
@@ -35,7 +35,7 @@ cv = calc_cv(epsilon, dos, mu_range, T_range; dosweight=2.0)
 # Returns: (nT, nμ) matrix in J/K
 ```
 
-### Using with TransportResult
+### Using with TransportResult (Recommended)
 
 ```julia
 using BoltzTraP
@@ -43,15 +43,11 @@ using BoltzTraP
 # Run transport calculation
 transport = run_integrate("si_interp.jld2"; temperatures=[300.0])
 
-# Use DOS from transport result
-cv = calc_cv(
-    transport.epsilon,
-    transport.dos,
-    transport.mu_values,
-    transport.temperatures;
-    dosweight=2.0
-)
+# Convenience method - extracts all parameters automatically
+cv = calc_cv(transport)
 ```
+
+All required parameters (`epsilon`, `dos`, `mu_values`, `temperatures`, `dosweight`) are automatically extracted from the [`TransportResult`](@ref).
 
 ### Output
 
