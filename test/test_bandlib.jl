@@ -229,4 +229,9 @@ using Statistics: mean
         # Julia (CODATA 2018) and Python BoltzTraP2 (different source)
         @test isapprox(cv, ref["cv"], rtol = 1e-5)
     end
+
+    @testset "calc_cv error dispatch" begin
+        @test_throws ArgumentError BoltzTraP.calc_cv("invalid")
+        @test_throws ArgumentError BoltzTraP.calc_cv(123)
+    end
 end

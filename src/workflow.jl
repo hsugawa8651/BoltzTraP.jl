@@ -936,3 +936,8 @@ function calc_cv(transport::TransportResult)
 
     return calc_cv(epsilon, dos, transport.mu_values, transport.temperatures; dosweight)
 end
+
+# Error dispatch for invalid single-argument calls
+function calc_cv(x::Any)
+    throw(ArgumentError("calc_cv requires a TransportResult, got $(typeof(x))"))
+end
