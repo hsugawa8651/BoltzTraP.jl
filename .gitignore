@@ -1,0 +1,62 @@
+# Julia package artifacts
+Manifest.toml
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+deps/deps.jl
+deps/build.log
+deps/usr/
+
+# Documentation build
+docs/build/
+docs/site/
+
+# Test artifacts
+/test/Manifest.toml
+
+# IDE and editors
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Local environment
+.env
+.envrc
+.CondaPkg/
+
+# Coverage
+/coverage/
+lcov.info
+
+# Benchmarks
+/benchmark/tune.json
+/benchmarks/*_getBands.jl
+/benchmarks/*_getBands.py
+/benchmarks/artifacts/
+
+# Python (reftest scripts)
+__pycache__/
+*.pyc
+
+# reftest: generated reference data from Python (~6GB)
+reftest/data/*
+!reftest/data/qe_test/
+!reftest/data/si_interpolation.npz
+!reftest/data/calc_N_solve_mu.npz
+
+# AI tools
+CLAUDE.md
+.claude/
+.gemini/
+test/synthetic_data/
