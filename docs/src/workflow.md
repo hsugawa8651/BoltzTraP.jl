@@ -19,7 +19,7 @@ BoltzTraP.jl supports multiple input methods for transport calculations:
 | **ABINIT** | `*_GSR.nc` (NetCDF) | `load_abinit` |
 | **DFTK.jl** | `scfres` from DFTK.jl | `load_dftk` |
 
-See [Input Formats](@ref) for detailed format specifications.
+See [Input Formats](@ref input-formats) for detailed format specifications.
 
 ---
 
@@ -185,6 +185,6 @@ This is used internally by [`run_interpolate`](@ref) and [`load_dft`](@ref) for 
 - [Interpolation](@ref) - `run_interpolate` details
 - [Integration](@ref) - `run_integrate` details
 - [Plotting](@ref) - Visualization functions
-- [Input Formats](@ref) - DFT input formats and loaders
-- [Output Formats](@ref) - Result file formats
+- [Input Formats](@ref input-formats) - DFT input formats and loaders
+- [Output Formats](@ref output-formats) - Result file formats
 - [Conventions](@ref) - Units and array conventions

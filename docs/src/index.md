@@ -20,7 +20,7 @@ Julia implementation of [BoltzTraP2](https://www.imc.tuwien.ac.at/forschungsbere
 | Plot transport | `boltztrap plot` | `plot_transport()` | [`TransportResult`](@ref) (`.jld2`) | PNG, PDF |
 | Describe results | `boltztrap describe` | [`describe`](@ref)`()` | [`InterpolationResult`](@ref) or [`TransportResult`](@ref) | - |
 
-See [CLI Workflow](@ref) and [API Workflow](@ref) for detailed usage. For file format details, see [Input Formats](@ref) and [Output Formats](@ref).
+See [CLI Workflow](@ref) and [API Workflow](@ref) for detailed usage. For file format details, see [Input Formats](@ref input-formats) and [Output Formats](@ref output-formats).
 
 ## Quick Start
 

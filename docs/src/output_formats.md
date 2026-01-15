@@ -1,4 +1,4 @@
-# Output Formats
+# [Output Formats](@id output-formats)
 
 BoltzTraP.jl produces result files in JLD2 format (Julia native) and supports Python BoltzTraP2's `.bt2` format for compatibility.
 
@@ -182,6 +182,6 @@ boltztrap interpolate ./Si.vasp -o si_interp.bt2
 
 ## Next Steps
 
-- [Input Formats](@ref) - DFT input formats and loaders
+- [Input Formats](@ref input-formats) - DFT input formats and loaders
 - [Interpolation](@ref) - [`InterpolationResult`](@ref) usage
 - [Integration](@ref) - [`TransportResult`](@ref) usage
