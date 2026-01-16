@@ -88,6 +88,16 @@ function BoltzTraP.load_abinit(directory::String)
             occupations = zeros(size(ebands))
         end
 
+        # Magnetic moments from spinat (Python BoltzTraP2 compatibility)
+        # spinat has shape (3, natom) - the z-component (spinat[3, :]) is used for collinear
+        # Reference: Python BoltzTraP2 io.py:1020-1023
+        #   magmom = spinat[:, -1]  (i.e., the z-component)
+        magmom = nothing
+        if haskey(ds, "spinat")
+            spinat = ds["spinat"][:, :]  # (3, natom)
+            magmom = Vector{Float64}(spinat[3, :])  # z-component for collinear
+        end
+
         # Create DFTData
         return DFTData(
             lattice = lattice,
@@ -99,7 +109,7 @@ function BoltzTraP.load_abinit(directory::String)
             occupations = occupations,
             fermi = fermi,
             nelect = nelect,
-            magmom = nothing
+            magmom = magmom
         )
     end
 end

@@ -281,4 +281,115 @@ Direct
             @test data.occupations[3, 2, 1] ≈ 0.5
         end
     end
+
+    @testset "Collinear (spin-polarized) loading" begin
+        # Synthetic spin-polarized vasprun.xml with MAGMOM
+        vasprun_collinear = """<?xml version="1.0"?>
+<modeling>
+ <incar>
+  <v name="MAGMOM">      2.50000000      1.50000000</v>
+ </incar>
+ <parameters>
+  <separator name="electronic" >
+   <i name="NELECT">    16.00000000</i>
+  </separator>
+ </parameters>
+ <calculation>
+  <structure name="finalpos">
+   <crystal>
+    <varray name="basis">
+     <v>   3.0000000   0.0000000   0.0000000 </v>
+     <v>   0.0000000   3.0000000   0.0000000 </v>
+     <v>   0.0000000   0.0000000   3.0000000 </v>
+    </varray>
+    <varray name="rec_basis">
+     <v>   0.3333333   0.0000000   0.0000000 </v>
+     <v>   0.0000000   0.3333333   0.0000000 </v>
+     <v>   0.0000000   0.0000000   0.3333333 </v>
+    </varray>
+   </crystal>
+   <varray name="positions">
+    <v>   0.0000000   0.0000000   0.0000000 </v>
+    <v>   0.5000000   0.5000000   0.5000000 </v>
+   </varray>
+  </structure>
+  <dos>
+   <i name="efermi">     5.00000000</i>
+  </dos>
+  <eigenvalues>
+   <array>
+    <set>
+     <set comment="spin 1">
+      <set comment="kpoint 1">
+       <r>   -2.0000    1.00000000 </r>
+       <r>    3.0000    1.00000000 </r>
+      </set>
+      <set comment="kpoint 2">
+       <r>   -1.5000    1.00000000 </r>
+       <r>    4.0000    0.50000000 </r>
+      </set>
+     </set>
+     <set comment="spin 2">
+      <set comment="kpoint 1">
+       <r>   -1.8000    1.00000000 </r>
+       <r>    3.2000    1.00000000 </r>
+      </set>
+      <set comment="kpoint 2">
+       <r>   -1.3000    1.00000000 </r>
+       <r>    4.2000    0.50000000 </r>
+      </set>
+     </set>
+    </set>
+   </array>
+  </eigenvalues>
+ </calculation>
+ <atominfo>
+  <array name="atoms">
+   <set>
+    <rc><c>Fe </c><c>   1</c></rc>
+    <rc><c>Fe </c><c>   1</c></rc>
+   </set>
+  </array>
+ </atominfo>
+ <kpoints>
+  <varray name="kpointlist">
+   <v>   0.0000000   0.0000000   0.0000000 </v>
+   <v>   0.5000000   0.0000000   0.0000000 </v>
+  </varray>
+  <varray name="weights">
+   <v>   0.5000000 </v>
+   <v>   0.5000000 </v>
+  </varray>
+ </kpoints>
+</modeling>
+"""
+        mktempdir() do tmpdir
+            vasprun_file = joinpath(tmpdir, "vasprun.xml")
+            write(vasprun_file, vasprun_collinear)
+
+            # Test read_vasprun magmom extraction
+            raw = read_vasprun(vasprun_file)
+
+            # Should have spin-polarized bands
+            @test size(raw.ebands, 3) == 2  # nspin=2
+            @test size(raw.ebands) == (2, 2, 2)  # 2 bands, 2 kpts, 2 spins
+
+            # Should have magmom extracted
+            @test !isnothing(raw.magmom)
+            @test length(raw.magmom) == 2  # 2 atoms
+            @test raw.magmom ≈ [2.5, 1.5]
+
+            # Verify band energies for both spins
+            @test raw.ebands[1, 1, 1] ≈ -2.0  # spin 1, kpt 1, band 1
+            @test raw.ebands[1, 1, 2] ≈ -1.8  # spin 2, kpt 1, band 1
+
+            # Test load_vasp returns DFTData with magmom
+            data = load_vasp(tmpdir)
+            @test data isa DFTData{2}  # SpinPolarizedData
+            @test nspin(data) == 2
+            @test !isnothing(data.magmom)
+            @test data.magmom ≈ [2.5, 1.5]
+        end
+    end
+
 end

@@ -507,4 +507,87 @@ end
             # This is expected behavior for package extensions
         end
     end
+
+    @testset "Collinear magmom extraction" begin
+        @testset "ABINIT spinat reading" begin
+            if !HAS_NCDATASETS
+                @test_skip "NCDatasets not available"
+            else
+                # Create synthetic ABINIT data with spinat using NCDatasets directly
+                mktempdir() do tmpdir
+                    # Simple cubic Fe-like structure
+                    lattice = [5.4 0.0 0.0; 0.0 5.4 0.0; 0.0 0.0 5.4]'
+                    positions = [0.0 0.5; 0.0 0.5; 0.0 0.5]  # (3, 2)
+                    species = ["Fe", "Fe"]
+                    kpoints = [0.0 0.5; 0.0 0.0; 0.0 0.5]  # (3, 2)
+                    ebands = [-0.1 0.1; 0.2 0.3]  # (2, 2) in Hartree
+                    fermi = 0.15
+                    nelect = 16.0
+                    # spinat: (3, natom) - z-component contains magnetic moments
+                    spinat = [0.0 0.0; 0.0 0.0; 2.5 -1.5]  # Fe1=+2.5, Fe2=-1.5
+
+                    # Write synthetic NetCDF file directly
+                    gsr_file = joinpath(tmpdir, "synthetic_GSR.nc")
+                    NCDatasets.NCDataset(gsr_file, "c") do ds
+                        NCDatasets.defDim(ds, "number_of_cartesian_directions", 3)
+                        NCDatasets.defDim(ds, "number_of_reduced_dimensions", 3)
+                        NCDatasets.defDim(ds, "three", 3)
+                        NCDatasets.defDim(ds, "number_of_atoms", 2)
+                        NCDatasets.defDim(ds, "number_of_kpoints", 2)
+                        NCDatasets.defDim(ds, "number_of_spins", 1)
+                        NCDatasets.defDim(ds, "max_number_of_states", 2)
+                        NCDatasets.defDim(ds, "number_of_atom_species", 1)
+                        NCDatasets.defDim(ds, "symbol_length", 80)
+
+                        lat_var = NCDatasets.defVar(ds, "primitive_vectors", Float64,
+                            ("number_of_cartesian_directions", "number_of_reduced_dimensions"))
+                        lat_var[:, :] = lattice
+
+                        pos_var = NCDatasets.defVar(ds, "reduced_atom_positions", Float64,
+                            ("three", "number_of_atoms"))
+                        pos_var[:, :] = positions
+
+                        species_var = NCDatasets.defVar(ds, "atom_species", Int32, ("number_of_atoms",))
+                        species_var[:] = Int32[1, 1]
+
+                        names_var = NCDatasets.defVar(ds, "atom_species_names", Char,
+                            ("symbol_length", "number_of_atom_species"))
+                        chars = fill('\0', 80)
+                        chars[1:2] = ['F', 'e']
+                        names_var[:, 1] = chars
+
+                        kpt_var = NCDatasets.defVar(ds, "reduced_coordinates_of_kpoints", Float64,
+                            ("three", "number_of_kpoints"))
+                        kpt_var[:, :] = kpoints
+
+                        wt_var = NCDatasets.defVar(ds, "kpoint_weights", Float64, ("number_of_kpoints",))
+                        wt_var[:] = [0.5, 0.5]
+
+                        eig_var = NCDatasets.defVar(ds, "eigenvalues", Float64,
+                            ("max_number_of_states", "number_of_kpoints", "number_of_spins"))
+                        eig_var[:, :, 1] = ebands
+
+                        fermi_var = NCDatasets.defVar(ds, "fermie", Float64, ())
+                        fermi_var[] = fermi
+
+                        nelect_var = NCDatasets.defVar(ds, "nelect", Float64, ())
+                        nelect_var[] = nelect
+
+                        # Add spinat
+                        spinat_var = NCDatasets.defVar(ds, "spinat", Float64,
+                            ("three", "number_of_atoms"))
+                        spinat_var[:, :] = spinat
+                    end
+
+                    data = load_abinit(tmpdir)
+
+                    # Verify magmom extraction (z-component of spinat)
+                    @test !isnothing(data.magmom)
+                    @test length(data.magmom) == 2
+                    @test data.magmom ≈ [2.5, -1.5]
+                end
+            end
+        end
+    end
+
 end
