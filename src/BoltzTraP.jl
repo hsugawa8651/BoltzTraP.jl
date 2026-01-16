@@ -22,11 +22,11 @@ using Spglib
 # Units and constants
 include("units.jl")
 
+# Spin type definitions (must be before types.jl for BandData{ST})
+include("spintypes.jl")
+
 # Type definitions
 include("types.jl")
-
-# Spin type definitions (for magnetic material support)
-include("spintypes.jl")
 
 # Sphere module (bounds, rotations, tensor basis)
 include("sphere.jl")
@@ -99,6 +99,7 @@ export DFTData, NonMagneticData, SpinPolarizedData, nspin, is_magnetic
 
 # Spin types (v0.3 magnetic support)
 export SpinType, Unpolarized, Collinear, NonCollinear
+export BandData
 
 # I/O
 export load_dft, load_vasp, load_qe, load_wien2k, load_gene, load_abinit, load_dftk

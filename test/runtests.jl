@@ -91,6 +91,7 @@ end
     # Type tests
     include("test_types.jl")
     include("test_spintypes.jl")
+    include("test_banddata.jl")
     include("test_dftdata_integration.jl")
 
     # Structure validation tests (requires BoltzTraP2-public data)
