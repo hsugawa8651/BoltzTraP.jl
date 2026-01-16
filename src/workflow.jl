@@ -392,6 +392,9 @@ Compute transport coefficients from interpolation result.
   - `temperatures=[300.0]`: Vector of temperatures in K
   - `output=nothing`: Output file path (no file saved if `nothing`)
   - `bins=0`: Number of DOS histogram bins (auto if `0`)
+  - `scissor=nothing`: Target band gap in eV for scissor correction.
+    If specified, conduction bands are shifted to achieve this gap.
+    Only applicable to semiconductors with a band gap.
   - `verbose=false`: Print progress information
 
 # Returns
@@ -411,19 +414,23 @@ transport = run_integrate("si_interp.jld2"; temperatures = [200.0, 300.0, 400.0]
 # With explicit μ grid (positional argument, same as Python BoltzTraP2)
 mur = range(-0.5, 0.5, length = 100) .* EV_TO_HA  # eV to Ha
 transport = run_integrate(interp, mur; temperatures = [300.0])
+
+# With scissor correction (shift conduction bands to 1.1 eV gap)
+transport = run_integrate(interp; temperatures = [300.0], scissor = 1.1)
 ```
 
-See also: [`run_interpolate`](@ref), [`save_integrate`](@ref)
+See also: [`run_interpolate`](@ref), [`save_integrate`](@ref), [`apply_scissor`](@ref)
 """
 function run_integrate(
     interp::InterpolationResult;
     temperatures::AbstractVector{<:Real} = [300.0],
     output::Union{String,Nothing} = nothing,
     bins::Int = 0,
+    scissor::Union{Nothing,Real} = nothing,
     verbose::Bool = false,
 )
     # Log received arguments
-    @debug "run_integrate called" temperatures output bins verbose
+    @debug "run_integrate called" temperatures output bins scissor verbose
 
     # Extract metadata
     # Note: fermi is stored in Ha (atomic units)
@@ -448,6 +455,21 @@ function run_integrate(
     verbose && println(
         "  Energy range: [$(round(minimum(eband), digits=4)), $(round(maximum(eband), digits=4))] Ha",
     )
+
+    # 1.5. Apply scissor correction if requested
+    scissor_Ha = nothing
+    if !isnothing(scissor)
+        scissor_Ha = scissor * EV_TO_HA  # Convert eV to Ha
+        verbose && println("Applying scissor correction (target gap: $scissor eV)...")
+
+        # Compute temporary DOS to find current gap
+        npts_dos_temp = bins > 0 ? bins : 500
+        epsilon_temp, dos_temp, _ = BTPDOS(eband, vvband; npts = npts_dos_temp)
+
+        # Apply scissor to shift conduction bands
+        eband = apply_scissor(epsilon_temp, dos_temp, nelect, eband, scissor_Ha; dosweight)
+        verbose && println("  Scissor applied: target gap = $scissor eV")
+    end
 
     # 2. Compute DOS and transport DOS
     npts_dos = bins > 0 ? bins : 500
@@ -531,6 +553,11 @@ function run_integrate(
         "npts_fft" => npts,
         "npts_dos" => npts_dos,
     )
+    # Add scissor info if applied
+    if !isnothing(scissor)
+        result_metadata["scissor_eV"] = scissor
+        result_metadata["scissor_Ha"] = scissor_Ha
+    end
 
     # Reshape tensors to (3, 3, nT, nμ) for TransportResult
     nμ = length(μ_range)
@@ -563,9 +590,10 @@ function run_integrate(
     temperatures::AbstractVector{<:Real} = [300.0],
     output::Union{String,Nothing} = nothing,
     bins::Int = 0,
+    scissor::Union{Nothing,Real} = nothing,
     verbose::Bool = false,
 )
-    @debug "run_integrate(interp, mur) called" temperatures output bins verbose
+    @debug "run_integrate(interp, mur) called" temperatures output bins scissor verbose
 
     # Extract metadata
     nelect = get(interp.metadata, "nelect", 0.0)
@@ -586,6 +614,21 @@ function run_integrate(
     eband, vvband = getBTPbands(interp.coeffs, interp.equivalences, interp.lattvec)
     nbands, npts = size(eband)
     verbose && println("  Bands: $nbands, FFT points: $npts")
+
+    # 1.5. Apply scissor correction if requested
+    scissor_Ha = nothing
+    if !isnothing(scissor)
+        scissor_Ha = scissor * EV_TO_HA  # Convert eV to Ha
+        verbose && println("Applying scissor correction (target gap: $scissor eV)...")
+
+        # Compute temporary DOS to find current gap
+        npts_dos_temp = bins > 0 ? bins : 500
+        epsilon_temp, dos_temp, _ = BTPDOS(eband, vvband; npts = npts_dos_temp)
+
+        # Apply scissor to shift conduction bands
+        eband = apply_scissor(epsilon_temp, dos_temp, nelect, eband, scissor_Ha; dosweight)
+        verbose && println("  Scissor applied: target gap = $scissor eV")
+    end
 
     # 2. Compute DOS and transport DOS
     npts_dos = bins > 0 ? bins : 500
@@ -653,6 +696,11 @@ function run_integrate(
         "npts_fft" => npts,
         "npts_dos" => npts_dos,
     )
+    # Add scissor info if applied
+    if !isnothing(scissor)
+        result_metadata["scissor_eV"] = scissor
+        result_metadata["scissor_Ha"] = scissor_Ha
+    end
 
     # Reshape tensors to (3, 3, nT, nμ)
     nμ = length(μ_range)
@@ -684,9 +732,10 @@ function run_integrate(
     temperatures::AbstractVector{<:Real} = [300.0],
     output::Union{String,Nothing} = nothing,
     bins::Int = 0,
+    scissor::Union{Nothing,Real} = nothing,
     verbose::Bool = false,
 )
-    @debug "run_integrate(input) called" input temperatures output bins verbose
+    @debug "run_integrate(input) called" input temperatures output bins scissor verbose
 
     # Check file exists
     if !isfile(input)
@@ -701,7 +750,7 @@ function run_integrate(
         interp.equivalences,
     )
 
-    return run_integrate(interp; temperatures, output, bins, verbose)
+    return run_integrate(interp; temperatures, output, bins, scissor, verbose)
 end
 
 # File-based convenience method with explicit μ grid
@@ -711,9 +760,10 @@ function run_integrate(
     temperatures::AbstractVector{<:Real} = [300.0],
     output::Union{String,Nothing} = nothing,
     bins::Int = 0,
+    scissor::Union{Nothing,Real} = nothing,
     verbose::Bool = false,
 )
-    @debug "run_integrate(input, mur) called" input temperatures output bins verbose
+    @debug "run_integrate(input, mur) called" input temperatures output bins scissor verbose
 
     if !isfile(input)
         error("Input file not found: $input")
@@ -722,7 +772,7 @@ function run_integrate(
     verbose && println("Loading interpolation data from $input...")
     interp = load_interpolation(input)
 
-    return run_integrate(interp, mur; temperatures, output, bins, verbose)
+    return run_integrate(interp, mur; temperatures, output, bins, scissor, verbose)
 end
 
 # ============================================================================ 
@@ -900,6 +950,106 @@ function _bisection_root(f, a::Real, b::Real; tol::Real = 1e-12, maxiter::Int = 
 end
 
 # ============================================================================
+# Scissor Correction
+# ============================================================================
+
+"""
+    apply_scissor(epsilon, dos, N0, eband, desired_gap; dosweight=2.0) -> Array
+
+Shift all conduction bands to achieve the desired value of the band gap.
+
+This function identifies bands that lie entirely above the Fermi level
+(conduction bands) and shifts them by a constant amount to match the
+specified band gap.
+
+# Arguments
+
+  - `epsilon`: energy grid from BTPDOS (npts,), in Hartree
+  - `dos`: density of states (npts,)
+  - `N0`: number of valence electrons
+  - `eband`: band energies (nbands, nkpoints), in Hartree
+  - `desired_gap`: target band gap in Hartree
+  - `dosweight`: maximum occupancy of an electron mode (2.0 for non-spin-polarized)
+
+# Returns
+
+Array of shifted band energies with the same shape as `eband`.
+
+# Errors
+
+  - `ArgumentError`: if there is no gap at the Fermi level (material is metallic)
+  - `ArgumentError`: if the Fermi energy lies outside the band energy range
+
+# Example
+
+```julia
+# Shift Si bands to achieve 1.1 eV gap
+desired_gap = 1.1 * EV_TO_HA
+eband_shifted = apply_scissor(epsilon, dos, nelect, eband, desired_gap)
+```
+
+See also: [`solve_for_mu`](@ref)
+"""
+function apply_scissor(epsilon, dos, N0, eband, desired_gap; dosweight = 2.0)
+    # 1. Find current Fermi energy
+    fermi =
+        solve_for_mu(epsilon, dos, N0, 0.0; dosweight, refine = false, try_center = false)
+
+    # 2. Check if Fermi lies in a gap
+    pos = argmin(abs.(epsilon .- fermi))
+    if dos[pos] != 0.0
+        throw(ArgumentError("No band gap found at Fermi level (material is metallic)"))
+    end
+
+    # 3. Find gap edges (VBM and CBM)
+    lpos = -1
+    hpos = -1
+
+    # Search downward for VBM
+    for i = pos:-1:1
+        if dos[i] != 0.0
+            lpos = i
+            break
+        end
+    end
+
+    # Search upward for CBM
+    for i = pos:length(dos)
+        if dos[i] != 0.0
+            hpos = i
+            break
+        end
+    end
+
+    if lpos == -1 || hpos == -1
+        throw(ArgumentError("Fermi energy lies outside the band energy range"))
+    end
+
+    # 4. Calculate shift amount
+    current_gap = epsilon[hpos] - epsilon[lpos]
+    delta = desired_gap - current_gap
+
+    # 5. Identify conduction bands (all states above Fermi)
+    # A band is a conduction band if its minimum energy across all k-points is above Fermi
+    conduction_mask = vec(minimum(eband, dims = 2)) .> fermi
+
+    # 6. Apply shift to conduction bands
+    eband_shifted = copy(eband)
+    eband_shifted[conduction_mask, :] .+= delta
+
+    return eband_shifted
+end
+
+# Error dispatch for invalid argument types
+function apply_scissor(x::Any)
+    throw(
+        ArgumentError(
+            "apply_scissor requires (epsilon, dos, N0, eband, desired_gap), got $(typeof(x))",
+        ),
+    )
+end
+
+# ============================================================================
 # Convenience methods for TransportResult
 # ============================================================================
 
@@ -919,7 +1069,7 @@ Matrix of shape (nT, nμ) with heat capacity in SI units (J/K).
 # Example
 
 ```julia
-transport = run_integrate("si_interp.jld2"; temperatures=[300.0])
+transport = run_integrate("si_interp.jld2"; temperatures = [300.0])
 cv = calc_cv(transport)
 ```
 

@@ -325,9 +325,8 @@ Matrix of shape (nT, nμ) with heat capacity in SI units (J/K).
 
 ```julia
 # From TransportResult
-transport = run_integrate("si_interp.jld2"; temperatures=[300.0])
-cv = calc_cv(transport.epsilon, transport.dos,
-             transport.mu_values, transport.temperatures)
+transport = run_integrate("si_interp.jld2"; temperatures = [300.0])
+cv = calc_cv(transport.epsilon, transport.dos, transport.mu_values, transport.temperatures)
 ```
 """
 function calc_cv(epsilon, dos, μ_range, T_range; dosweight = 2.0)

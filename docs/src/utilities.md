@@ -57,24 +57,60 @@ All required parameters (`epsilon`, `dos`, `mu_values`, `temperatures`, `dosweig
 
 ---
 
-## Scissor Correction (v0.2)
+## Scissor Correction
 
 ### apply_scissor
 
-!!! note "Coming in v0.2"
-    This function will be available in v0.2.
-
 Apply a scissor correction to shift conduction bands relative to valence bands.
 
-```julia
-# Planned API
-interp_corrected = apply_scissor(interp, delta_gap)
+```@docs
+apply_scissor
 ```
 
 ### Use Case
 
 DFT calculations often underestimate band gaps. The scissor correction shifts
 conduction band energies by a constant value to match experimental band gaps.
+
+### High-Level API (Recommended)
+
+Use the `scissor` parameter in [`run_integrate`](@ref):
+
+```julia
+using BoltzTraP
+
+# Apply scissor correction to achieve 1.1 eV band gap
+transport = run_integrate("si_interp.jld2";
+    temperatures = [300.0],
+    scissor = 1.1  # Target gap in eV
+)
+
+# Check if scissor was applied
+if haskey(transport.metadata, "scissor_eV")
+    println("Scissor applied: $(transport.metadata["scissor_eV"]) eV")
+end
+```
+
+### CLI Usage
+
+```bash
+boltztrap integrate si_interp.jld2 -t 300 --scissor 1.1
+```
+
+### Low-Level API
+
+For direct manipulation of band energies:
+
+```julia
+using BoltzTraP
+
+# Apply scissor to raw band data
+eband_shifted = apply_scissor(epsilon, dos, nelect, eband, desired_gap;
+    dosweight = 2.0
+)
+```
+
+Where `desired_gap` is in Hartree. Use `EV_TO_HA` for conversion from eV.
 
 ---
 

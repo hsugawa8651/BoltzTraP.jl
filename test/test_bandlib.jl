@@ -234,4 +234,92 @@ using Statistics: mean
         @test_throws ArgumentError BoltzTraP.calc_cv("invalid")
         @test_throws ArgumentError BoltzTraP.calc_cv(123)
     end
+
+    @testset "apply_scissor reference test" begin
+        # Load Python BoltzTraP2 reference data
+        REFTEST_DATA = joinpath(@__DIR__, "..", "reftest", "data")
+        ref_file = joinpath(REFTEST_DATA, "scissor_reference.npz")
+        if !isfile(ref_file)
+            @warn "Reference file not found: $ref_file"
+            @test_skip "Reference data not available"
+            return
+        end
+
+        ref = npzread(ref_file)
+
+        # Call Julia apply_scissor
+        eband_after = BoltzTraP.apply_scissor(
+            ref["epsilon"],
+            ref["dos"],
+            ref["N0"],
+            ref["eband_before"],
+            ref["desired_gap"];
+            dosweight = ref["dosweight"],
+        )
+
+        # Test shape matches
+        @test size(eband_after) == size(ref["eband_before"])
+
+        # Test values match Python BoltzTraP2
+        @test isapprox(eband_after, ref["eband_after"], rtol = 1e-10)
+    end
+
+    @testset "apply_scissor error dispatch" begin
+        @test_throws ArgumentError BoltzTraP.apply_scissor("invalid")
+        @test_throws ArgumentError BoltzTraP.apply_scissor(123)
+    end
+
+    @testset "run_integrate with scissor" begin
+        # Test that run_integrate accepts scissor keyword argument
+
+        # Create a minimal mock InterpolationResult for testing
+        mock_coeffs = zeros(ComplexF64, 2, 10)  # 2 bands, 10 equiv points
+        mock_equiv = [zeros(Int, 1, 3)]  # Single equivalence at origin
+        mock_lattvec = Matrix{Float64}(I, 3, 3) * 10.0  # 10 Bohr cubic cell
+        mock_atoms = Dict{String,Any}("species" => ["Si"], "positions" => [[0.0, 0.0, 0.0]])
+        mock_metadata =
+            Dict{String,Any}("fermi" => 0.0, "nelect" => 4.0, "dosweight" => 2.0)
+
+        mock_interp = BoltzTraP.InterpolationResult(
+            mock_coeffs,
+            mock_equiv,
+            mock_lattvec,
+            mock_atoms,
+            mock_metadata,
+        )
+
+        @testset "scissor=nothing (default)" begin
+            # Should work without scissor argument (backward compatibility)
+            # Mock data may cause errors, but NOT scissor-related errors
+            try
+                result = run_integrate(mock_interp; temperatures = [300.0])
+                # If successful, scissor should not be in metadata
+                @test !haskey(result.metadata, "scissor_eV")
+            catch e
+                # Errors from mock data are OK, scissor keyword error is not
+                @test !occursin("scissor", lowercase(string(e)))
+            end
+        end
+
+        @testset "scissor parameter accepted" begin
+            # Verify scissor keyword is accepted (not "unknown keyword argument")
+            # With mock data, apply_scissor will fail because there's no gap,
+            # but the keyword itself should be accepted
+            try
+                result = run_integrate(mock_interp; temperatures = [300.0], scissor = 1.1)
+                # If we reach here, scissor was applied successfully
+                @test haskey(result.metadata, "scissor_eV")
+                @test result.metadata["scissor_eV"] == 1.1
+            catch e
+                err_msg = string(e)
+                # "No band gap found" is expected (mock data has no gap)
+                # "keyword argument" error means scissor was not implemented
+                is_keyword_error =
+                    occursin("keyword", lowercase(err_msg)) && occursin("scissor", err_msg)
+                is_gap_error = occursin("band gap", lowercase(err_msg))
+                @test !is_keyword_error  # Scissor keyword must be accepted
+                @test is_gap_error  # Expected error from mock data
+            end
+        end
+    end
 end

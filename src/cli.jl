@@ -129,7 +129,7 @@ boltztrap interpolate ./calculation --debug  # with debug output
 end
 
 """
-    integrate(input; temperature="300", output="", bins=0, verbose=false, debug=false)
+    integrate(input; temperature="300", output="", bins=0, scissor=NaN, verbose=false, debug=false)
 
 Compute transport coefficients from interpolated band structure.
 
@@ -147,8 +147,11 @@ Seebeck coefficient, and thermal conductivity.
       + Single value: `"300"` → [300.0]
       + Range: `"100:500:50"` (start:stop:step) → [100.0, 150.0, 200.0, ..., 500.0]
       + List: `"100,200,300"` → [100.0, 200.0, 300.0]
+
   - `-o, --output <file>`: Output file path (default: based on input)
   - `-b, --bins <n>`: Number of DOS histogram bins (default: auto)
+  - `-s, --scissor <eV>`: Target band gap in eV for scissor correction.
+    Shifts conduction bands to achieve the specified gap. Only for semiconductors.
   - `-v, --verbose`: Print progress information
   - `--debug`: Enable debug logging (detailed internal info)
 
@@ -157,6 +160,7 @@ Seebeck coefficient, and thermal conductivity.
 ```bash
 boltztrap integrate si_interp.jld2 -t 300
 boltztrap integrate si_interp.jld2 -t "100:500:50" -o results.jld2
+boltztrap integrate si_interp.jld2 -t 300 --scissor 1.1
 boltztrap integrate si_interp.jld2 -t "100,200,300,400,500" -v --debug
 ```
 """
@@ -165,11 +169,12 @@ boltztrap integrate si_interp.jld2 -t "100,200,300,400,500" -v --debug
     temperature::String = "300",
     output::String = "",
     bins::Int = 0,
+    scissor::Float64 = NaN,
     verbose::Bool = false,
     debug::Bool = false,
 )
     _setup_logging(debug)
-    @debug "CLI integrate called" input temperature output bins verbose debug
+    @debug "CLI integrate called" input temperature output bins scissor verbose debug
 
     # Parse temperature string
     temperatures = _parse_temperatures(temperature)
@@ -180,10 +185,16 @@ boltztrap integrate si_interp.jld2 -t "100,200,300,400,500" -v --debug
         output = base * "_transport.jld2"
     end
 
+    # Convert NaN to nothing for scissor
+    scissor_arg = isnan(scissor) ? nothing : scissor
+
     verbose && println("BoltzTraP.jl integrate")
     verbose && println("  Input: $input")
     verbose && println("  Output: $output")
     verbose && println("  Temperatures: $temperatures K")
+    if !isnothing(scissor_arg)
+        verbose && println("  Scissor: $scissor_arg eV")
+    end
 
     # Run integration
     result = run_integrate(
@@ -191,6 +202,7 @@ boltztrap integrate si_interp.jld2 -t "100,200,300,400,500" -v --debug
         temperatures = temperatures,
         output = output,
         bins = bins,
+        scissor = scissor_arg,
         verbose = verbose,
     )
 

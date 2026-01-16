@@ -108,6 +108,7 @@ export describe
 
 # Band library (additional transport functions)
 export calc_cv
+export apply_scissor
 
 # =============================================================================
 # Internal Functions
