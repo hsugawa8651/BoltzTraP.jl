@@ -25,6 +25,9 @@ include("units.jl")
 # Type definitions
 include("types.jl")
 
+# Spin type definitions (for magnetic material support)
+include("spintypes.jl")
+
 # Sphere module (bounds, rotations, tensor basis)
 include("sphere.jl")
 
@@ -93,6 +96,9 @@ export run_interpolate, run_integrate
 # Types
 export InterpolationResult, TransportResult
 export DFTData, NonMagneticData, SpinPolarizedData, nspin, is_magnetic
+
+# Spin types (v0.3 magnetic support)
+export SpinType, Unpolarized, Collinear, NonCollinear
 
 # I/O
 export load_dft, load_vasp, load_qe, load_wien2k, load_gene, load_abinit, load_dftk

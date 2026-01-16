@@ -39,24 +39,5 @@ function to_reciprocal_rotations(rotations, lattvec)
     return [metric_inv * R' * metric for R in rotations]
 end
 
-#=
-    determine_compatibility(rotation, perm, magmom, mtype, symprec)
-
-Check if a symmetry operation is compatible with the magnetic configuration.
-
-Returns (forward, backward) indicating if the operation and its time reversal
-are compatible.
-=#
-function determine_compatibility(rotation, perm, magmom, mtype::MagmomType, symprec)
-    if mtype == Unpolarized
-        return (true, true)
-    elseif mtype == Collinear
-        # Check if magnetic moments match after permutation
-        # Allow spin flip (both |m - m'| and |m + m'|)
-        error("Collinear compatibility not implemented yet")
-    else  # Noncollinear
-        # Apply rotation to magnetic moment vectors
-        # Check forward and time-reversed compatibility
-        error("Noncollinear compatibility not implemented yet")
-    end
-end
+# Note: determine_compatibility is fully implemented in sphere.jl
+# This stub is kept for backward compatibility but delegates to sphere.jl implementation
