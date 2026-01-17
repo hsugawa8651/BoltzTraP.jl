@@ -116,6 +116,7 @@ end
         include("test_fite.jl")
         include("test_bandlib.jl")
         include("test_calc_N_solve_mu.jl")
+        include("test_workflow_magnetic.jl")
     end
 
     # DFTK extension tests (only if DFTK is available)

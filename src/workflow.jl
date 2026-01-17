@@ -112,18 +112,87 @@ function run_interpolate(
     )
 end
 
-#= 
+"""
+    run_interpolate(data::DFTData{2}; kwargs...) -> InterpolationResult
+
+Run interpolation workflow on spin-polarized (collinear) [`DFTData`](@ref).
+
+Spin channels are concatenated following Python BoltzTraP2 convention:
+`ebands[:,:,1]` and `ebands[:,:,2]` are vertically concatenated to form
+`(2*nbands, nkpts)` before interpolation.
+
+# Arguments
+- `data`: [`DFTData{2}`](@ref) from loaders with spin-polarized data
+
+See `run_interpolate(::NamedTuple; kwargs...)` for keyword arguments.
+
+# Returns
+[`InterpolationResult`](@ref) with `metadata["spintype"] = "Collinear"` and
+`metadata["dosweight"] = 1.0`.
+"""
+function run_interpolate(
+    data::DFTData{2};
+    source::String = "unknown",
+    output::Union{String,Nothing} = nothing,
+    kpoints::Union{Int,Nothing} = nothing,
+    multiplier::Union{Int,Nothing} = nothing,
+    emin::Float64 = -Inf,
+    emax::Float64 = +Inf,
+    absolute::Bool = false,
+    verbose::Bool = false,
+    symprec::Real = 1e-5,
+)
+    # Concatenate spin channels (Python BoltzTraP2 convention)
+    # ebands: (nbands, nkpts, 2) → (2*nbands, nkpts, 1)
+    ebands_spin1 = data.ebands[:, :, 1]
+    ebands_spin2 = data.ebands[:, :, 2]
+    ebands_concat = vcat(ebands_spin1, ebands_spin2)
+
+    # Reshape to 3D for compatibility with NamedTuple interface
+    ebands_3d = reshape(ebands_concat, size(ebands_concat, 1), size(ebands_concat, 2), 1)
+
+    # Convert DFTData to NamedTuple with concatenated bands and magmom
+    data_nt = (
+        lattice = data.lattice,
+        positions = data.positions,
+        species = data.species,
+        kpoints = data.kpoints,
+        weights = data.weights,
+        ebands = ebands_3d,
+        occupations = data.occupations,  # Note: occupations not concatenated (unused in interpolation)
+        fermi = data.fermi,
+        nelect = data.nelect,
+        magmom = data.magmom,  # Pass magmom for symmetry
+    )
+
+    return run_interpolate(
+        data_nt;
+        source,
+        output,
+        kpoints,
+        multiplier,
+        emin,
+        emax,
+        absolute,
+        verbose,
+        symprec,
+    )
+end
+
+#=
     run_interpolate(data::DFTData{N}; kwargs...) where N
 
-Catch-all method for unsupported spin configurations.
-Spin-polarized calculations (DFTData{2}) are not supported in v0.1.
+Catch-all method for unsupported spin configurations (N > 2).
 =#
 function run_interpolate(data::DFTData{N}; kwargs...) where {N}
-    error(
-        "Spin-polarized calculations (nspin=$N) are not supported in v0.1.\n" *
-        "Only non-magnetic materials (DFTData{1}) are supported.\n" *
-        "See: https://hsugawa8651.github.io/BoltzTraP.jl for supported features.",
-    )
+    if N > 2
+        error(
+            "Non-collinear calculations (nspin=$N) are not supported.\n" *
+            "Only DFTData{1} (unpolarized) and DFTData{2} (collinear) are supported."
+        )
+    end
+    # This should not be reached for N=1 or N=2
+    error("Unexpected nspin=$N in run_interpolate")
 end
 
 """
@@ -200,6 +269,7 @@ function run_interpolate(
     positions = data.positions  # 3×natoms, need to transpose
     species = data.species
     types = [findfirst(==(s), unique(species)) for s in species]
+    magmom = get(data, :magmom, nothing)  # For collinear magnetic calculations
 
     # 2. Determine target k-points
     if !isnothing(multiplier)
@@ -217,8 +287,9 @@ function run_interpolate(
 
     # 4. Compute equivalences
     verbose && println("Computing equivalences for ~$nkpt_target k-points...")
-    equivalences, radius, nrot =
-        get_equivalences(lattvec, positions', types, nothing, nkpt_target; symprec)
+    equivalences, radius, nrot = get_equivalences(
+        lattvec, positions', types, magmom, nkpt_target; symprec
+    )
     verbose && println("  Rotations: $nrot")
     verbose && println("  Radius: $(round(radius, digits=2))")
     verbose && println("  Equivalences: $(length(equivalences))")
@@ -230,8 +301,8 @@ function run_interpolate(
     nbands_total = size(ebands_raw, 1)
 
     # Determine dosweight from spin polarization
-    nspin = size(data.ebands, 3)
-    dosweight = nspin == 1 ? 2.0 : 1.0
+    # Use magmom to detect collinear (ebands may be concatenated for collinear)
+    dosweight = isnothing(magmom) ? 2.0 : 1.0
 
     # 5. Filter bands by energy
     # emin/emax are in Ha (relative to Fermi unless absolute=true)
@@ -272,10 +343,14 @@ function run_interpolate(
         "positions" => collect(positions'),
         "lattice" => collect(lattvec),
     )
+    # Determine spintype from magmom
+    spintype = isnothing(magmom) ? "Unpolarized" : "Collinear"
+
     metadata = Dict{String,Any}(
         "fermi" => fermi,
         "nelect" => data.nelect,
         "dosweight" => dosweight,
+        "spintype" => spintype,
         "selected_bands" => selected_bands,
         "nkpt_original" => size(data.kpoints, 2),
         "nkpt_target" => nkpt_target,
