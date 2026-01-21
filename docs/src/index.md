@@ -20,7 +20,7 @@ Julia implementation of [BoltzTraP2](https://www.imc.tuwien.ac.at/forschungsbere
 | Plot transport | `boltztrap plot` | `plot_transport()` | [`TransportResult`](@ref) (`.jld2`) | PNG, PDF |
 | Describe results | `boltztrap describe` | [`describe`](@ref)`()` | [`InterpolationResult`](@ref) or [`TransportResult`](@ref) | - |
 
-See [CLI Workflow](@ref) and [API Workflow](@ref) for detailed usage. For file format details, see [Input Formats](@ref) and [Output Formats](@ref).
+See [CLI Workflow](@ref) and [API Workflow](@ref) for detailed usage. For file format details, see [Input Formats](@ref input-formats) and [Output Formats](@ref output-formats).
 
 ## Quick Start
 
@@ -55,7 +55,7 @@ This package currently supports **non-magnetic materials** (spin-polarized suppo
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/hsugawa8651/BoltzTraP.jl")
+Pkg.add("BoltzTraP")
 ```
 
 ### [CLI Setup (Optional)](@id cli-setup)
@@ -89,7 +89,6 @@ BoltzTraP.jl aims for numerical compatibility with Python BoltzTraP2. To ensure 
 Key differences:
 
 - Julia uses atomic units (Hartree) internally, consistent with DFTK.jl
-- Spin-polarized data is kept as separate arrays (not flattened)
 - Default output format is JLD2 (Julia native); `.bt2` format also supported for Python compatibility
 
 ## Citation

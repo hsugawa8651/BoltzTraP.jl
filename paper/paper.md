@@ -36,7 +36,7 @@ BoltzTraP2 [@madsen2018boltztrap2], implemented with C++ and Python, is the de f
 
 `BoltzTraP.jl` is a faithful Julia port that implements the exact same algorithm as BoltzTraP2, producing numerically equivalent results. The motivation for this port is integration with the growing Julia ecosystem for materials science:
 
-- **Julia ecosystem integration**: `BoltzTraP.jl` integrates natively with Julia packages like DFTK.jl [@herbst2021dftk] and Wannier.jl [@qiao2025wannierjl], enabling direct transport calculations from DFTK self-consistent field results without intermediate files or language bridges.
+- **Julia ecosystem integration**: `BoltzTraP.jl` integrates natively with Julia packages like DFTK.jl [@herbst2021dftk] and Wannier.jl [@qiao2026wannierjl], enabling direct transport calculations from DFTK self-consistent field results without intermediate files or language bridges.
 - **Pure Julia, no compilation**: BoltzTraP2 requires compiling a C++ extension, which can fail on some systems—particularly on HPC clusters with non-standard compiler configurations. `BoltzTraP.jl` has no external compiled dependencies.
 - **HPC-friendly**: Julia's package manager handles dependencies without conda/pip conflicts common on shared HPC systems. No C++ compilation means no compiler version mismatches. As pure Julia code, `BoltzTraP.jl` is designed to be highly portable and should run on any system where Julia is available, from personal laptops to high-performance computing (HPC) clusters.
 - **Performance**: BLAS-optimized algorithms achieve 1.8-3.4x end-to-end speedup over BoltzTraP2 (depending on problem size), enabling rapid screening of thermoelectric materials.
@@ -56,6 +56,7 @@ The package is not intended to replace BoltzTraP2 for existing Python/Wien2k wor
 | Compilation required | Yes (C++ extension) | No |
 | Julia DFT integration | No | Yes (DFTK.jl) |
 | Performance (end-to-end) | 1x (baseline) | 1.8-3.4x faster |
+| Spin-polarized calculations | Yes | Not yet (planned) |
 | Unit handling | Manual conversion | Atomic units (Hartree) |
 | Input formats | VASP, QE, Wien2k, GENE, ABINIT | VASP, QE, Wien2k, GENE, ABINIT, DFTK |
 | Output format | `.bt2`/`.btj` (LZMA+JSON) | `.jld2` (HDF5, default)[^bt2] |
@@ -152,15 +153,15 @@ This approach ensures that `BoltzTraP.jl` produces the same results as BoltzTraP
 | Si | Semiconductor | 6 | 165 | < 10⁻¹² |
 | PbTe | Thermoelectric | 14 | 145 | < 10⁻⁶ |
 
-To demonstrate that `BoltzTraP.jl` faithfully reproduces the original Python implementation, \autoref{fig:validation} compares transport coefficients computed by both codes for silicon at 300 K. The curves are visually indistinguishable, confirming numerical equivalence across the entire chemical potential range.
+To demonstrate that `BoltzTraP.jl` faithfully reproduces the original Python implementation, \autoref{fig:validation} compares transport coefficients computed by both codes for silicon at 300 K. The results are visually indistinguishable, confirming numerical equivalence across the entire chemical potential range.
 
-![End-to-end validation of transport coefficients for silicon at 300 K, using VASP [@kresse1996efficient] band structure data distributed with BoltzTraP2 [@madsen2018boltztrap2]. Three panels show Seebeck coefficient (S), electrical conductivity (σ/τ), and thermal conductivity (κ/τ) as functions of chemical potential. BoltzTraP2 (dashed lines) and BoltzTraP.jl (solid lines) produce numerically equivalent results.](transport_Si_300K.png){#fig:validation}
+![End-to-end validation of transport coefficients for silicon at 300 K, using VASP [@kresse1996efficient] band structure data distributed with BoltzTraP2 [@madsen2018boltztrap2]. Three panels show Seebeck coefficient (S), electrical conductivity (σ/τ), and thermal conductivity (κ/τ) as functions of chemical potential. BoltzTraP2 (red circles) and BoltzTraP.jl (blue markers) produce numerically equivalent results.](transport_Si_300K.png){#fig:validation}
 
 The figure exhibits the expected semiconductor physics: the Seebeck coefficient is positive for p-type carriers (μ in the valence band region) and negative for n-type carriers (μ in the conduction band region), with sign reversal occurring within the band gap. The electrical and thermal conductivities vanish within the gap and increase as the chemical potential enters the bands.
 
 The test suite includes:
 - Reference tests verifying numerical equivalence with BoltzTraP2
-- Over 1,000 unit tests covering all package functionality
+- Over 1000 unit tests covering all package functionality
 - Continuous integration on Linux, macOS, and Windows
 
 # Documentation and Installation
@@ -180,6 +181,6 @@ Bug reports and feature requests are welcome via [GitHub Issues](https://github.
 
 # Acknowledgements
 
-This package is a Julia port of BoltzTraP2, and we gratefully acknowledge the original authors: Georg K. H. Madsen, Jesus Carrete, and Matthieu J. Verstraete. We also thank the Julia community and the developers of DFTK.jl, Wannier.jl, Spglib.jl, FFTW.jl.
+This package is a Julia port of BoltzTraP2, and we gratefully acknowledge the original authors: Georg K. H. Madsen, Jesus Carrete, and Matthieu J. Verstraete. We also thank the Julia community and the developers of DFTK.jl, Wannier.jl, Spglib.jl, FFTW.jl. `BoltzTraP.jl` is released under the GPL-3.0-or-later license, the same as BoltzTraP2.
 
 # References

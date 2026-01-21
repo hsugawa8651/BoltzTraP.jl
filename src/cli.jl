@@ -207,19 +207,19 @@ Parse temperature string into vector of temperatures.
 
 Supported formats:
 - Single value: "300" -> [300.0]
-- Range: "100:500:50" -> [100.0, 150.0, ..., 500.0]
+- Range: "100:100:500" -> [100.0, 200.0, ..., 500.0] (Julia range notation: start:step:stop)
 - List: "100,200,300" -> [100.0, 200.0, 300.0]
 =#
 function _parse_temperatures(s::String)::Vector{Float64}
     s = strip(s)
 
     if occursin(':', s)
-        # Range format: start:stop:step
+        # Range format: start:step:stop (Julia notation)
         parts = split(s, ':')
         if length(parts) == 3
             start = parse(Float64, parts[1])
-            stop = parse(Float64, parts[2])
-            step = parse(Float64, parts[3])
+            step = parse(Float64, parts[2])
+            stop = parse(Float64, parts[3])
             return collect(start:step:stop)
         elseif length(parts) == 2
             start = parse(Float64, parts[1])
@@ -321,9 +321,9 @@ Get display label for quantity with units.
 function _get_quantity_label(quantity::String)
     quantity = lowercase(strip(quantity))
     labels = Dict(
-        "sigma" => "σ (S/m)",
-        "seebeck" => "S (V/K)",
-        "kappa" => "κ (W/m/K)",
+        "sigma" => "σ/τ (S/m)",
+        "seebeck" => "S (μV/K)",
+        "kappa" => "κ/τ (W/m/K)",
         "dos" => "DOS (states/Ha/cell)",
         "n" => "n (carriers/cell)",
     )
@@ -426,6 +426,11 @@ boltztrap plot transport.jld2 -q sigma -t 300 -o sigma_300K.png
             error("Unexpected data shape: $(size(qdata))")
         end
 
+        # Convert Seebeck to μV/K
+        if lowercase(quantity) in ["seebeck", "s"]
+            y_data = y_data .* 1e6  # V/K → μV/K
+        end
+
         # mu_values is already in eV, fermi is in Ha
         # Convert fermi to eV and compute relative μ (HA_TO_EV from units.jl)
         fermi_eV = fermi * HA_TO_EV
@@ -462,6 +467,11 @@ boltztrap plot transport.jld2 -q sigma -t 300 -o sigma_300K.png
             y_data = qdata[:, mu_idx]
         else
             error("Unexpected data shape: $(size(qdata))")
+        end
+
+        # Convert Seebeck to μV/K
+        if lowercase(quantity) in ["seebeck", "s"]
+            y_data = y_data .* 1e6  # V/K → μV/K
         end
 
         mu_rel_eV = actual_mu - fermi_eV  # Both in eV

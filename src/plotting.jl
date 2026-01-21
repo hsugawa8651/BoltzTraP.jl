@@ -362,12 +362,12 @@ function plot_transport(
 
     # Get units and labels
     units = Dict(
-        "seebeck" => "μV/K",
-        "S" => "μV/K",
-        "sigma" => "S/m/s",
-        "conductivity" => "S/m/s",
-        "kappa" => "W/m/K/s",
-        "thermal" => "W/m/K/s",
+        "seebeck" => "S (μV/K)",
+        "S" => "S (μV/K)",
+        "sigma" => "σ/τ (S/m)",
+        "conductivity" => "σ/τ (S/m)",
+        "kappa" => "κ/τ (W/m/K)",
+        "thermal" => "κ/τ (W/m/K)",
     )
 
     # Get Fermi energy

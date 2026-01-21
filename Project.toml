@@ -2,7 +2,7 @@ name = "BoltzTraP"
 uuid = "cbda18ea-c181-4d25-a1c9-354b8a2900c6"
 license = "GPL-3.0-or-later"
 authors = ["Hiroharu Sugawara <hsugawa@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
