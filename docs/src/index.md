@@ -89,7 +89,6 @@ BoltzTraP.jl aims for numerical compatibility with Python BoltzTraP2. To ensure 
 Key differences:
 
 - Julia uses atomic units (Hartree) internally, consistent with DFTK.jl
-- Spin-polarized data is kept as separate arrays (not flattened)
 - Default output format is JLD2 (Julia native); `.bt2` format also supported for Python compatibility
 
 ## Citation
