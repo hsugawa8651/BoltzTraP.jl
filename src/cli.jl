@@ -207,19 +207,19 @@ Parse temperature string into vector of temperatures.
 
 Supported formats:
 - Single value: "300" -> [300.0]
-- Range: "100:500:50" -> [100.0, 150.0, ..., 500.0]
+- Range: "100:100:500" -> [100.0, 200.0, ..., 500.0] (Julia range notation: start:step:stop)
 - List: "100,200,300" -> [100.0, 200.0, 300.0]
 =#
 function _parse_temperatures(s::String)::Vector{Float64}
     s = strip(s)
 
     if occursin(':', s)
-        # Range format: start:stop:step
+        # Range format: start:step:stop (Julia notation)
         parts = split(s, ':')
         if length(parts) == 3
             start = parse(Float64, parts[1])
-            stop = parse(Float64, parts[2])
-            step = parse(Float64, parts[3])
+            step = parse(Float64, parts[2])
+            stop = parse(Float64, parts[3])
             return collect(start:step:stop)
         elseif length(parts) == 2
             start = parse(Float64, parts[1])
