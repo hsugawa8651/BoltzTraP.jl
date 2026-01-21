@@ -55,7 +55,7 @@ This package currently supports **non-magnetic materials** (spin-polarized suppo
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/hsugawa8651/BoltzTraP.jl")
+Pkg.add("BoltzTraP")
 ```
 
 ### [CLI Setup (Optional)](@id cli-setup)

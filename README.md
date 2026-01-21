@@ -25,7 +25,7 @@ Julia port of [BoltzTraP2 v25.11.1](https://pypi.org/project/BoltzTraP2/25.11.1/
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/hsugawa8651/BoltzTraP.jl")
+Pkg.add("BoltzTraP")
 ```
 
 ## Documentation
