@@ -74,7 +74,7 @@ Bug reports and feature requests are welcome via [GitHub Issues](https://github.
 If you use BoltzTraP.jl in your research, please cite both:
 
 **BoltzTraP.jl:**
-> Sugawara, H. (2026). BoltzTraP.jl: Julia port of BoltzTraP2 for band structure interpolation and transport coefficient calculation (Version 0.1.1) [Computer software]. https://doi.org/10.5281/zenodo.18328895
+> Sugawara, H. (2026). BoltzTraP.jl: Julia port of BoltzTraP2 for band structure interpolation and transport coefficient calculation (Version 0.1.2) [Computer software]. https://doi.org/10.5281/zenodo.18335645
 
 **Original BoltzTraP2:**
 > Madsen, G. K., Carrete, J., & Verstraete, M. J. (2018). BoltzTraP2, a program for interpolating band structures and calculating semi-classical transport coefficients. *Computer Physics Communications*, 231, 140-145. [doi:10.1016/j.cpc.2018.05.010](https://doi.org/10.1016/j.cpc.2018.05.010)

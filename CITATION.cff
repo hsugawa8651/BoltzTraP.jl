@@ -8,9 +8,9 @@ authors:
     email: hsugawa@gmail.com
 repository-code: "https://github.com/hsugawa8651/BoltzTraP.jl"
 license: GPL-3.0-or-later
-version: 0.1.1
-date-released: 2026-01-21
-doi: "10.5281/zenodo.18328895"
+version: 0.1.2
+date-released: 2026-01-22
+doi: "10.5281/zenodo.18335645"
 keywords:
   - band structure
   - interpolation

@@ -18,10 +18,10 @@ authors:
 affiliations:
   - name: Graduate School of Systems Design, Tokyo Metropolitan University, Japan
     index: 1
-date: 21 January 2026
+date: 22 January 2026
 bibliography: paper.bib
 repository: https://github.com/hsugawa8651/BoltzTraP.jl
-archive_doi: 10.5281/zenodo.18328895
+archive_doi: 10.5281/zenodo.18335645
 ---
 
 # Summary
