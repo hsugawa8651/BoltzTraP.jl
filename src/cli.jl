@@ -41,6 +41,9 @@ for band energies. Support VASP, Quantum ESPRESSO, and other formats.
 - `-m, --multiplier <n>`: Multiplier for k-points (alternative to --kpoints)
 - `--emin <e>`: Minimum energy relative to Fermi in Ha (default: -Inf)
 - `--emax <e>`: Maximum energy relative to Fermi in Ha (default: +Inf)
+
+# Flags
+
 - `--absolute`: Interpret emin/emax as absolute energies
 - `-v, --verbose`: Print progress information
 - `--debug`: Enable debug logging (detailed internal info)
@@ -148,6 +151,9 @@ Seebeck coefficient, and thermal conductivity.
     - List: `"100,200,300"` → [100.0, 200.0, 300.0]
 - `-o, --output <file>`: Output file path (default: based on input)
 - `-b, --bins <n>`: Number of DOS histogram bins (default: auto)
+
+# Flags
+
 - `-v, --verbose`: Print progress information
 - `--debug`: Enable debug logging (detailed internal info)
 
@@ -573,9 +579,12 @@ For .bt2 files without spacegroup metadata, use --kpath to specify manually.
 - `-n, --npoints <n>`: Number of k-points per path segment. Default: 100
 - `--emin <e>`: Minimum energy relative to Fermi [eV]. Default: -5.0
 - `--emax <e>`: Maximum energy relative to Fermi [eV]. Default: 5.0
-- `--no-fermi`: Hide Fermi level line
 - `--kpath <spec>`: Manual k-path specification (required for .bt2 without spacegroup)
 - `-o, --output <file>`: Output file (PNG/PDF). Default: display
+
+# Flags
+
+- `--no-fermi`: Hide Fermi level line
 
 # K-path format
 
