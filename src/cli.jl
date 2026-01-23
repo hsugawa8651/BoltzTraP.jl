@@ -35,15 +35,18 @@ for band energies. Support VASP, Quantum ESPRESSO, and other formats.
 
 # Options
 
-  - `-f, --format <fmt>`: DFT format (auto, vasp, qe). Default: auto-detect
-  - `-o, --output <file>`: Output file path (default: based on input directory)
-  - `-k, --kpoints <n>`: Target number of k-points/equivalences (default: 5000)
-  - `-m, --multiplier <n>`: Multiplier for k-points (alternative to --kpoints)
-  - `--emin <e>`: Minimum energy relative to Fermi in Ha (default: -Inf)
-  - `--emax <e>`: Maximum energy relative to Fermi in Ha (default: +Inf)
-  - `--absolute`: Interpret emin/emax as absolute energies
-  - `-v, --verbose`: Print progress information
-  - `--debug`: Enable debug logging (detailed internal info)
+- `-f, --format <fmt>`: DFT format (auto, vasp, qe). Default: auto-detect
+- `-o, --output <file>`: Output file path (default: based on input directory)
+- `-k, --kpoints <n>`: Target number of k-points/equivalences (default: 5000)
+- `-m, --multiplier <n>`: Multiplier for k-points (alternative to --kpoints)
+- `--emin <e>`: Minimum energy relative to Fermi in Ha (default: -Inf)
+- `--emax <e>`: Maximum energy relative to Fermi in Ha (default: +Inf)
+
+# Flags
+
+- `--absolute`: Interpret emin/emax as absolute energies
+- `-v, --verbose`: Print progress information
+- `--debug`: Enable debug logging (detailed internal info)
 
 # Examples
 
@@ -142,18 +145,19 @@ Seebeck coefficient, and thermal conductivity.
 
 # Options
 
-  - `-t, --temperature <T>`: Temperature(s) in K. Formats:
+- `-t, --temperature <T>`: Temperature(s) in K. Formats:
+    - Single value: `"300"` → [300.0]
+    - Range: `"100:500:50"` (start:stop:step) → [100.0, 150.0, 200.0, ..., 500.0]
+    - List: `"100,200,300"` → [100.0, 200.0, 300.0]
+- `-o, --output <file>`: Output file path (default: based on input)
+- `-b, --bins <n>`: Number of DOS histogram bins (default: auto)
+- `-s, --scissor <eV>`: Target band gap in eV for scissor correction.
+  Shifts conduction bands to achieve the specified gap. Only for semiconductors.
 
-      + Single value: `"300"` → [300.0]
-      + Range: `"100:500:50"` (start:stop:step) → [100.0, 150.0, 200.0, ..., 500.0]
-      + List: `"100,200,300"` → [100.0, 200.0, 300.0]
+# Flags
 
-  - `-o, --output <file>`: Output file path (default: based on input)
-  - `-b, --bins <n>`: Number of DOS histogram bins (default: auto)
-  - `-s, --scissor <eV>`: Target band gap in eV for scissor correction.
-    Shifts conduction bands to achieve the specified gap. Only for semiconductors.
-  - `-v, --verbose`: Print progress information
-  - `--debug`: Enable debug logging (detailed internal info)
+- `-v, --verbose`: Print progress information
+- `--debug`: Enable debug logging (detailed internal info)
 
 # Examples
 
@@ -220,19 +224,19 @@ Parse temperature string into vector of temperatures.
 
 Supported formats:
 - Single value: "300" -> [300.0]
-- Range: "100:500:50" -> [100.0, 150.0, ..., 500.0]
+- Range: "100:100:500" -> [100.0, 200.0, ..., 500.0] (Julia range notation: start:step:stop)
 - List: "100,200,300" -> [100.0, 200.0, 300.0]
 =#
 function _parse_temperatures(s::String)::Vector{Float64}
     s = strip(s)
 
     if occursin(':', s)
-        # Range format: start:stop:step
+        # Range format: start:step:stop (Julia notation)
         parts = split(s, ':')
         if length(parts) == 3
             start = parse(Float64, parts[1])
-            stop = parse(Float64, parts[2])
-            step = parse(Float64, parts[3])
+            step = parse(Float64, parts[2])
+            stop = parse(Float64, parts[3])
             return collect(start:step:stop)
         elseif length(parts) == 2
             start = parse(Float64, parts[1])
@@ -339,9 +343,9 @@ Get display label for quantity with units.
 function _get_quantity_label(quantity::String)
     quantity = lowercase(strip(quantity))
     labels = Dict(
-        "sigma" => "σ (S/m)",
-        "seebeck" => "S (V/K)",
-        "kappa" => "κ (W/m/K)",
+        "sigma" => "σ/τ (S/m)",
+        "seebeck" => "S (μV/K)",
+        "kappa" => "κ/τ (W/m/K)",
         "dos" => "DOS (states/Ha/cell)",
         "n" => "n (carriers/cell)",
     )
@@ -444,6 +448,11 @@ boltztrap plot transport.jld2 -q sigma -t 300 -o sigma_300K.png
             error("Unexpected data shape: $(size(qdata))")
         end
 
+        # Convert Seebeck to μV/K
+        if lowercase(quantity) in ["seebeck", "s"]
+            y_data = y_data .* 1e6  # V/K → μV/K
+        end
+
         # mu_values is already in eV, fermi is in Ha
         # Convert fermi to eV and compute relative μ (HA_TO_EV from units.jl)
         fermi_eV = fermi * HA_TO_EV
@@ -481,6 +490,11 @@ boltztrap plot transport.jld2 -q sigma -t 300 -o sigma_300K.png
             y_data = qdata[:, mu_idx]
         else
             error("Unexpected data shape: $(size(qdata))")
+        end
+
+        # Convert Seebeck to μV/K
+        if lowercase(quantity) in ["seebeck", "s"]
+            y_data = y_data .* 1e6  # V/K → μV/K
         end
 
         mu_rel_eV = actual_mu - fermi_eV  # Both in eV
@@ -580,12 +594,15 @@ For .bt2 files without spacegroup metadata, use --kpath to specify manually.
 
 # Options
 
-  - `-n, --npoints <n>`: Number of k-points per path segment. Default: 100
-  - `--emin <e>`: Minimum energy relative to Fermi [eV]. Default: -5.0
-  - `--emax <e>`: Maximum energy relative to Fermi [eV]. Default: 5.0
-  - `--no-fermi`: Hide Fermi level line
-  - `--kpath <spec>`: Manual k-path specification (required for .bt2 without spacegroup)
-  - `-o, --output <file>`: Output file (PNG/PDF). Default: display
+- `-n, --npoints <n>`: Number of k-points per path segment. Default: 100
+- `--emin <e>`: Minimum energy relative to Fermi [eV]. Default: -5.0
+- `--emax <e>`: Maximum energy relative to Fermi [eV]. Default: 5.0
+- `--kpath <spec>`: Manual k-path specification (required for .bt2 without spacegroup)
+- `-o, --output <file>`: Output file (PNG/PDF). Default: display
+
+# Flags
+
+- `--no-fermi`: Hide Fermi level line
 
 # K-path format
 

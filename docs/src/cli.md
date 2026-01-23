@@ -105,7 +105,7 @@ boltztrap interpolate ./Si.vasp -k 5000 -v
 
 # 3. Compute transport at multiple temperatures
 # Note: -t accepts a scalar (e.g., 300) or Julia range "start:step:stop"
-boltztrap integrate Si.vasp_interp.jld2 -t "100:800:100" -v
+boltztrap integrate Si.vasp_interp.jld2 -t "100:100:800" -v
 # Output: Si.vasp_interp_transport.jld2
 
 # 4. (Optional) Load results in Julia for analysis
