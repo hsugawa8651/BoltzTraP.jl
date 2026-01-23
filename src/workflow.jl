@@ -513,6 +513,7 @@ function run_integrate(
     dosweight = get(interp.metadata, "dosweight", 2.0)
     fermi_dft = get(interp.metadata, "fermi", 0.0)  # in Ha
     source = get(interp.metadata, "source_file", "unknown")
+    spintype = get(interp.metadata, "spintype", "Unpolarized")  # v0.1 compat
 
     if nelect == 0.0
         error("nelect not found in interpolation metadata")
@@ -616,7 +617,7 @@ function run_integrate(
         "source" => source,
         "nelect" => nelect,
         "dosweight" => dosweight,
-        "spintype" => "Unpolarized",  # v0.2 forward compatibility
+        "spintype" => spintype,
         "fermi_Ha" => fermi_Ha,
         "fermi_eV" => fermi_Ha * HA_TO_EV,
         "fermi_dft_Ha" => fermi_dft,
@@ -675,6 +676,7 @@ function run_integrate(
     dosweight = get(interp.metadata, "dosweight", 2.0)
     fermi_dft = get(interp.metadata, "fermi", 0.0)
     source = get(interp.metadata, "source_file", "unknown")
+    spintype = get(interp.metadata, "spintype", "Unpolarized")  # v0.1 compat
 
     if nelect == 0.0
         error("nelect not found in interpolation metadata")
@@ -759,7 +761,7 @@ function run_integrate(
         "source" => source,
         "nelect" => nelect,
         "dosweight" => dosweight,
-        "spintype" => "Unpolarized",  # v0.2 forward compatibility
+        "spintype" => spintype,
         "fermi_Ha" => fermi_Ha,
         "fermi_eV" => fermi_Ha * HA_TO_EV,
         "fermi_dft_Ha" => fermi_dft,

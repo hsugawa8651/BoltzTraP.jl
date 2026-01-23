@@ -79,7 +79,76 @@ using BoltzTraP
         # ordering differs between Python and Julia implementations.
         # The coefficients are correct but stored in different order.
         # Key verification: shape matches and interpolated bands would match.
-        # See Sprint 6 for band reconstruction tests that verify correctness.
+    end
+
+    @testset "run_integrate Collinear" begin
+        # Load PbTe collinear reference data
+        REFTEST_DIR = joinpath(@__DIR__, "..", "reftest", "data")
+        reference_file = joinpath(REFTEST_DIR, "pbte_collinear.npz")
+
+        if !isfile(reference_file)
+            @test_skip "PbTe collinear reference data not available"
+            return
+        end
+
+        ref = npzread(reference_file)
+
+        # Create DFTData{2} (same as interpolate test)
+        ebands_concat = ref["ebands"]
+        nbands_per_spin = size(ebands_concat, 1) ÷ 2
+        nkpts = size(ebands_concat, 2)
+
+        ebands_spin1 = ebands_concat[1:nbands_per_spin, :]
+        ebands_spin2 = ebands_concat[nbands_per_spin+1:end, :]
+        ebands_3d = zeros(nbands_per_spin, nkpts, 2)
+        ebands_3d[:, :, 1] = ebands_spin1
+        ebands_3d[:, :, 2] = ebands_spin2
+
+        symbols_bytes = ref["symbols"]
+        symbols_str = String(UInt8.(symbols_bytes))
+        species = split(symbols_str, ",")
+
+        data = BoltzTraP.DFTData(
+            lattice = ref["lattvec"],
+            positions = ref["positions"]',
+            species = species,
+            kpoints = ref["kpoints"]',
+            weights = ones(nkpts) / nkpts,
+            ebands = ebands_3d,
+            occupations = zeros(size(ebands_3d)),
+            fermi = ref["fermi"],
+            nelect = ref["nelect"],
+            magmom = ref["magmom"],
+        )
+
+        # Run interpolation
+        interp = BoltzTraP.run_interpolate(data; kpoints=nkpts, verbose=false)
+
+        # Run integration
+        transport = BoltzTraP.run_integrate(interp; temperatures=[300.0], verbose=false)
+
+        # Verify result type
+        @test transport isa BoltzTraP.TransportResult
+
+        # Check output shapes
+        # sigma, seebeck, kappa: (3, 3, nT, nμ)
+        @test ndims(transport.sigma) == 4
+        @test size(transport.sigma, 1) == 3  # 3x3 tensor
+        @test size(transport.sigma, 2) == 3
+        @test size(transport.sigma, 3) == 1  # 1 temperature
+
+        @test ndims(transport.seebeck) == 4
+        @test size(transport.seebeck, 3) == 1
+
+        @test ndims(transport.kappa) == 4
+        @test size(transport.kappa, 3) == 1
+
+        # Check spintype metadata is inherited from InterpolationResult
+        @test haskey(transport.metadata, "spintype")
+        @test transport.metadata["spintype"] == "Collinear"
+
+        # Check dosweight is correct for spin-polarized
+        @test transport.metadata["dosweight"] == 1.0
     end
 
 end
