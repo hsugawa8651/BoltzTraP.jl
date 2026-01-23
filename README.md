@@ -3,7 +3,7 @@
 [![CI](https://github.com/hsugawa8651/BoltzTraP.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/hsugawa8651/BoltzTraP.jl/actions/workflows/CI.yml)
 [![Documentation](https://github.com/hsugawa8651/BoltzTraP.jl/actions/workflows/docs.yml/badge.svg)](https://hsugawa8651.github.io/BoltzTraP.jl)
 [![codecov](https://codecov.io/gh/hsugawa8651/BoltzTraP.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/hsugawa8651/BoltzTraP.jl)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18253186.svg)](https://doi.org/10.5281/zenodo.18253186)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18335645.svg)](https://doi.org/10.5281/zenodo.18335645)
 
 Julia port of [BoltzTraP2 v25.11.1](https://pypi.org/project/BoltzTraP2/25.11.1/) ([source](https://gitlab.com/sousaw/BoltzTraP2)), a band structure interpolation and transport coefficient calculator.
 
