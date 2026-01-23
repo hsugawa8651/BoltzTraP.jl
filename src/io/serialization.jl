@@ -204,12 +204,19 @@ end
 
 function load_interpolation_jld2(filename::String)
     data = load(filename)
+    metadata = get(data, "metadata", Dict{String,Any}())
+
+    # v0.1 backward compatibility: add spintype default if missing
+    if !haskey(metadata, "spintype")
+        metadata["spintype"] = "Unpolarized"
+    end
+
     return InterpolationResult(
         data["coeffs"],
         data["equivalences"],
         data["lattvec"],
         get(data, "atoms", nothing),
-        get(data, "metadata", Dict{String,Any}()),
+        metadata
     )
 end
 
@@ -228,6 +235,13 @@ end
 
 function load_integrate_jld2(filename::String)
     data = load(filename)
+    metadata = get(data, "metadata", Dict{String,Any}())
+
+    # v0.1 backward compatibility: add spintype default if missing
+    if !haskey(metadata, "spintype")
+        metadata["spintype"] = "Unpolarized"
+    end
+
     return TransportResult(
         data["temperatures"],
         data["mu_values"],
@@ -235,7 +249,7 @@ function load_integrate_jld2(filename::String)
         data["seebeck"],
         data["kappa"],
         get(data, "dos", nothing),
-        get(data, "metadata", Dict{String,Any}()),
+        metadata
     )
 end
 
@@ -283,6 +297,11 @@ function from_bt2_dict(data::Dict)
 
     atoms = get(data, "atoms", nothing)
     metadata = get(data, "metadata", Dict{String,Any}())
+
+    # v0.1 backward compatibility: add spintype default if missing
+    if !haskey(metadata, "spintype")
+        metadata["spintype"] = "Unpolarized"
+    end
 
     return InterpolationResult(coeffs, equivalences, lattvec, atoms, metadata)
 end
@@ -455,6 +474,11 @@ function from_python_bt2(data::AbstractVector)
 
     # Convert atoms dict to Julia Dict
     atoms = _json3_to_dict(atoms_dict)
+
+    # v0.1 backward compatibility: add spintype default if missing
+    if !haskey(metadata, "spintype")
+        metadata["spintype"] = "Unpolarized"
+    end
 
     return InterpolationResult(coeffs, equivalences, lattvec, atoms, metadata)
 end
