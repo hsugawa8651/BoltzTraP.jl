@@ -137,6 +137,56 @@ See [DFTK.jl Integration](@ref) for detailed documentation.
 
 ---
 
+## Collinear Magnetic Workflow
+
+BoltzTraP.jl supports spin-polarized (collinear magnetic) calculations. When loading data with magnetic moments, the package automatically:
+
+1. Detects spin polarization from band structure dimensions
+2. Uses appropriate symmetry operations considering time-reversal
+3. Sets `dosweight=1.0` (vs 2.0 for non-magnetic)
+
+### VASP Example (Collinear)
+
+```julia
+using BoltzTraP
+
+# Load spin-polarized VASP data
+# The vasprun.xml should contain ISPIN=2 calculation
+data = load_vasp("./Fe.vasp")
+
+# Verify it's magnetic
+println("Is magnetic: ", is_magnetic(data))  # true
+println("Number of spins: ", nspin(data))     # 2
+
+# Run interpolation (automatic handling)
+interp = run_interpolate(data; kpoints=5000, verbose=true)
+
+# Compute transport
+transport = run_integrate(interp; temperatures=[300.0])
+
+# Check metadata
+println("Spin type: ", transport.metadata["spintype"])  # "Collinear"
+println("DOS weight: ", transport.metadata["dosweight"])  # 1.0
+```
+
+### Quantum ESPRESSO Example (Collinear)
+
+```julia
+using BoltzTraP
+
+# Load nspin=2 QE calculation
+data = load_qe("./Fe.ESPRESSO/out")
+
+interp = run_interpolate(data; kpoints=5000)
+transport = run_integrate(interp; temperatures=[300.0])
+```
+
+!!! note "Automatic spin detection"
+    The package automatically detects spin polarization from the band structure
+    dimensions. No additional flags are needed.
+
+---
+
 ## Generic Data Workflow
 
 For other data sources, prepare a NamedTuple with the required fields:

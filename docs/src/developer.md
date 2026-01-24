@@ -445,18 +445,53 @@ test/                   # Unit tests (automated)
 
 ## Migration Guide
 
-### v0.3 (upcoming): Collinear Magnetic Material Support
+### v0.1 → v0.3: Collinear Magnetic Support
 
-The `spintype` metadata field was added in v0.1 to both `InterpolationResult` and `TransportResult` to prepare for magnetic material support.
+v0.3 introduces full support for spin-polarized (collinear magnetic) materials.
 
-**Current behavior (v0.2):**
-- All calculations assume non-magnetic (unpolarized) materials
-- `metadata["spintype"]` = `"Unpolarized"` (always)
+**Key changes:**
 
-**Planned v0.3 changes:**
-- `SpinType` hierarchy: `NonMagnetic`, `Collinear`
-- Parametric types: `DFTData{N}` where N is number of spin channels
-- Spin-polarized VASP/QE/Wien2k/GENE support
+| Feature | v0.1 | v0.3 |
+|---------|------|------|
+| Material types | Non-magnetic only | Non-magnetic + Collinear |
+| `DFTData` type | `DFTData{1}` only | `DFTData{N}` where N∈{1,2} |
+| Band structure | `ebands[nbands, nkpts]` | `ebands[nbands, nkpts, nspin]` |
+| `dosweight` | Always 2.0 | 2.0 (non-mag) or 1.0 (collinear) |
+| `spintype` metadata | Always "Unpolarized" | "Unpolarized" or "Collinear" |
 
-**Forward compatibility:**
-Files saved with v0.1/v0.2 will be loadable in v0.3. The `spintype` metadata field ensures smooth migration.
+**Backward compatibility:**
+
+- v0.1 files (`.jld2`, `.bt2`) are fully compatible with v0.3
+- v0.1 code continues to work unchanged for non-magnetic materials
+- Spin-polarized data requires nspin=2 in the band structure
+
+**Code changes for collinear support:**
+
+```julia
+# v0.1 (non-magnetic only)
+data = load_vasp("./Si.vasp")          # DFTData{1}
+interp = run_interpolate(data)
+transport = run_integrate(interp)
+
+# v0.3 (same API, automatic spin detection)
+data = load_vasp("./Fe.vasp")          # DFTData{2} if spin-polarized
+interp = run_interpolate(data)         # Automatic collinear handling
+transport = run_integrate(interp)
+
+# Check spin type
+println(is_magnetic(data))              # true for DFTData{2}
+println(transport.metadata["spintype"]) # "Collinear"
+```
+
+**New functions in v0.3:**
+
+| Function | Description |
+|----------|-------------|
+| `is_magnetic(data)` | Check if data is spin-polarized |
+| `nspin(data)` | Get number of spin channels (1 or 2) |
+
+**Internal changes:**
+
+- `DFTData{N}` parametric type with N = number of spin channels
+- `determine_compatibility` considers magnetic moments in symmetry
+- Transport integration handles spin channels separately then combines
