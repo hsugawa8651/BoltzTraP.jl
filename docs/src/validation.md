@@ -22,10 +22,10 @@ This approach guarantees that BoltzTraP.jl produces results identical to the ori
 
 | Aspect | Details |
 |--------|---------|
-| Reference tests | 75 tests |
+| Test cases | 727 (5004 assertions) |
 | Tolerance | < 10⁻⁶ relative error |
 | Data source | BoltzTraP2 v25.11.1 (PyPI) |
-| Materials tested | Si, PbTe |
+| Materials tested | Si, PbTe, Fe (collinear) |
 
 ### Reference Data Source
 
@@ -51,15 +51,15 @@ For package checksums, test data checksums, and verification instructions, see [
 
 ### Components Tested
 
-| Component | Tests | Description |
-|-----------|-------|-------------|
-| Symmetry | 5 | Space group detection, rotations |
-| Equivalences | 5 | k-point equivalence classes |
-| Interpolation | 10 | Fourier coefficient fitting |
-| Reconstruction | 15 | Band energies and velocities via FFT |
-| Transport | 20 | Fermi integrals, Onsager coefficients |
-| I/O | 10 | VASP, QE, Wien2k, GENE, ABINIT file parsing |
-| End-to-end | 10 | Complete workflow validation |
+| Component | Test Cases | Description |
+|-----------|------------|-------------|
+| Symmetry | 37 | Space group detection, rotations, equivalences |
+| Types | 46 | DFTData, SpinTypes, BandData |
+| Interpolation | 57 | Fourier coefficient fitting, reconstruction |
+| Transport | 31 | Fermi integrals, Onsager coefficients |
+| I/O | 130 | VASP/QE file parsing |
+| Loaders | 92 | Multi-format loader comparison |
+| Workflow | 63 | End-to-end magnetic validation |
 
 ### Reference Data Scripts
 
