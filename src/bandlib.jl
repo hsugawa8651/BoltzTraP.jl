@@ -146,7 +146,7 @@ function BTPDOS(eband::AbstractMatrix, vvband::AbstractArray;
     # Transport DOS (v⊗v weighted)
     vvdos = zeros(3, 3, npts)
     for i in 1:3, j in i:3
-        weights = vvband[:, i, j, :]
+        weights = @view vvband[:, i, j, :]
         _, vvdos[i, j, :] = compute_dos(eband, erange, npts; weights=weights)
         if i != j
             vvdos[j, i, :] = vvdos[i, j, :]  # Symmetric
@@ -271,17 +271,24 @@ function calc_onsager_coefficients(L0, L1, L2, T_range, vuc)
     S = similar(L0)
     κ = similar(L0)
 
+    # Pre-compute T-independent factor (optimization: multiply instead of divide)
+    inv_sigma_vuc = 1.0 / (SIGMA_CONV * vuc)
+
     for iT in 1:nT, iμ in 1:nμ
         T = T_range[iT]
 
+        # Pre-compute T-dependent factors
+        inv_seebeck_T_vuc = 1.0 / (T * SEEBECK_CONV * vuc)
+        inv_kappa_T_vuc = 1.0 / (T * KAPPA_CONV * vuc)
+
         # L0 → σ/τ with BoltzTraP2-compatible unit conversion
         # Python: L11 = L0 / (Siemens / (Meter * Second)) / vuc
-        L11 = L0[iT, iμ, :, :] / SIGMA_CONV / vuc
+        L11 = @view(L0[iT, iμ, :, :]) * inv_sigma_vuc
         σ[iT, iμ, :, :] = L11
 
         # L1 → for Seebeck calculation
         # Python: L12 = L1 / T / (Volt * Siemens / (Meter * Second)) / vuc
-        L12 = L1[iT, iμ, :, :] / T / SEEBECK_CONV / vuc
+        L12 = @view(L1[iT, iμ, :, :]) * inv_seebeck_T_vuc
 
         # Seebeck: S = σ⁻¹ L12
         # Use Cholesky when possible (faster), fallback to pinv for singular cases
@@ -290,7 +297,7 @@ function calc_onsager_coefficients(L0, L1, L2, T_range, vuc)
 
         # L2 → for thermal conductivity
         # Python: L22 = L2 / T / (Volt * Joule * Siemens / (Meter * Second * Coulomb)) / vuc
-        L22 = L2[iT, iμ, :, :] / T / KAPPA_CONV / vuc
+        L22 = @view(L2[iT, iμ, :, :]) * inv_kappa_T_vuc
 
         # Thermal conductivity: κ = L22 - T * σ * S * S
         # Since S = σ⁻¹ * L12, this becomes: κ = L22 - T * L12 * σ⁻¹ * L12
