@@ -41,9 +41,13 @@ using BoltzTraP
         symbols_str = String(UInt8.(symbols_bytes))
         species = split(symbols_str, ",")
 
+        # Convert lattvec from Angstrom (ASE/npz) to Bohr (Julia internal)
+        ANG_TO_BOHR = 1.8897261246257702
+        lattvec = ref["lattvec"] * ANG_TO_BOHR
+
         # Create DFTData{2}
         data = BoltzTraP.DFTData(
-            lattice = ref["lattvec"],
+            lattice = lattvec,
             positions = ref["positions"]',  # transpose to 3×natom
             species = species,
             kpoints = ref["kpoints"]',  # transpose to 3×nkpts
@@ -109,8 +113,12 @@ using BoltzTraP
         symbols_str = String(UInt8.(symbols_bytes))
         species = split(symbols_str, ",")
 
+        # Convert lattvec from Angstrom (ASE/npz) to Bohr (Julia internal)
+        ANG_TO_BOHR = 1.8897261246257702
+        lattvec = ref["lattvec"] * ANG_TO_BOHR
+
         data = BoltzTraP.DFTData(
-            lattice = ref["lattvec"],
+            lattice = lattvec,
             positions = ref["positions"]',
             species = species,
             kpoints = ref["kpoints"]',

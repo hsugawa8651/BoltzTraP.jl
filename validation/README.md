@@ -109,7 +109,7 @@ Fe collinear magnetic transport validation at T=1000K.
 ```bash
 # Generate Python reference (requires BoltzTraP2)
 cd reftest
-python generate_8_fe_collinear.py --data-dir /path/to/BoltzTraP2/data
+python generate_collinear.py fe --data-dir /path/to/BoltzTraP2/data
 
 # Generate Julia transport plot
 julia --project validation/plot_fe_transport.jl

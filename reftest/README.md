@@ -121,8 +121,9 @@ python generate_6_loaders.py abinit    # ABINIT loader
 python generate_6_loaders.py all       # All loaders (requires Si.GENE for GENE)
 
 # Category 7: Collinear magnetic
-python generate_7_collinear.py         # PbTe collinear
-python generate_8_fe_collinear.py      # Fe collinear (T=200,300,400,1000K)
+python generate_collinear.py           # All collinear materials (PbTe, Fe)
+python generate_collinear.py pbte      # PbTe collinear only
+python generate_collinear.py fe        # Fe collinear only (T=200,300,400,1000K)
 
 # Category 8: Synthetic low-symmetry test data
 python generate_synthetic_lowsym.py    # All formats (GENE, VASP, QE, Wien2k, ABINIT)
