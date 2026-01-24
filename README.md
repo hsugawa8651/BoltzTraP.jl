@@ -9,7 +9,12 @@ Julia port of [BoltzTraP2 v25.11.1](https://pypi.org/project/BoltzTraP2/25.11.1/
 
 ## Features
 
-* Nonmagnetic materials (collinear magnetic support in v0.3)
+| Material Type | Support |
+|--------------|---------|
+| Non-magnetic | ✅ Full |
+| Collinear magnetic | ✅ Full (v0.3) |
+| Non-collinear magnetic | ⬜ Planned |
+
 * Electronic heat capacity (`calc_cv`) and scissor correction (`apply_scissor`)
 
 ### Available Commands
