@@ -177,4 +177,93 @@ using BoltzTraP
         end
     end
 
+    @testset "Fe Collinear E2E (QE loader)" begin
+        # Load Fe collinear reference data
+        REFTEST_DIR = joinpath(@__DIR__, "..", "reftest", "data")
+        reference_file = joinpath(REFTEST_DIR, "fe_collinear_e2e.npz")
+
+        if !isfile(reference_file)
+            @test_skip "Fe collinear reference data not available"
+            return
+        end
+
+        ref = npzread(reference_file)
+
+        # Create DFTData{2} from reference data
+        # Reference ebands is (24, 47) - concatenated [spin1; spin2]
+        ebands_concat = ref["ebands"]  # (24, 47)
+        nbands_per_spin = size(ebands_concat, 1) ÷ 2  # 12
+        nkpts = size(ebands_concat, 2)  # 47
+
+        # Split into two spin channels
+        ebands_spin1 = ebands_concat[1:nbands_per_spin, :]
+        ebands_spin2 = ebands_concat[nbands_per_spin+1:end, :]
+        ebands_3d = zeros(nbands_per_spin, nkpts, 2)
+        ebands_3d[:, :, 1] = ebands_spin1
+        ebands_3d[:, :, 2] = ebands_spin2
+
+        # Create DFTData{2} - Fe has 1 atom
+        data = BoltzTraP.DFTData(
+            lattice = ref["lattvec"],
+            positions = zeros(3, 1),  # Fe BCC: 1 atom at origin
+            species = ["Fe"],
+            kpoints = ref["kpoints"]',  # transpose to 3×nkpts
+            weights = ones(nkpts) / nkpts,
+            ebands = ebands_3d,
+            occupations = zeros(size(ebands_3d)),
+            fermi = ref["fermi"],
+            nelect = ref["nelect"],
+            magmom = ref["magmom"],
+        )
+
+        # Verify DFTData{2} was created
+        @test data isa BoltzTraP.DFTData{2}
+        @test BoltzTraP.is_magnetic(data)
+        @test size(data.ebands, 3) == 2
+
+        # Run interpolation
+        interp = BoltzTraP.run_interpolate(data; kpoints=nkpts, verbose=false)
+
+        # Verify interpolation result
+        @test interp isa BoltzTraP.InterpolationResult
+        @test interp.metadata["spintype"] == "Collinear"
+        @test interp.metadata["dosweight"] == 1.0
+
+        # Check coefficients shape matches reference
+        @test size(interp.coeffs, 1) == size(ref["coeffs_real"], 1)  # nbands
+        @test size(interp.coeffs, 2) == size(ref["coeffs_real"], 2)  # neq
+
+        # Run integration at reference temperatures
+        ref_temps = ref["Tr"]
+        transport = BoltzTraP.run_integrate(interp; temperatures=ref_temps, verbose=false)
+
+        # Verify transport result
+        @test transport isa BoltzTraP.TransportResult
+        @test transport.metadata["spintype"] == "Collinear"
+
+        # Sanity checks
+        @testset "Fe transport sanity checks" begin
+            @test !any(isnan, transport.sigma)
+            @test !any(isinf, transport.sigma)
+            @test !any(isnan, transport.seebeck)
+            @test !any(isinf, transport.seebeck)
+            @test !any(isnan, transport.kappa)
+            @test !any(isinf, transport.kappa)
+
+            # Verify sigma diagonal is non-negative
+            for k in axes(transport.sigma, 4)
+                for iT in axes(transport.sigma, 3)
+                    for i in 1:3
+                        @test transport.sigma[i, i, iT, k] >= 0.0
+                    end
+                end
+            end
+
+            # For Fe metal: sigma should have some large values (metallic conductivity)
+            # Check that max sigma_xx is significant somewhere in the mu range
+            sigma_xx_max = maximum(transport.sigma[1, 1, 1, :])
+            @test sigma_xx_max > 1e10  # Should be large for metal at some mu
+        end
+    end
+
 end
