@@ -39,10 +39,11 @@ All reference data originates from the test materials included in the [BoltzTraP
 
 **DFT Calculation Details:**
 
-| Material | Structure | DFT Code | XC Functional | k-grid | ENCUT (eV) | Pseudopotential |
-|----------|-----------|----------|---------------|--------|------------|-----------------|
-| Si | Diamond (Fd-3m) | VASP | PBE | 17×17×17 | 306.7 | PAW_PBE Si |
-| PbTe | Rock salt (Fm-3m) | VASP | PBE | 16×16×16 | 300.0 | PAW_PBE Pb_d, Te |
+| Material | Structure | DFT Code | XC Functional | k-grid | Pseudopotential |
+|----------|-----------|----------|---------------|--------|-----------------|
+| Si | Diamond (Fd-3m) | VASP | PBE | 17×17×17 | PAW_PBE Si |
+| PbTe | Rock salt (Fm-3m) | VASP | PBE | 16×16×16 | PAW_PBE Pb_d, Te |
+| Fe | BCC (Im-3m) | QE | PBE | - | ONCV |
 
 **Data Provenance and Verification:**
 
@@ -259,12 +260,11 @@ Comparison figures are saved in `validation/`:
 
 ## Available Materials
 
-Only non-magnetic materials (ISPIN=1) are supported:
-
 | Material | Type | Description |
 |----------|------|-------------|
 | Si | Semiconductor | Silicon (diamond structure) |
 | PbTe | Thermoelectric | Lead telluride |
+| Fe | Ferromagnetic metal | BCC Iron (collinear, T=1000K) |
 
 ## Available Properties
 

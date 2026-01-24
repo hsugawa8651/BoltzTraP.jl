@@ -30,6 +30,7 @@ makedocs(
             "Conventions" => "conventions.md",
             "Functional Tests" => "ftest.md",
         ],
+        "Magnetic Materials" => "magnetic.md",
         "Validation" => "validation.md",
         "Benchmarks" => "benchmarks.md",
         "Reference Tests" => "reftest.md",

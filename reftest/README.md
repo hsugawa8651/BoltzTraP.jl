@@ -21,6 +21,7 @@ Reference tests validate numerical equivalence for:
 **Test Materials:**
 - Si (diamond, semiconductor)
 - PbTe (rock salt, thermoelectric)
+- Fe (BCC, collinear magnetic)
 - Synthetic monoclinic/triclinic (low-symmetry validation)
 
 ## Quick Start
@@ -119,7 +120,11 @@ python generate_6_loaders.py gene      # GENE loader (requires Si.GENE, see belo
 python generate_6_loaders.py abinit    # ABINIT loader
 python generate_6_loaders.py all       # All loaders (requires Si.GENE for GENE)
 
-# Category 7: Synthetic low-symmetry test data
+# Category 7: Collinear magnetic
+python generate_7_collinear.py         # PbTe collinear
+python generate_8_fe_collinear.py      # Fe collinear (T=200,300,400,1000K)
+
+# Category 8: Synthetic low-symmetry test data
 python generate_synthetic_lowsym.py    # All formats (GENE, VASP, QE, Wien2k, ABINIT)
 ```
 

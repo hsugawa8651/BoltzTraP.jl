@@ -4,6 +4,7 @@
 
 using Test
 using LinearAlgebra
+using Statistics
 using NPZ
 using BoltzTraP
 
@@ -202,9 +203,13 @@ using BoltzTraP
         ebands_3d[:, :, 1] = ebands_spin1
         ebands_3d[:, :, 2] = ebands_spin2
 
+        # Note: Python BoltzTraP2 uses ASE (Angstrom), Julia expects Bohr
+        ANG_TO_BOHR = 1.8897261246257702
+        lattvec = ref["lattvec"] * ANG_TO_BOHR
+
         # Create DFTData{2} - Fe has 1 atom
         data = BoltzTraP.DFTData(
-            lattice = ref["lattvec"],
+            lattice = lattvec,
             positions = zeros(3, 1),  # Fe BCC: 1 atom at origin
             species = ["Fe"],
             kpoints = ref["kpoints"]',  # transpose to 3×nkpts
@@ -233,9 +238,10 @@ using BoltzTraP
         @test size(interp.coeffs, 1) == size(ref["coeffs_real"], 1)  # nbands
         @test size(interp.coeffs, 2) == size(ref["coeffs_real"], 2)  # neq
 
-        # Run integration at reference temperatures
+        # Run integration at reference temperatures and mu range
         ref_temps = ref["Tr"]
-        transport = BoltzTraP.run_integrate(interp; temperatures=ref_temps, verbose=false)
+        mur = ref["mur"]  # Use same mu range as Python
+        transport = BoltzTraP.run_integrate(interp, mur; temperatures=ref_temps, verbose=false)
 
         # Verify transport result
         @test transport isa BoltzTraP.TransportResult
@@ -263,6 +269,56 @@ using BoltzTraP
             # Check that max sigma_xx is significant somewhere in the mu range
             sigma_xx_max = maximum(transport.sigma[1, 1, 1, :])
             @test sigma_xx_max > 1e10  # Should be large for metal at some mu
+        end
+
+        # Quantitative validation at T=1000K
+        # At high temperature, transport curves are smooth (oscillations damped)
+        # This makes Python-Julia comparison meaningful
+        @testset "Fe transport agreement at T=1000K" begin
+            # Find index for T=1000K
+            iT_1000K = findfirst(t -> t ≈ 1000.0, ref_temps)
+            if isnothing(iT_1000K)
+                @test_skip "T=1000K not found in reference data"
+                return
+            end
+
+            if !isnothing(iT_1000K)
+                # Python reference
+                sigma_py = ref["sigma"][iT_1000K, :, 1, 1]
+                S_py = ref["S"][iT_1000K, :, 1, 1]
+                kappa_py = ref["kappa"][iT_1000K, :, 1, 1]
+
+                # Julia result
+                sigma_jl = vec(transport.sigma[1, 1, iT_1000K, :])
+                S_jl = vec(transport.seebeck[1, 1, iT_1000K, :])
+                kappa_jl = vec(transport.kappa[1, 1, iT_1000K, :])
+
+                # Compute relative errors (filter small values)
+                function max_rel_error(jl, py; threshold=1e-10)
+                    valid = abs.(py) .> threshold
+                    if !any(valid)
+                        return 0.0
+                    end
+                    return maximum(abs.(jl[valid] .- py[valid]) ./ abs.(py[valid]))
+                end
+
+                # Tolerance: 5% max relative error
+                rel_tol = 0.05
+
+                sigma_err = max_rel_error(sigma_jl, sigma_py)
+                S_err = max_rel_error(S_jl, S_py)
+                kappa_err = max_rel_error(kappa_jl, kappa_py)
+
+                # Relative error should be < 5%
+                @test sigma_err < rel_tol
+                @test S_err < rel_tol
+                @test kappa_err < rel_tol
+
+                # Correlation should be > 0.999
+                @test cor(sigma_jl, sigma_py) > 0.999
+                @test cor(S_jl, S_py) > 0.999
+                @test cor(kappa_jl, kappa_py) > 0.999
+            end
         end
     end
 

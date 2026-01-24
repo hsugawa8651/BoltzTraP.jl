@@ -138,6 +138,6 @@ function process(data::NonMagneticData)
 end
 ```
 
-!!! note "v0.3: Magnetic Material Support"
-    `SpinPolarizedData` is defined but not yet fully implemented.
-    Full support for spin-polarized calculations is planned for v0.3.
+!!! note "Magnetic Material Support (v0.3+)"
+    `SpinPolarizedData` provides full support for collinear magnetic calculations.
+    Non-collinear magnetic support is planned for v0.4.

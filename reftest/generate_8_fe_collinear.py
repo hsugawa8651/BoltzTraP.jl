@@ -24,7 +24,7 @@ import BoltzTraP2.bandlib as bandlib
 from common import get_material_path, OUTPUT_DIR
 
 # Default transport parameters
-DEFAULT_TEMPERATURES = np.array([200.0, 300.0, 400.0])  # Kelvin
+DEFAULT_TEMPERATURES = np.array([200.0, 300.0, 400.0, 1000.0])  # Kelvin
 DEFAULT_NPTS_DOS = 500  # DOS histogram bins
 
 
