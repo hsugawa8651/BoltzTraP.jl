@@ -21,7 +21,7 @@ affiliations:
 date: 22 January 2026
 bibliography: paper.bib
 repository: https://github.com/hsugawa8651/BoltzTraP.jl
-archive_doi: 10.5281/zenodo.18335645
+archive_doi: 10.5281/zenodo.18605978
 ---
 
 # Summary
@@ -168,7 +168,7 @@ The test suite includes:
 
 Full documentation is available at: https://hsugawa8651.github.io/BoltzTraP.jl/
 
-This paper describes version 0.2.0, archived at Zenodo (DOI: 10.5281/zenodo.18335645).
+This paper describes version 0.2.0, archived at Zenodo (DOI: 10.5281/zenodo.18605978).
 
 Installation via Julia's package manager:
 
