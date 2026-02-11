@@ -114,16 +114,23 @@ function _getBTPbands_kernel!(
             vb2 = scale .* real.(vec(plan * vgrid2))
             vb3 = scale .* real.(vec(plan * vgrid3))
 
-            @inbounds for k = 1:npts
+            # Exploit symmetry: vvband[i,j] = vvband[j,i] (6 multiplications instead of 9)
+            @inbounds for k in 1:npts
+                # Diagonal components (3 multiplications)
                 vvband[iband, 1, 1, k] = vb1[k] * vb1[k]
-                vvband[iband, 1, 2, k] = vb1[k] * vb2[k]
-                vvband[iband, 1, 3, k] = vb1[k] * vb3[k]
-                vvband[iband, 2, 1, k] = vb2[k] * vb1[k]
                 vvband[iband, 2, 2, k] = vb2[k] * vb2[k]
-                vvband[iband, 2, 3, k] = vb2[k] * vb3[k]
-                vvband[iband, 3, 1, k] = vb3[k] * vb1[k]
-                vvband[iband, 3, 2, k] = vb3[k] * vb2[k]
                 vvband[iband, 3, 3, k] = vb3[k] * vb3[k]
+
+                # Off-diagonal components (3 multiplications + 6 assignments)
+                v12 = vb1[k] * vb2[k]
+                v13 = vb1[k] * vb3[k]
+                v23 = vb2[k] * vb3[k]
+                vvband[iband, 1, 2, k] = v12
+                vvband[iband, 2, 1, k] = v12
+                vvband[iband, 1, 3, k] = v13
+                vvband[iband, 3, 1, k] = v13
+                vvband[iband, 2, 3, k] = v23
+                vvband[iband, 3, 2, k] = v23
             end
         end
     end
@@ -255,16 +262,23 @@ function getBTPbands_parallel(coeffs, equivalences, lattvec; compute_velocity = 
             vb2 = scale .* real.(vec(plan * vgrid2))
             vb3 = scale .* real.(vec(plan * vgrid3))
 
-            @inbounds for k = 1:npts
+            # Exploit symmetry: vvband[i,j] = vvband[j,i] (6 multiplications instead of 9)
+            @inbounds for k in 1:npts
+                # Diagonal components (3 multiplications)
                 vvband[iband, 1, 1, k] = vb1[k] * vb1[k]
-                vvband[iband, 1, 2, k] = vb1[k] * vb2[k]
-                vvband[iband, 1, 3, k] = vb1[k] * vb3[k]
-                vvband[iband, 2, 1, k] = vb2[k] * vb1[k]
                 vvband[iband, 2, 2, k] = vb2[k] * vb2[k]
-                vvband[iband, 2, 3, k] = vb2[k] * vb3[k]
-                vvband[iband, 3, 1, k] = vb3[k] * vb1[k]
-                vvband[iband, 3, 2, k] = vb3[k] * vb2[k]
                 vvband[iband, 3, 3, k] = vb3[k] * vb3[k]
+
+                # Off-diagonal components (3 multiplications + 6 assignments)
+                v12 = vb1[k] * vb2[k]
+                v13 = vb1[k] * vb3[k]
+                v23 = vb2[k] * vb3[k]
+                vvband[iband, 1, 2, k] = v12
+                vvband[iband, 2, 1, k] = v12
+                vvband[iband, 1, 3, k] = v13
+                vvband[iband, 3, 1, k] = v13
+                vvband[iband, 2, 3, k] = v23
+                vvband[iband, 3, 2, k] = v23
             end
         end
     end

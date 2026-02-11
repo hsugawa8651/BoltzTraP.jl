@@ -287,4 +287,33 @@ using BoltzTraP: FourierInterpolator, interpolate, interpolate_bands, interpolat
         @test size(vvband, 2) == 3  # velocity component
         @test size(vvband, 3) == 3  # velocity component
     end
+
+    @testset "vvband symmetry" begin
+        # vvband[iband, i, j, k] should equal vvband[iband, j, i, k] (symmetric tensor)
+        si_file = joinpath(dirname(TEST_DIR), "reftest", "data", "si_interpolation.npz")
+        if !isfile(si_file)
+            @test_skip "Si interpolation data not available"
+            return
+        end
+
+        si_data = npzread(si_file)
+        lattvec = si_data["lattvec"]
+        n_eq = si_data["n_equivalences"]
+        equivalences = [si_data["equiv_$i"] for i in 0:(n_eq-1)]
+        coeffs = si_data["coeffs"]
+
+        _, vvband = BoltzTraP.getBTPbands(coeffs, equivalences, lattvec)
+
+        nbands = size(vvband, 1)
+        npts = size(vvband, 4)
+
+        for iband in 1:min(nbands, 3)  # Test first 3 bands
+            for k in 1:min(npts, 100)  # Sample 100 k-points
+                @test vvband[iband, 1, 2, k] ≈ vvband[iband, 2, 1, k]
+                @test vvband[iband, 1, 3, k] ≈ vvband[iband, 3, 1, k]
+                @test vvband[iband, 2, 3, k] ≈ vvband[iband, 3, 2, k]
+            end
+        end
+    end
+
 end
