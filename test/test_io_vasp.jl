@@ -6,7 +6,6 @@ using Test
 using BoltzTraP: read_poscar, read_vasprun, read_eigenval
 
 @testset "VASP I/O" begin
-
     @testset "read_poscar" begin
         # Create a temporary POSCAR file (Si diamond)
         poscar_content = """
@@ -282,5 +281,4 @@ Direct
             @test data.occupations[3, 2, 1] ≈ 0.5
         end
     end
-
 end

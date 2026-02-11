@@ -9,11 +9,10 @@ using StaticArrays
 using NPZ
 
 @testset "Sphere Module" begin
-
     @testset "compute_bounds cube" begin
         # Simple cubic lattice
         lattvec = Matrix{Float64}(I, 3, 3)
-        for i in 1:9
+        for i = 1:9
             bounds = BoltzTraP.compute_bounds(lattvec, Float64(i))
             # bounds returns a vector, compare as Tuple
             @test Tuple(bounds) == (i, i, i)
@@ -23,9 +22,9 @@ using NPZ
     @testset "compute_bounds Li (BCC)" begin
         # Test based on Li (BCC)
         lattvec = [
-            -3.19204785  3.19204785  3.19204785;
-             3.19204785 -3.19204785  3.19204785;
-             3.19204785  3.19204785 -3.19204785
+            -3.19204785 3.19204785 3.19204785;
+            3.19204785 -3.19204785 3.19204785;
+            3.19204785 3.19204785 -3.19204785
         ]
         bounds = BoltzTraP.compute_bounds(lattvec, 145.47229311)
         @test Tuple(bounds) == (33, 33, 33)
@@ -99,5 +98,4 @@ using NPZ
             @test_skip "Reference data not available"
         end
     end
-
 end

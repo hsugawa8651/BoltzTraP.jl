@@ -31,6 +31,10 @@ const EV_TO_HA = 1 / HA_TO_EV           # 1 eV = 0.03674932217565 Ha
 # k_B [Ha/K] = 1.380649e-23 / 4.3597447222071e-18 = 3.1668115634438576e-6
 const KB_AU = 3.1668115634438576e-6     # Ha/K
 
+# Boltzmann constant in SI units (Joule/Kelvin)
+# Using Python BoltzTraP2 value for exact compatibility (NIST 2017)
+const KB_SI = 1.38064852e-23            # J/K
+
 # ============================================================================
 # Onsager Coefficient Conversion Factors
 # ============================================================================

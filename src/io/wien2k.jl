@@ -41,7 +41,11 @@ function _wien2k_c2p(lattice_type::AbstractString)
     elseif lattice_type == "A"
         return [-1.0 0.0 0.0; 0.0 -0.5 0.5; 0.0 0.5 0.5]
     elseif lattice_type == "R"
-        return [2.0/3.0 1.0/3.0 1.0/3.0; -1.0/3.0 1.0/3.0 1.0/3.0; -1.0/3.0 -2.0/3.0 1.0/3.0]
+        return [
+            2.0/3.0 1.0/3.0 1.0/3.0;
+            -1.0/3.0 1.0/3.0 1.0/3.0;
+            -1.0/3.0 -2.0/3.0 1.0/3.0
+        ]
     else
         error("Unknown Wien2k lattice type: $lattice_type")
     end
@@ -64,9 +68,9 @@ function _wien2k_coorsys(a::Real, b::Real, c::Real, alpha::Real, beta::Real, gam
 
     # Construct cell matrix (ASE convention: rows are vectors, we transpose for columns)
     cell = [
-        a          b*cga      c*cbe;
-        0.0        b*sga      c*(cal - cbe*cga)/sga;
-        0.0        0.0        c*sqrt(1 - cal^2 - cbe^2 - cga^2 + 2*cal*cbe*cga)/sga
+        a b*cga c*cbe;
+        0.0 b*sga c*(cal - cbe*cga)/sga;
+        0.0 0.0 c*sqrt(1 - cal^2 - cbe^2 - cga^2 + 2*cal*cbe*cga)/sga
     ]
     return cell  # 3x3 with columns as lattice vectors
 end
@@ -142,7 +146,7 @@ function _read_wien2k_struct(filename::String)
     species = String[]
     iline = 5  # Start after cell parameters (1-indexed)
 
-    for _ in 1:nat
+    for _ = 1:nat
         # Position line: X [12:22], Y [25:35], Z [38:48] (0-indexed)
         # In Julia 1-indexed: X [13:22], Y [26:35], Z [39:48]
         pos_line = lines[iline]
@@ -158,7 +162,7 @@ function _read_wien2k_struct(filename::String)
         iline += 1
 
         # Read equivalent positions (mult-1 additional positions)
-        for _ in 2:mult
+        for _ = 2:mult
             pos_line = lines[iline]
             x = parse(Float64, pos_line[13:22])
             y = parse(Float64, pos_line[26:35])
@@ -172,7 +176,7 @@ function _read_wien2k_struct(filename::String)
         element = strip(species_line[1:2])
 
         # Add species for all equivalent positions
-        for _ in 1:mult
+        for _ = 1:mult
             push!(species, element)
         end
 
@@ -261,7 +265,7 @@ function _read_wien2k_energy(filename::String, conv::AbstractMatrix)
 
             # Read band energies
             eband = Float64[]
-            for _ in 1:nband
+            for _ = 1:nband
                 # Energy line: band_index energy (Rydberg)
                 # Note: Wien2k uses Fortran "D" notation (e.g., "1.23D-05")
                 parts = split(lines[linenumber])
@@ -285,17 +289,14 @@ function _read_wien2k_energy(filename::String, conv::AbstractMatrix)
     # Truncate all bands to minimum band count
     nkpts = length(ebands_list)
     ebands = zeros(minband, nkpts)
-    for ik in 1:nkpts
+    for ik = 1:nkpts
         ebands[:, ik] = ebands_list[ik][1:minband]
     end
 
     # Convert from Rydberg to Hartree (multiply by 0.5)
     ebands .*= 0.5
 
-    return (
-        kpoints = kpts_transformed,
-        ebands = ebands,
-    )
+    return (kpoints = kpts_transformed, ebands = ebands)
 end
 
 #=
@@ -341,7 +342,7 @@ function _read_wien2k_mommat_bounds(filename::String, nkpts::Int)
 
     brk = Vector{Tuple{Int,Int}}()
 
-    for _ in 1:nkpts
+    for _ = 1:nkpts
         # Parse nemin, nemax from header line
         # Format: "   KP:   N NEMIN NEMAX :  nemin nemax dE: ..."
         parts = split(lines[il])
@@ -412,7 +413,9 @@ function _detect_wien2k_files(directory::String)
         energy_file = energysoup  # Will need to read both
         dosweight = 1.0
         nspin = 2
-        error("Spin-polarized Wien2k with SOC (.energysoup/.energysodn) not yet implemented")
+        error(
+            "Spin-polarized Wien2k with SOC (.energysoup/.energysodn) not yet implemented",
+        )
     elseif isfile(energyso)
         # Non-spin-polarized with SOC
         energy_file = energyso
@@ -454,18 +457,21 @@ end
 Load Wien2k calculation data from directory.
 
 # Required files
-- `case.struct`: Crystal structure
-- `case.energy` or `case.energyso`: Band energies
-- `case.scf`: Fermi level
+
+  - `case.struct`: Crystal structure
+  - `case.energy` or `case.energyso`: Band energies
+  - `case.scf`: Fermi level
 
 # Notes
-- Spin-polarized calculations (.energyup/.energydn) are detected but not yet supported
-- SOC calculations (.energyso) use dosweight=1.0, resulting in NSpin=2 in [`DFTData`](@ref)
-- All energies converted from Rydberg to Hartree
-- Lattice vectors in Bohr
+
+  - Spin-polarized calculations (.energyup/.energydn) are detected but not yet supported
+  - SOC calculations (.energyso) use dosweight=1.0, resulting in NSpin=2 in [`DFTData`](@ref)
+  - All energies converted from Rydberg to Hartree
+  - Lattice vectors in Bohr
 
 # Returns
-- [`DFTData`](@ref) where NSpin is determined by dosweight (2.0 → 1, 1.0 → 2)
+
+  - [`DFTData`](@ref) where NSpin is determined by dosweight (2.0 → 1, 1.0 → 2)    # Detect files
 """
 function load_wien2k(directory::String)
     # Detect files

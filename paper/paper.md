@@ -168,7 +168,7 @@ The test suite includes:
 
 Full documentation is available at: https://hsugawa8651.github.io/BoltzTraP.jl/
 
-This paper describes version 0.1.2, archived at Zenodo (DOI: 10.5281/zenodo.18335645).
+This paper describes version 0.2.0, archived at Zenodo (DOI: 10.5281/zenodo.18335645).
 
 Installation via Julia's package manager:
 

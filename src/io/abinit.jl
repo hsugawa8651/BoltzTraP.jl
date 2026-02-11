@@ -19,21 +19,28 @@ export load_abinit
 Load DFT data from ABINIT NetCDF output.
 
 # Arguments
-- `directory`: Path to directory containing `*_GSR.nc` file
+
+  - `directory`: Path to directory containing `*_GSR.nc` file
 
 # Returns
-- [`DFTData`](@ref): DFT calculation data
+
+  - [`DFTData`](@ref): DFT calculation data
 
 # Notes
-- Requires NCDatasets.jl extension
-- Install with: `using Pkg; Pkg.add("NCDatasets")`
+
+  - Requires NCDatasets.jl extension
+  - Install with: `using Pkg; Pkg.add("NCDatasets")`
 
 # File Format
+
 ABINIT outputs Ground State Results in NetCDF format:
-- `*_GSR.nc`: Contains eigenvalues, k-points, structure, Fermi energy
+
+  - `*_GSR.nc`: Contains eigenvalues, k-points, structure, Fermi energy
 """
 function load_abinit(args...)
-    error("load_abinit requires NCDatasets.jl. Run `using NCDatasets` before `using BoltzTraP`.")
+    error(
+        "load_abinit requires NCDatasets.jl. Run `using NCDatasets` before `using BoltzTraP`.",
+    )
 end
 
 #=

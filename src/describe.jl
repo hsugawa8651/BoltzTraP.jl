@@ -10,10 +10,12 @@ using JLD2
 Display summary of interpolation result.
 
 # Arguments
-- `result`: [`InterpolationResult`](@ref) from [`run_interpolate`](@ref) or [`load_interpolation`](@ref)
-- `io=stdout`: Output stream
+
+  - `result`: [`InterpolationResult`](@ref) from [`run_interpolate`](@ref) or [`load_interpolation`](@ref)
+  - `io=stdout`: Output stream
 
 # Example
+
 ```julia
 interp = run_interpolate("./Si.vasp")
 describe(interp)
@@ -50,12 +52,14 @@ end
 Display summary of transport result.
 
 # Arguments
-- `result`: [`TransportResult`](@ref) from [`run_integrate`](@ref) or [`load_integrate`](@ref)
-- `io=stdout`: Output stream
+
+  - `result`: [`TransportResult`](@ref) from [`run_integrate`](@ref) or [`load_integrate`](@ref)
+  - `io=stdout`: Output stream
 
 # Example
+
 ```julia
-transport = run_integrate(interp; temperatures=[300.0])
+transport = run_integrate(interp; temperatures = [300.0])
 describe(transport)
 ```
 """
@@ -158,9 +162,8 @@ function _describe_file(file::String; io::IO = stdout)
     end
 
     return nothing
-end
+end#= Helper function to format values for display =#
 
-#= Helper function to format values for display =#
 function _format_value(v)
     if v isa AbstractFloat
         string(round(v; sigdigits = 6))

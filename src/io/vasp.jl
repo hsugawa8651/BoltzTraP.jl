@@ -30,7 +30,7 @@ function read_poscar(filename::String)
 
     # Lines 3-5: Lattice vectors (as columns)
     lattice = zeros(3, 3)
-    for i in 1:3
+    for i = 1:3
         lattice[:, i] = parse.(Float64, split(lines[2+i]))
     end
     lattice .*= scale
@@ -55,15 +55,15 @@ function read_poscar(filename::String)
         pos_start += 1
         mode_line = lines[pos_start]
     end
-    cartesian = startswith(lowercase(mode_line), "c") ||
-                startswith(lowercase(mode_line), "k")
+    cartesian =
+        startswith(lowercase(mode_line), "c") || startswith(lowercase(mode_line), "k")
     pos_start += 1
 
     # Atomic positions (as columns)
     natoms = sum(counts)
     positions = zeros(3, natoms)
-    for i in 1:natoms
-        coords = split(lines[pos_start + i - 1])
+    for i = 1:natoms
+        coords = split(lines[pos_start+i-1])
         positions[:, i] = parse.(Float64, coords[1:3])
     end
 
@@ -72,8 +72,13 @@ function read_poscar(filename::String)
         positions = lattice * positions
     end
 
-    return (lattice=lattice, species=species, counts=counts,
-            positions=positions, comment=comment)
+    return (
+        lattice = lattice,
+        species = species,
+        counts = counts,
+        positions = positions,
+        comment = comment,
+    )
 end
 
 #=
@@ -207,7 +212,8 @@ function read_vasprun(filename::String)
 
     # Extract eigenvalues and occupations
     # Structure: <eigenvalues><array><set><set spin="1"><set>...</set></set></set></array></eigenvalues>
-    eigen_pattern = r"<eigenvalues>\s*<array>.*?<set>(.*?)</set>\s*</array>\s*</eigenvalues>"s
+    eigen_pattern =
+        r"<eigenvalues>\s*<array>.*?<set>(.*?)</set>\s*</array>\s*</eigenvalues>"s
     m = match(eigen_pattern, content)
 
     ebands = Array{Float64,3}(undef, 0, 0, 0)
@@ -217,12 +223,13 @@ function read_vasprun(filename::String)
         eigenset_content = m.captures[1]
 
         # Find spin sets
-        spin_pattern = r"<set comment=\"spin\s*(\d+)\"[^>]*>(.*?)</set>\s*(?=<set comment=\"spin|$)"s
+        spin_pattern =
+            r"<set comment=\"spin\s*(\d+)\"[^>]*>(.*?)</set>\s*(?=<set comment=\"spin|$)"s
         spin_matches = collect(eachmatch(spin_pattern, eigenset_content))
 
         if isempty(spin_matches)
             # No spin polarization - single spin channel
-            spin_matches = [(captures=["1", eigenset_content],)]
+            spin_matches = [(captures = ["1", eigenset_content],)]
         end
 
         nspin = length(spin_matches)
@@ -260,16 +267,16 @@ function read_vasprun(filename::String)
     end
 
     return (
-        lattice=lattice,
-        rec_lattice=rec_lattice,
-        positions=positions,
-        species=species,
-        kpoints=kpoints,
-        weights=weights,
-        ebands=ebands,
-        occupations=occupations,
-        fermi=fermi,
-        nelect=nelect,
+        lattice = lattice,
+        rec_lattice = rec_lattice,
+        positions = positions,
+        species = species,
+        kpoints = kpoints,
+        weights = weights,
+        ebands = ebands,
+        occupations = occupations,
+        fermi = fermi,
+        nelect = nelect,
     )
 end
 
@@ -282,17 +289,18 @@ Reads vasprun.xml for band structure and structure information.
 Converts from VASP units (eV, Å) to atomic units (Hartree, Bohr).
 
 # Returns
-- [`DFTData`](@ref) where NSpin is 1 (non-spin-polarized) or 2 (spin-polarized):
-- `lattice`: Lattice vectors (3, 3) in Bohr (columns are vectors)
-- `positions`: Atomic positions (3, natoms) in fractional coordinates
-- `species`: Atom species names
-- `kpoints`: K-points (3, nkpts) in fractional coordinates
-- `weights`: K-point weights (nkpts,)
-- `ebands`: Band energies (nbands, nkpts, nspin) in Hartree
-- `occupations`: Occupations (nbands, nkpts, nspin)
-- `fermi`: Fermi energy in Hartree
-- `nelect`: Number of electrons
-- `magmom`: Magnetic moments (nothing for non-spin-polarized)
+
+  - [`DFTData`](@ref) where NSpin is 1 (non-spin-polarized) or 2 (spin-polarized):
+  - `lattice`: Lattice vectors (3, 3) in Bohr (columns are vectors)
+  - `positions`: Atomic positions (3, natoms) in fractional coordinates
+  - `species`: Atom species names
+  - `kpoints`: K-points (3, nkpts) in fractional coordinates
+  - `weights`: K-point weights (nkpts,)
+  - `ebands`: Band energies (nbands, nkpts, nspin) in Hartree
+  - `occupations`: Occupations (nbands, nkpts, nspin)
+  - `fermi`: Fermi energy in Hartree
+  - `nelect`: Number of electrons
+  - `magmom`: Magnetic moments (nothing for non-spin-polarized)
 """
 function load_vasp(directory::String)
     vasprun = joinpath(directory, "vasprun.xml")
@@ -352,7 +360,7 @@ function read_eigenval(filename::String)
 
     line_idx = 8  # Skip header and blank line
 
-    for ik in 1:nkpts
+    for ik = 1:nkpts
         # K-point line: kx ky kz weight
         kline = split(strip(lines[line_idx]))
         kpoints[1, ik] = parse(Float64, kline[1])
@@ -362,7 +370,7 @@ function read_eigenval(filename::String)
         line_idx += 1
 
         # Band lines: band_index energy [occupation] [energy_spin2] [occupation_spin2]
-        for ib in 1:nbands
+        for ib = 1:nbands
             bline = split(strip(lines[line_idx]))
             if nspin == 1
                 # Format: band energy occupation
@@ -382,12 +390,12 @@ function read_eigenval(filename::String)
     end
 
     return (
-        nelect=nelect,
-        nkpts=nkpts,
-        nbands=nbands,
-        kpoints=kpoints,
-        weights=weights,
-        ebands=ebands,
-        occupations=occupations,
+        nelect = nelect,
+        nkpts = nkpts,
+        nbands = nbands,
+        kpoints = kpoints,
+        weights = weights,
+        ebands = ebands,
+        occupations = occupations,
     )
 end

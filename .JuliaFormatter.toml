@@ -31,9 +31,6 @@ import_to_using = false
 # Pipe operations
 pipe_to_function_call = false
 
-# Short circuit to if
-short_to_exprs = false
-
 # Align assignments
 align_assignment = false
 align_struct_field = false

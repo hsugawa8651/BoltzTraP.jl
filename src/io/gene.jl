@@ -47,9 +47,9 @@ function _read_gene_struct(filename::String)
     # Line 1: Title (ignored)
     # Lines 2-4: Lattice vectors (row-major in file → column-major in Julia)
     lattice = zeros(3, 3)
-    for i in 1:3
-        parts = split(lines[i + 1])
-        for j in 1:3
+    for i = 1:3
+        parts = split(lines[i+1])
+        for j = 1:3
             lattice[j, i] = _ffloat_gene(parts[j])
         end
     end
@@ -60,11 +60,11 @@ function _read_gene_struct(filename::String)
     # Lines 6+: Element + Cartesian coordinates (Bohr)
     species = String[]
     cart_positions = zeros(3, natom)
-    for i in 1:natom
-        parts = split(lines[5 + i])
+    for i = 1:natom
+        parts = split(lines[5+i])
         push!(species, parts[1])
-        for j in 1:3
-            cart_positions[j, i] = _ffloat_gene(parts[j + 1])
+        for j = 1:3
+            cart_positions[j, i] = _ffloat_gene(parts[j+1])
         end
     end
 
@@ -116,8 +116,8 @@ function _read_gene_energy(filename::String)
     mommat_list = Vector{Vector{Float64}}[]  # Each element is a vector of velocity vectors for one k-point
     kpoints_all = Vector{Float64}[]
 
-    for ispin in 1:nspin
-        for ik in 1:nk
+    for ispin = 1:nspin
+        for ik = 1:nk
             linenumber += 1
             kline = split(lines[linenumber])
             kx = _ffloat_gene(kline[1])
@@ -133,14 +133,18 @@ function _read_gene_energy(filename::String)
 
             eband = Float64[]
             vband = Vector{Float64}[]
-            for ib in 1:nband
+            for ib = 1:nband
                 linenumber += 1
                 fields = split(lines[linenumber])
                 e = _ffloat_gene(fields[1])
                 push!(eband, e)
 
                 if length(fields) == 4
-                    v = [_ffloat_gene(fields[2]), _ffloat_gene(fields[3]), _ffloat_gene(fields[4])]
+                    v = [
+                        _ffloat_gene(fields[2]),
+                        _ffloat_gene(fields[3]),
+                        _ffloat_gene(fields[4]),
+                    ]
                     push!(vband, v)
                 else
                     push!(vband, Float64[])
@@ -153,7 +157,7 @@ function _read_gene_energy(filename::String)
 
     # K-points: first nk only (redundant for spin channels)
     kpoints = zeros(3, nk)
-    for ik in 1:nk
+    for ik = 1:nk
         kpoints[:, ik] = kpoints_all[ik]
     end
 
@@ -161,12 +165,12 @@ function _read_gene_energy(filename::String)
     # Shape: (nspin * minband, nk)
     nbands_total = nspin * minband
     ebands = zeros(nbands_total, nk)
-    for ispin in 1:nspin
-        for ik in 1:nk
+    for ispin = 1:nspin
+        for ik = 1:nk
             idx = (ispin - 1) * nk + ik
             band_offset = (ispin - 1) * minband
-            for ib in 1:minband
-                ebands[band_offset + ib, ik] = ebands_list[idx][ib]
+            for ib = 1:minband
+                ebands[band_offset+ib, ik] = ebands_list[idx][ib]
             end
         end
     end
@@ -178,12 +182,12 @@ function _read_gene_energy(filename::String)
     if has_mommat && !isempty(mommat_list[1][1])
         # Shape: (nspin * minband, 3, nk)
         mommat = zeros(nbands_total, 3, nk)
-        for ispin in 1:nspin
-            for ik in 1:nk
+        for ispin = 1:nspin
+            for ik = 1:nk
                 idx = (ispin - 1) * nk + ik
                 band_offset = (ispin - 1) * minband
-                for ib in 1:minband
-                    mommat[band_offset + ib, :, ik] = mommat_list[idx][ib]
+                for ib = 1:minband
+                    mommat[band_offset+ib, :, ik] = mommat_list[idx][ib]
                 end
             end
         end
@@ -198,7 +202,13 @@ function _read_gene_energy(filename::String)
     # DOS weight
     dosweight = nspin == 1 ? 2.0 : 1.0
 
-    return (fermi = efermi, dosweight = dosweight, kpoints = kpoints, ebands = ebands, mommat = mommat)
+    return (
+        fermi = efermi,
+        dosweight = dosweight,
+        kpoints = kpoints,
+        ebands = ebands,
+        mommat = mommat,
+    )
 end
 
 #=
@@ -227,17 +237,20 @@ end
 Load GENE/Generic format calculation results.
 
 # Required files
-- `case.structure`: Crystal structure (lattice + atoms)
-- `case.energy`: Band energies and Fermi level
+
+  - `case.structure`: Crystal structure (lattice + atoms)
+  - `case.energy`: Band energies and Fermi level
 
 # Notes
-- For spin-polarized calculations, bands are concatenated (nspin × nbands)
-- All spin-polarized data is stored as [`DFTData`](@ref) with dosweight=1.0
-- Energy units: Rydberg → Hartree (×0.5)
-- Positions in .structure are Cartesian (Bohr), converted to fractional
+
+  - For spin-polarized calculations, bands are concatenated (nspin × nbands)
+  - All spin-polarized data is stored as [`DFTData`](@ref) with dosweight=1.0
+  - Energy units: Rydberg → Hartree (×0.5)
+  - Positions in .structure are Cartesian (Bohr), converted to fractional
 
 # Returns
-- [`DFTData`](@ref) containing crystal structure and band structure data.
+
+  - [`DFTData`](@ref) containing crystal structure and band structure data.
 """
 function load_gene(directory::String)
     detected = _detect_gene_files(directory)
@@ -279,7 +292,7 @@ function load_gene(directory::String)
         occupations = occupations_3d,
         fermi = energy_data.fermi,
         nelect = nelect,
-        magmom = nothing
+        magmom = nothing,
     )
 end
 

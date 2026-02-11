@@ -49,7 +49,7 @@ function compute_bounds(lattvec::AbstractMatrix, radius::Real)
 
     # bounds[k] = ceil(r × √(G⁻¹ₖₖ))
     bounds = Vector{Int}(undef, 3)
-    for k in 1:3
+    for k = 1:3
         bounds[k] = ceil(Int, radius * sqrt(invmetric[k, k]))
     end
 
@@ -116,7 +116,7 @@ function find_permutation(
     natoms = length(positions)
     perm = Vector{Int}(undef, natoms)
 
-    for i in 1:natoms
+    for i = 1:natoms
         # Apply symmetry operation: R * pos + t
         pos_i = positions[i]
         new_pos = rotation * pos_i + translation
@@ -126,7 +126,7 @@ function find_permutation(
 
         # Find matching atom
         found = false
-        for j in 1:natoms
+        for j = 1:natoms
             if types[i] != types[j]
                 continue
             end
@@ -185,7 +185,7 @@ function determine_compatibility(
         forward_ok = true
         backward_ok = true
 
-        for i in 1:natoms
+        for i = 1:natoms
             j = perm[i]
             m_i = magmom[i]
             m_j = magmom[j]
@@ -208,7 +208,7 @@ function determine_compatibility(
         forward_ok = true
         backward_ok = true
 
-        for i in 1:natoms
+        for i = 1:natoms
             j = perm[i]
             m_i = magmom[i]
             m_j = magmom[j]
@@ -272,7 +272,7 @@ function calc_nrotations(
     symprec::Real = 1e-5,
 )
     # Convert positions to vector of SVectors for Spglib
-    pos_vec = [SVector{3,Float64}(positions[i, :]) for i in 1:size(positions, 1)]
+    pos_vec = [SVector{3,Float64}(positions[i, :]) for i = 1:size(positions, 1)]
     return calc_nrotations(lattvec, pos_vec, types, magmom; symprec)
 end
 
@@ -349,7 +349,7 @@ function get_spacegroup_info(
     types::AbstractVector{<:Integer};
     symprec::Real = 1e-5,
 )
-    pos_vec = [SVector{3,Float64}(positions[i, :]) for i in 1:size(positions, 1)]
+    pos_vec = [SVector{3,Float64}(positions[i, :]) for i = 1:size(positions, 1)]
     return get_spacegroup_info(lattvec, pos_vec, types; symprec)
 end
 
@@ -460,7 +460,7 @@ function get_unique_rotations(
     magmom;
     symprec::Real = 1e-5,
 )
-    pos_vec = [SVector{3,Float64}(positions[i, :]) for i in 1:size(positions, 1)]
+    pos_vec = [SVector{3,Float64}(positions[i, :]) for i = 1:size(positions, 1)]
     return get_unique_rotations(lattvec, pos_vec, types, magmom; symprec)
 end
 
@@ -490,7 +490,7 @@ function calc_tensor_basis(
     magmom;
     symprec::Real = 1e-5,
 )
-    pos_vec = [SVector{3,Float64}(positions[i, :]) for i in 1:size(positions, 1)]
+    pos_vec = [SVector{3,Float64}(positions[i, :]) for i = 1:size(positions, 1)]
     return calc_tensor_basis(lattvec, pos_vec, types, magmom; symprec)
 end
 
@@ -519,14 +519,13 @@ function calc_tensor_basis(
     for (iop, rot) in enumerate(crotations)
         offset = 9 * (iop - 1)
 
-        for α in 1:3
-            for δ in 1:3
+        for α = 1:3
+            for δ = 1:3
                 row = offset + 3 * (α - 1) + δ
-                for β in 1:3
-                    for γ in 1:3
+                for β = 1:3
+                    for γ = 1:3
                         col = 3 * (β - 1) + γ
-                        constraints[row, col] =
-                            rot[β, α] * rot[γ, δ] - I3[β, α] * I3[γ, δ]
+                        constraints[row, col] = rot[β, α] * rot[γ, δ] - I3[β, α] * I3[γ, δ]
                     end
                 end
             end
@@ -575,8 +574,8 @@ function calc_tensor_basis(
     for (i, idx) in enumerate(null_indices)
         vec = V[:, idx]
         # Reshape to 3×3 (row-major as in C++)
-        for r in 1:3
-            for c in 1:3
+        for r = 1:3
+            for c = 1:3
                 basis[i, r, c] = vec[3*(r-1)+c]
             end
         end

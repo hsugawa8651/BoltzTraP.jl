@@ -32,7 +32,7 @@ function _generate_manual_kpath(kpath::NamedTuple, lattvec::Matrix{Float64}, npo
     current_dist = 0.0
 
     for segment in path_segments
-        for i in 1:(length(segment)-1)
+        for i = 1:(length(segment)-1)
             label_start = segment[i]
             label_end = segment[i+1]
 
@@ -45,7 +45,7 @@ function _generate_manual_kpath(kpath::NamedTuple, lattvec::Matrix{Float64}, npo
             segment_length = norm(dk_cart)
 
             # Interpolate npoints along this segment
-            for j in 0:(npoints-1)
+            for j = 0:(npoints-1)
                 t = j / npoints
                 k_frac = k_start + t * dk_frac
                 push!(kvecs, k_frac)
@@ -79,39 +79,43 @@ end
 Plot interpolated band structure along high-symmetry k-path.
 
 # Keyword Arguments
-- `npoints::Int = 100`: Number of k-points per path segment
-- `emin::Float64 = -1.0`: Minimum energy relative to Fermi [eV]
-- `emax::Float64 = 1.0`: Maximum energy relative to Fermi [eV]
-- `fermi_line::Bool = true`: Show Fermi level as dashed line
-- `output::Union{String,Nothing} = nothing`: Save figure to file if specified
-- `kpath::Union{NamedTuple,Nothing} = nothing`: Manual k-path specification (see below)
+
+  - `npoints::Int = 100`: Number of k-points per path segment
+  - `emin::Float64 = -1.0`: Minimum energy relative to Fermi [eV]
+  - `emax::Float64 = 1.0`: Maximum energy relative to Fermi [eV]
+  - `fermi_line::Bool = true`: Show Fermi level as dashed line
+  - `output::Union{String,Nothing} = nothing`: Save figure to file if specified
+  - `kpath::Union{NamedTuple,Nothing} = nothing`: Manual k-path specification (see below)
 
 When `kpath` is provided, the spacegroup metadata is not required. Format:
+
 ```julia
 kpath = (
-    points = Dict("Γ" => [0,0,0], "X" => [0.5,0,0.5], "L" => [0.5,0.5,0.5]),
-    paths = [["Γ", "X", "L", "Γ"]]
+    points = Dict("Γ" => [0, 0, 0], "X" => [0.5, 0, 0.5], "L" => [0.5, 0.5, 0.5]),
+    paths = [["Γ", "X", "L", "Γ"]],
 )
 ```
 
 # Returns
-- Plots.Plot object
+
+  - Plots.Plot object
 
 # Example
+
 ```julia
 using BoltzTraP
 
 # Auto k-path from spacegroup (requires spacegroup in metadata)
 result = load_interpolation("si_interp.jld2")
-plot_bands(result; emin=-5.0, emax=5.0, output="bands.png")
+plot_bands(result; emin = -5.0, emax = 5.0, output = "bands.png")
 
 # Manual k-path (for .bt2 files without spacegroup)
 result = load_interpolation("si_interp.bt2")
 kpath = (
-    points = Dict("Γ" => [0,0,0], "X" => [0.5,0,0.5], "L" => [0.5,0.5,0.5]),
-    paths = [["Γ", "X", "L", "Γ"]]
+    points = Dict("Γ" => [0, 0, 0], "X" => [0.5, 0, 0.5], "L" => [0.5, 0.5, 0.5]),
+    paths = [["Γ", "X", "L", "Γ"]],
 )
-plot_bands(result; kpath=kpath, emin=-5.0, emax=5.0)
+plot_bands(result; kpath = kpath, emin = -5.0, emax = 5.0)
 ```
 """
 function plot_bands(
@@ -135,16 +139,15 @@ function plot_bands(
     # Generate k-path: either from manual specification or auto from spacegroup
     if !isnothing(kpath)
         # Manual k-path specification
-        kvecs, kdist, path_labels, label_positions = _generate_manual_kpath(
-            kpath, lattvec, npoints
-        )
+        kvecs, kdist, path_labels, label_positions =
+            _generate_manual_kpath(kpath, lattvec, npoints)
     else
         # Auto k-path from spacegroup
         sgnum = get(metadata, "spacegroup_number", nothing)
         if isnothing(sgnum)
             error(
                 "Space group not found in metadata. " *
-                "Either provide kpath argument manually or use a .jld2 file with spacegroup metadata."
+                "Either provide kpath argument manually or use a .jld2 file with spacegroup metadata.",
             )
         end
         sgnum = Int(sgnum)  # Ensure Int64 for Brillouin.jl
@@ -182,9 +185,9 @@ function plot_bands(
             for sym in path
                 pt = pts[sym]
                 # Find the index where this point appears, starting from search_start
-                for i in search_start:length(kvecs)
+                for i = search_start:length(kvecs)
                     kv = kvecs[i]
-                    if isapprox(collect(kv), collect(pt), atol=1e-6)
+                    if isapprox(collect(kv), collect(pt), atol = 1e-6)
                         push!(path_labels, String(sym))
                         push!(label_positions, kdist[i])
                         search_start = i  # Next search starts from here
@@ -235,14 +238,21 @@ function plot_bands(
     )
 
     # Plot each band
-    for iband in 1:nbands
+    for iband = 1:nbands
         band_energies = ebands_eV[iband, :]
-        Plots.plot!(p, kdist, band_energies, color=:blue, linewidth=1.5)
+        Plots.plot!(p, kdist, band_energies, color = :blue, linewidth = 1.5)
     end
 
     # Add Fermi level
     if fermi_line
-        Plots.hline!(p, [0.0], color=:red, linestyle=:dash, linewidth=1, label="E_F")
+        Plots.hline!(
+            p,
+            [0.0],
+            color = :red,
+            linestyle = :dash,
+            linewidth = 1,
+            label = "E_F",
+        )
     end
 
     # Set y-axis limits
@@ -253,7 +263,7 @@ function plot_bands(
 
     # Add vertical lines at high-symmetry points
     for pos in unique_positions
-        Plots.vline!(p, [pos], color=:gray, linestyle=:dot, linewidth=0.5, label="")
+        Plots.vline!(p, [pos], color = :gray, linestyle = :dot, linewidth = 0.5, label = "")
     end
 
     # Save if output specified
@@ -274,22 +284,25 @@ Load interpolation result from file (.jld2 or .bt2) and plot band structure.
 For .bt2 files without spacegroup metadata, the `kpath` argument is required.
 
 # Arguments
-- `file`: Path to interpolation result file (.jld2 or .bt2)
+
+  - `file`: Path to interpolation result file (.jld2 or .bt2)
 
 # Keyword Arguments
+
 Same as `plot_bands(result::InterpolationResult; ...)`.
 
 # Example
+
 ```julia
 # From .jld2 (auto k-path from spacegroup)
-plot_bands("si_interp.jld2"; emin=-5.0, emax=5.0)
+plot_bands("si_interp.jld2"; emin = -5.0, emax = 5.0)
 
 # From .bt2 (manual k-path required)
 kpath = (
-    points = Dict("Γ" => [0,0,0], "X" => [0.5,0,0.5], "L" => [0.5,0.5,0.5]),
-    paths = [["Γ", "X", "L", "Γ"]]
+    points = Dict("Γ" => [0, 0, 0], "X" => [0.5, 0, 0.5], "L" => [0.5, 0.5, 0.5]),
+    paths = [["Γ", "X", "L", "Γ"]],
 )
-plot_bands("si_interp.bt2"; kpath=kpath, emin=-5.0, emax=5.0)
+plot_bands("si_interp.bt2"; kpath = kpath, emin = -5.0, emax = 5.0)
 ```
 """
 function plot_bands(
@@ -319,15 +332,17 @@ end
 Plot transport coefficients vs chemical potential or temperature.
 
 # Keyword Arguments
-- `quantity::String = "seebeck"`: Property to plot (seebeck, sigma, kappa)
-- `component::String = "xx"`: Tensor component (xx, yy, zz, xy, ...)
-- `abscissa::String = "mu"`: X-axis variable (mu or T)
-- `temperature::Float64 = 300.0`: Temperature for μ plot [K]
-- `mu_index::Int = 0`: μ index for T plot (0 = auto-select near Fermi)
-- `output::Union{String,Nothing} = nothing`: Save figure to file
+
+  - `quantity::String = "seebeck"`: Property to plot (seebeck, sigma, kappa)
+  - `component::String = "xx"`: Tensor component (xx, yy, zz, xy, ...)
+  - `abscissa::String = "mu"`: X-axis variable (mu or T)
+  - `temperature::Float64 = 300.0`: Temperature for μ plot [K]
+  - `mu_index::Int = 0`: μ index for T plot (0 = auto-select near Fermi)
+  - `output::Union{String,Nothing} = nothing`: Save figure to file
 
 # Returns
-- Plots.Plot object
+
+  - Plots.Plot object
 """
 function plot_transport(
     result::TransportResult;
@@ -340,9 +355,15 @@ function plot_transport(
 )
     # Parse component
     comp_map = Dict(
-        "xx" => (1, 1), "yy" => (2, 2), "zz" => (3, 3),
-        "xy" => (1, 2), "xz" => (1, 3), "yz" => (2, 3),
-        "yx" => (2, 1), "zx" => (3, 1), "zy" => (3, 2),
+        "xx" => (1, 1),
+        "yy" => (2, 2),
+        "zz" => (3, 3),
+        "xy" => (1, 2),
+        "xz" => (1, 3),
+        "yz" => (2, 3),
+        "yx" => (2, 1),
+        "zx" => (3, 1),
+        "zy" => (3, 2),
     )
     if !haskey(comp_map, lowercase(component))
         error("Unknown component: $component. Use xx, yy, zz, xy, xz, yz.")
@@ -383,7 +404,7 @@ function plot_transport(
 
     if abscissa == "mu"
         # Plot vs chemical potential at fixed temperature
-        iT = findfirst(t -> isapprox(t, temperature, atol=1.0), result.temperatures)
+        iT = findfirst(t -> isapprox(t, temperature, atol = 1.0), result.temperatures)
         if isnothing(iT)
             error("Temperature $temperature K not found. Available: $(result.temperatures)")
         end
@@ -401,7 +422,8 @@ function plot_transport(
         mu_eV = result.mu_values .- fermi_eV
 
         p = Plots.plot(
-            mu_eV, y_data,
+            mu_eV,
+            y_data,
             xlabel = "μ - E_F (eV)",
             ylabel = "$(uppercase(quantity))_$(component) ($(units[quantity]))",
             title = "T = $(Int(temperature)) K",
@@ -422,7 +444,8 @@ function plot_transport(
         end
 
         p = Plots.plot(
-            result.temperatures, y_data,
+            result.temperatures,
+            y_data,
             xlabel = "Temperature (K)",
             ylabel = "$(uppercase(quantity))_$(component) ($(units[quantity]))",
             title = "μ = $(round(result.mu_values[mu_index] - fermi_eV, digits=3)) eV",
@@ -447,15 +470,18 @@ Plot transport coefficients from file.
 Load integration result from file (.jld2) and plot transport coefficients.
 
 # Arguments
-- `file`: Path to integration result file (.jld2)
+
+  - `file`: Path to integration result file (.jld2)
 
 # Keyword Arguments
+
 Same as `plot_transport(result::TransportResult; ...)`.
 
 # Example
+
 ```julia
-plot_transport("si_transport.jld2"; quantity="seebeck", component="xx")
-plot_transport("si_transport.jld2"; quantity="sigma", abscissa="T")
+plot_transport("si_transport.jld2"; quantity = "seebeck", component = "xx")
+plot_transport("si_transport.jld2"; quantity = "sigma", abscissa = "T")
 ```
 """
 function plot_transport(

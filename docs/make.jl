@@ -23,6 +23,7 @@ makedocs(
             "DFTK.jl Integration" => "dftk.md",
             "Interpolation" => "interpolate.md",
             "Integration" => "integrate.md",
+            "Utilities" => "utilities.md",
             "Plotting" => "plotting.md",
             "Input Formats" => "input_formats.md",
             "Output Formats" => "output_formats.md",

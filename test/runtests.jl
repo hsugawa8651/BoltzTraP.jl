@@ -25,7 +25,6 @@ if !HAS_REFTEST_DATA
 end
 
 @testset "BoltzTraP.jl" begin
-
     @testset "Units" begin
         # Test numeric unit conversion constants
         @test BoltzTraP.BOHR_TO_ANG ≈ 0.529177210903 rtol=1e-10
@@ -122,5 +121,4 @@ end
     if get(ENV, "TEST_DFTK", "false") == "true"
         include("test_dftk_extension.jl")
     end
-
 end

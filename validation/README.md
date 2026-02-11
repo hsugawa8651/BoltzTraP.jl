@@ -1,6 +1,13 @@
 # Validation
 
-Visual comparison tools for validating BoltzTraP.jl against Python BoltzTraP2.
+Comparison tools for validating BoltzTraP.jl against Python BoltzTraP2.
+
+## Available Tools
+
+| Script | Description |
+|--------|-------------|
+| `compare_transport.jl` | Visual comparison of transport coefficients (sigma, S, kappa) |
+| `compare_cv.jl` | Numerical comparison of electronic heat capacity (calc_cv) |
 
 ## Prerequisites
 
@@ -103,6 +110,51 @@ Custom path can be specified with `-o` option.
 Legend shows:
 - Red circles: Python BoltzTraP2
 - Blue crosses: Julia BoltzTraP.jl
+
+---
+
+## Electronic Heat Capacity (calc_cv)
+
+### Usage
+
+```bash
+julia --project validation/compare_cv.jl [--verbose]
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `-v, --verbose` | Show detailed comparison for all mu values |
+
+### Example Output
+
+```
+[Results Comparison]
+  cv values at mu = Fermi level (index 11):
+  ------------------------------------------------------
+   T [K]      Julia [J/K]     Python [J/K]     Rel. Diff
+  ------------------------------------------------------
+     100     1.414164e-29     1.414160e-29      3.07e-06
+     200     1.964173e-27     1.964169e-27      1.78e-06
+     300     1.269786e-26     1.269784e-26      1.30e-06
+
+[Validation Result]
+  Tolerance: rtol = 1.0e-5
+  Status: PASS
+```
+
+### Regenerating Reference Data
+
+If needed, regenerate Python reference data:
+
+```bash
+cd BoltzTraP2-public
+python ../BoltzTraP.jl/reftest/generate_cv_reference.py \
+    --data-dir data
+```
+
+---
 
 ## Test Data Sources
 

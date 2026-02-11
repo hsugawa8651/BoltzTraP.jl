@@ -68,6 +68,7 @@ include("describe.jl")
 Extract band structure data from DFTK SCF result.
 
 This function requires DFTK.jl to be loaded. Load it with:
+
 ```julia
 using DFTK
 using BoltzTraP
@@ -104,6 +105,10 @@ export plot_bands, plot_transport
 
 # Describe (result inspection)
 export describe
+
+# Band library (additional transport functions)
+export calc_cv
+export apply_scissor
 
 # =============================================================================
 # Internal Functions

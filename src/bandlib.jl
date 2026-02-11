@@ -100,10 +100,10 @@ Compute density of states using histogram.
 - `centers`: Energy bin centers
 - `dos`: Density of states
 =#
-function compute_dos(eband::AbstractMatrix, erange::Tuple, npts::Int; weights=nothing)
-    edges = range(erange[1], erange[2], length=npts+1)
+function compute_dos(eband::AbstractMatrix, erange::Tuple, npts::Int; weights = nothing)
+    edges = range(erange[1], erange[2], length = npts+1)
     de = step(edges)
-    centers = (collect(edges[1:end-1]) .+ collect(edges[2:end])) ./ 2
+    centers = (collect(edges[1:(end-1)]) .+ collect(edges[2:end])) ./ 2
 
     if isnothing(weights)
         h = fit(Histogram, vec(eband), edges)
@@ -127,8 +127,12 @@ Compute DOS and transport DOS (velocity-weighted).
 - `dos`: Density of states
 - `vvdos`: Transport DOS [3, 3, npts]
 =#
-function BTPDOS(eband::AbstractMatrix, vvband::AbstractArray;
-                erange=nothing, npts=nothing)
+function BTPDOS(
+    eband::AbstractMatrix,
+    vvband::AbstractArray;
+    erange = nothing,
+    npts = nothing,
+)
     nbands, nkpts = size(eband)
 
     if isnothing(erange)
@@ -145,9 +149,9 @@ function BTPDOS(eband::AbstractMatrix, vvband::AbstractArray;
 
     # Transport DOS (v⊗v weighted)
     vvdos = zeros(3, 3, npts)
-    for i in 1:3, j in i:3
-        weights = vvband[:, i, j, :]
-        _, vvdos[i, j, :] = compute_dos(eband, erange, npts; weights=weights)
+    for i = 1:3, j = i:3
+        weights = @view vvband[:, i, j, :]
+        _, vvdos[i, j, :] = compute_dos(eband, erange, npts; weights = weights)
         if i != j
             vvdos[j, i, :] = vvdos[i, j, :]  # Symmetric
         end
@@ -167,7 +171,7 @@ Compute Fermi integrals L0, L1, L2.
 - `L1`: (ε-μ)σ(ε) integral [nT, nμ, 3, 3]
 - `L2`: (ε-μ)²σ(ε) integral [nT, nμ, 3, 3]
 =#
-function fermi_integrals(epsilon, dos, sigma, μ_range, T_range; dosweight=2.0)
+function fermi_integrals(epsilon, dos, sigma, μ_range, T_range; dosweight = 2.0)
     nT = length(T_range)
     nμ = length(μ_range)
     npts = length(epsilon)
@@ -179,10 +183,10 @@ function fermi_integrals(epsilon, dos, sigma, μ_range, T_range; dosweight=2.0)
     L2 = zeros(nT, nμ, 3, 3)
 
     # Pre-allocate temporary arrays per thread
-    f_tls = [zeros(npts) for _ in 1:nthreads()]
-    df_tls = [zeros(npts) for _ in 1:nthreads()]
-    int0_tls = [zeros(npts) for _ in 1:nthreads()]
-    intn_tls = [zeros(npts) for _ in 1:nthreads()]
+    f_tls = [zeros(npts) for _ = 1:nthreads()]
+    df_tls = [zeros(npts) for _ = 1:nthreads()]
+    int0_tls = [zeros(npts) for _ = 1:nthreads()]
+    intn_tls = [zeros(npts) for _ = 1:nthreads()]
 
     # Create list of (temperature, chemical potential) pairs
     param_space = collect(Iterators.product(enumerate(T_range), enumerate(μ_range)))
@@ -208,7 +212,7 @@ function fermi_integrals(epsilon, dos, sigma, μ_range, T_range; dosweight=2.0)
         N[iT, iμ] = -dosweight * s * de
 
         @. int0 = -dosweight * df
-        for i in 1:3, j in i:3
+        for i = 1:3, j = i:3
             # Element-wise operations using @.
             @. intn = int0 * sigma[i, j, :]
             L0[iT, iμ, i, j] = sum(intn) * de
@@ -222,11 +226,11 @@ function fermi_integrals(epsilon, dos, sigma, μ_range, T_range; dosweight=2.0)
     end
 
     # Apply symmetry
-    for iT in 1:nT, iμ in 1:nμ
-        for i in 1:3, j in (i+1):3
-             L0[iT, iμ, j, i] = L0[iT, iμ, i, j]
-             L1[iT, iμ, j, i] = L1[iT, iμ, i, j]
-             L2[iT, iμ, j, i] = L2[iT, iμ, i, j]
+    for iT = 1:nT, iμ = 1:nμ
+        for i = 1:3, j = (i+1):3
+            L0[iT, iμ, j, i] = L0[iT, iμ, i, j]
+            L1[iT, iμ, j, i] = L1[iT, iμ, i, j]
+            L2[iT, iμ, j, i] = L2[iT, iμ, i, j]
         end
     end
 
@@ -271,17 +275,24 @@ function calc_onsager_coefficients(L0, L1, L2, T_range, vuc)
     S = similar(L0)
     κ = similar(L0)
 
-    for iT in 1:nT, iμ in 1:nμ
+    # Pre-compute T-independent factor (optimization: multiply instead of divide)
+    inv_sigma_vuc = 1.0 / (SIGMA_CONV * vuc)
+
+    for iT = 1:nT, iμ = 1:nμ
         T = T_range[iT]
+
+        # Pre-compute T-dependent factors
+        inv_seebeck_T_vuc = 1.0 / (T * SEEBECK_CONV * vuc)
+        inv_kappa_T_vuc = 1.0 / (T * KAPPA_CONV * vuc)
 
         # L0 → σ/τ with BoltzTraP2-compatible unit conversion
         # Python: L11 = L0 / (Siemens / (Meter * Second)) / vuc
-        L11 = L0[iT, iμ, :, :] / SIGMA_CONV / vuc
+        L11 = @view(L0[iT, iμ, :, :]) * inv_sigma_vuc
         σ[iT, iμ, :, :] = L11
 
         # L1 → for Seebeck calculation
         # Python: L12 = L1 / T / (Volt * Siemens / (Meter * Second)) / vuc
-        L12 = L1[iT, iμ, :, :] / T / SEEBECK_CONV / vuc
+        L12 = @view(L1[iT, iμ, :, :]) * inv_seebeck_T_vuc
 
         # Seebeck: S = σ⁻¹ L12
         # Use Cholesky when possible (faster), fallback to pinv for singular cases
@@ -290,7 +301,7 @@ function calc_onsager_coefficients(L0, L1, L2, T_range, vuc)
 
         # L2 → for thermal conductivity
         # Python: L22 = L2 / T / (Volt * Joule * Siemens / (Meter * Second * Coulomb)) / vuc
-        L22 = L2[iT, iμ, :, :] / T / KAPPA_CONV / vuc
+        L22 = @view(L2[iT, iμ, :, :]) * inv_kappa_T_vuc
 
         # Thermal conductivity: κ = L22 - T * σ * S * S
         # Since S = σ⁻¹ * L12, this becomes: κ = L22 - T * L12 * σ⁻¹ * L12
@@ -298,6 +309,51 @@ function calc_onsager_coefficients(L0, L1, L2, T_range, vuc)
     end
 
     return σ, S, κ
+end
+
+"""
+    calc_cv(epsilon, dos, μ_range, T_range; dosweight=2.0) -> Matrix{Float64}
+
+Compute the electronic contribution to the heat capacity.
+
+# Arguments
+
+  - `epsilon`: energy grid (npts,), in Hartree
+  - `dos`: density of states (npts,), from `BTPDOS` or `TransportResult.dos`
+  - `μ_range`: chemical potential values (nμ,), in Hartree
+  - `T_range`: temperature values (nT,), in Kelvin
+  - `dosweight`: spin degeneracy (2.0 for unpolarized, 1.0 for polarized)
+
+# Returns
+
+Matrix of shape (nT, nμ) with heat capacity in SI units (J/K).
+
+# Example
+
+```julia
+# From TransportResult
+transport = run_integrate("si_interp.jld2"; temperatures = [300.0])
+cv = calc_cv(transport.epsilon, transport.dos, transport.mu_values, transport.temperatures)
+```
+"""
+function calc_cv(epsilon, dos, μ_range, T_range; dosweight = 2.0)
+    nT = length(T_range)
+    nμ = length(μ_range)
+    cv = Matrix{Float64}(undef, nT, nμ)
+    de = epsilon[2] - epsilon[1]
+
+    for (iT, T) in enumerate(T_range)
+        kBT = T * KB_AU  # KB_AU from units.jl
+        for (iμ, μ) in enumerate(μ_range)
+            df = dfermi_dirac_de(epsilon, μ, kBT)
+            # cv = k_B_SI * (-dosweight * ∫ (ε-μ)²/kBT * (∂f/∂ε) * dos dε)
+            # Following Python BoltzTraP2: -(dosweight * dos * dFDde * (ε-μ)² / kBT) * de
+            integrand = -dosweight .* dos .* df .* (epsilon .- μ) .^ 2 ./ kBT
+            cv[iT, iμ] = KB_SI * sum(integrand) * de
+        end
+    end
+
+    return cv
 end
 
 #=
@@ -309,5 +365,5 @@ function calc_transport_coefficients(eband, vvband, T_range, μ_range, vuc)
     epsilon, dos, vvdos = BTPDOS(eband, vvband)
     N, L0, L1, L2 = fermi_integrals(epsilon, dos, vvdos, μ_range, T_range)
     σ, S, κ = calc_onsager_coefficients(L0, L1, L2, T_range, vuc)
-    return (σ=σ, S=S, κ=κ, N=N, epsilon=epsilon, dos=dos)
+    return (σ = σ, S = S, κ = κ, N = N, epsilon = epsilon, dos = dos)
 end

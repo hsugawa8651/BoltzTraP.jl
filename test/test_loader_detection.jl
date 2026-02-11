@@ -23,7 +23,6 @@ catch
 end
 
 @testset "Format Detection" begin
-
     @testset "detected_format" begin
         @testset "VASP" begin
             vasp_dir = joinpath(BOLTZTRAP_DATA, "Si.vasp")
