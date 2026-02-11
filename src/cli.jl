@@ -35,18 +35,18 @@ for band energies. Support VASP, Quantum ESPRESSO, and other formats.
 
 # Options
 
-- `-f, --format <fmt>`: DFT format (auto, vasp, qe). Default: auto-detect
-- `-o, --output <file>`: Output file path (default: based on input directory)
-- `-k, --kpoints <n>`: Target number of k-points/equivalences (default: 5000)
-- `-m, --multiplier <n>`: Multiplier for k-points (alternative to --kpoints)
-- `--emin <e>`: Minimum energy relative to Fermi in Ha (default: -Inf)
-- `--emax <e>`: Maximum energy relative to Fermi in Ha (default: +Inf)
+  - `-f, --format <fmt>`: DFT format (auto, vasp, qe). Default: auto-detect
+  - `-o, --output <file>`: Output file path (default: based on input directory)
+  - `-k, --kpoints <n>`: Target number of k-points/equivalences (default: 5000)
+  - `-m, --multiplier <n>`: Multiplier for k-points (alternative to --kpoints)
+  - `--emin <e>`: Minimum energy relative to Fermi in Ha (default: -Inf)
+  - `--emax <e>`: Maximum energy relative to Fermi in Ha (default: +Inf)
 
 # Flags
 
-- `--absolute`: Interpret emin/emax as absolute energies
-- `-v, --verbose`: Print progress information
-- `--debug`: Enable debug logging (detailed internal info)
+  - `--absolute`: Interpret emin/emax as absolute energies
+  - `-v, --verbose`: Print progress information
+  - `--debug`: Enable debug logging (detailed internal info)
 
 # Examples
 
@@ -145,19 +145,20 @@ Seebeck coefficient, and thermal conductivity.
 
 # Options
 
-- `-t, --temperature <T>`: Temperature(s) in K. Formats:
-    - Single value: `"300"` → [300.0]
-    - Range: `"100:500:50"` (start:stop:step) → [100.0, 150.0, 200.0, ..., 500.0]
-    - List: `"100,200,300"` → [100.0, 200.0, 300.0]
-- `-o, --output <file>`: Output file path (default: based on input)
-- `-b, --bins <n>`: Number of DOS histogram bins (default: auto)
-- `-s, --scissor <eV>`: Target band gap in eV for scissor correction.
-  Shifts conduction bands to achieve the specified gap. Only for semiconductors.
+  - `-t, --temperature <T>`: Temperature(s) in K. Formats:
+
+      + Single value: `"300"` → [300.0]
+      + Range: `"100:500:50"` (start:stop:step) → [100.0, 150.0, 200.0, ..., 500.0]
+      + List: `"100,200,300"` → [100.0, 200.0, 300.0]
+  - `-o, --output <file>`: Output file path (default: based on input)
+  - `-b, --bins <n>`: Number of DOS histogram bins (default: auto)
+  - `-s, --scissor <eV>`: Target band gap in eV for scissor correction.
+    Shifts conduction bands to achieve the specified gap. Only for semiconductors.
 
 # Flags
 
-- `-v, --verbose`: Print progress information
-- `--debug`: Enable debug logging (detailed internal info)
+  - `-v, --verbose`: Print progress information
+  - `--debug`: Enable debug logging (detailed internal info)
 
 # Examples
 
@@ -594,15 +595,15 @@ For .bt2 files without spacegroup metadata, use --kpath to specify manually.
 
 # Options
 
-- `-n, --npoints <n>`: Number of k-points per path segment. Default: 100
-- `--emin <e>`: Minimum energy relative to Fermi [eV]. Default: -5.0
-- `--emax <e>`: Maximum energy relative to Fermi [eV]. Default: 5.0
-- `--kpath <spec>`: Manual k-path specification (required for .bt2 without spacegroup)
-- `-o, --output <file>`: Output file (PNG/PDF). Default: display
+  - `-n, --npoints <n>`: Number of k-points per path segment. Default: 100
+  - `--emin <e>`: Minimum energy relative to Fermi [eV]. Default: -5.0
+  - `--emax <e>`: Maximum energy relative to Fermi [eV]. Default: 5.0
+  - `--kpath <spec>`: Manual k-path specification (required for .bt2 without spacegroup)
+  - `-o, --output <file>`: Output file (PNG/PDF). Default: display
 
 # Flags
 
-- `--no-fermi`: Hide Fermi level line
+  - `--no-fermi`: Hide Fermi level line
 
 # K-path format
 

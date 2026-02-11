@@ -149,9 +149,9 @@ function BTPDOS(
 
     # Transport DOS (v⊗v weighted)
     vvdos = zeros(3, 3, npts)
-    for i in 1:3, j in i:3
+    for i = 1:3, j = i:3
         weights = @view vvband[:, i, j, :]
-        _, vvdos[i, j, :] = compute_dos(eband, erange, npts; weights=weights)
+        _, vvdos[i, j, :] = compute_dos(eband, erange, npts; weights = weights)
         if i != j
             vvdos[j, i, :] = vvdos[i, j, :]  # Symmetric
         end
@@ -278,7 +278,7 @@ function calc_onsager_coefficients(L0, L1, L2, T_range, vuc)
     # Pre-compute T-independent factor (optimization: multiply instead of divide)
     inv_sigma_vuc = 1.0 / (SIGMA_CONV * vuc)
 
-    for iT in 1:nT, iμ in 1:nμ
+    for iT = 1:nT, iμ = 1:nμ
         T = T_range[iT]
 
         # Pre-compute T-dependent factors

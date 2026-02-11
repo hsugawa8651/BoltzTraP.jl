@@ -115,7 +115,7 @@ function _getBTPbands_kernel!(
             vb3 = scale .* real.(vec(plan * vgrid3))
 
             # Exploit symmetry: vvband[i,j] = vvband[j,i] (6 multiplications instead of 9)
-            @inbounds for k in 1:npts
+            @inbounds for k = 1:npts
                 # Diagonal components (3 multiplications)
                 vvband[iband, 1, 1, k] = vb1[k] * vb1[k]
                 vvband[iband, 2, 2, k] = vb2[k] * vb2[k]
@@ -263,7 +263,7 @@ function getBTPbands_parallel(coeffs, equivalences, lattvec; compute_velocity = 
             vb3 = scale .* real.(vec(plan * vgrid3))
 
             # Exploit symmetry: vvband[i,j] = vvband[j,i] (6 multiplications instead of 9)
-            @inbounds for k in 1:npts
+            @inbounds for k = 1:npts
                 # Diagonal components (3 multiplications)
                 vvband[iband, 1, 1, k] = vb1[k] * vb1[k]
                 vvband[iband, 2, 2, k] = vb2[k] * vb2[k]
