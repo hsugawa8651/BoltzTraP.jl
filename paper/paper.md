@@ -51,12 +51,12 @@ The package is not intended to replace BoltzTraP2 for existing Python/Wien2k wor
 | Aspect | BoltzTraP2 (Python) | BoltzTraP.jl |
 |--------|:-------------------:|:------------:|
 | Algorithm | Fourier interpolation | Identical |
-| Numerical results | Reference | Equivalent (< 10⁻⁶ error) |
+| Numerical results | Reference | Equivalent ($< 10^{-6}$ error) |
 | Language | Python + C++ | Pure Julia |
 | Compilation required | Yes (C++ extension) | No |
 | Julia DFT integration | No | Yes (DFTK.jl) |
 | Performance (end-to-end) | 1x (baseline) | 1.8-3.4x faster |
-| Spin-polarized calculations | Yes | Not yet (planned) |
+| Spin-polarized calculations | Yes | Collinear (v0.3+) |
 | Unit handling | Manual conversion | Atomic units (Hartree) |
 | Input formats | VASP, QE, Wien2k, GENE, ABINIT | VASP, QE, Wien2k, GENE, ABINIT, DFTK |
 | Output format | `.bt2`/`.btj` (LZMA+JSON) | `.jld2` (HDF5, default)[^bt2] |
@@ -82,7 +82,7 @@ transport = run_integrate(interp;
 # Access results (in constant relaxation time approximation)
 # transport.sigma: σ/τ, electrical conductivity / relaxation time (S/m/s)
 # transport.seebeck: S, Seebeck coefficient (V/K)
-# transport.kappa: κ₀/τ, electronic thermal conductivity / relaxation time (W/m/K/s)
+# transport.kappa: $\kappa_0$/τ, electronic thermal conductivity / relaxation time (W/m/K/s)
 ```
 
 ## DFTK.jl Integration
@@ -150,8 +150,8 @@ This approach ensures that `BoltzTraP.jl` produces the same results as BoltzTraP
 
 | System | Type | Bands | K-points | Max error (hartree) |
 |--------|------|-------|----------|----------------|
-| Si | Semiconductor | 6 | 165 | < 10⁻¹² |
-| PbTe | Thermoelectric | 14 | 145 | < 10⁻⁶ |
+| Si | Semiconductor | 6 | 165 | $< 10^{-12}$ |
+| PbTe | Thermoelectric | 14 | 145 | $< 10^{-6}$ |
 
 To demonstrate that `BoltzTraP.jl` faithfully reproduces the original Python implementation, \autoref{fig:validation} compares transport coefficients computed by both codes for silicon at 300 K. The results are visually indistinguishable, confirming numerical equivalence across the entire chemical potential range.
 

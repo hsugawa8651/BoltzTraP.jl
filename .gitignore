@@ -58,6 +58,9 @@ reftest/data/*
 !reftest/data/si_interpolation.npz
 !reftest/data/calc_N_solve_mu.npz
 
+# Paper build artifacts
+paper/paper.pdf
+
 # AI tools
 CLAUDE.md
 .claude/
