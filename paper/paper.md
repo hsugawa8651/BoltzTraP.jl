@@ -152,6 +152,7 @@ This approach ensures that `BoltzTraP.jl` produces the same results as BoltzTraP
 |--------|------|-------|----------|----------------|
 | Si | Semiconductor | 6 | 165 | $< 10^{-12}$ |
 | PbTe | Thermoelectric | 14 | 145 | $< 10^{-6}$ |
+| Fe | Ferromagnetic metal (collinear) | 12 | 47 | $< 10^{-6}$ |
 
 To demonstrate that `BoltzTraP.jl` faithfully reproduces the original Python implementation, \autoref{fig:validation} compares transport coefficients computed by both codes for silicon at 300 K. The results are visually indistinguishable, confirming numerical equivalence across the entire chemical potential range.
 
@@ -160,8 +161,8 @@ To demonstrate that `BoltzTraP.jl` faithfully reproduces the original Python imp
 The figure exhibits the expected semiconductor physics: the Seebeck coefficient is positive for p-type carriers (μ in the valence band region) and negative for n-type carriers (μ in the conduction band region), with sign reversal occurring within the band gap. The electrical and thermal conductivities vanish within the gap and increase as the chemical potential enters the bands.
 
 The test suite includes:
-- Reference tests verifying numerical equivalence with BoltzTraP2
-- Over 1000 unit tests covering all package functionality
+- Reference tests verifying numerical equivalence with BoltzTraP2, including collinear magnetic systems
+- Over 5000 test assertions covering all package functionality
 - Continuous integration on Linux, macOS, and Windows
 
 # Documentation and Installation
