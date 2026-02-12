@@ -61,6 +61,12 @@ reftest/data/*
 # Paper build artifacts
 paper/paper.pdf
 
+# Large example data (not bundled in remote)
+examples/data/Si.wien2k/
+
+# Example output artifacts
+examples/*.jld2
+
 # AI tools
 CLAUDE.md
 .claude/

@@ -46,9 +46,13 @@ Last-Modified: 2026-02-12
 
 ### 1yz: Non-magnetic
 
-| File | Description |
-|------|-------------|
-| `110_si_vasp.jl` | Si VASP — basic workflow (interpolation → transport) |
+| File | Description | Data |
+|------|-------------|------|
+| `110_si_vasp.jl` | Si VASP — basic workflow (interpolation → transport) | `benchmarks/data/Si.vasp/` |
+| `111_si_qe.jl` | Si Quantum ESPRESSO | `examples/data/Si.ESPRESSO/` |
+| `112_si_wien2k.jl` | Si Wien2k (data not bundled, see script) | [BoltzTraP2 data/Si](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Si) |
+| `113_si_gene.jl` | Si GENE (BoltzTraP1 format) | `examples/data/Si.GENE/` |
+| `114_si_abinit.jl` | Si ABINIT (requires NCDatasets.jl) | `examples/data/Si.abinit/` |
 
 ### 3yz: Magnetic
 
