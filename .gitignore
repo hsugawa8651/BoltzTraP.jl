@@ -66,6 +66,7 @@ examples/data/Si.wien2k/
 
 # Example output artifacts
 examples/*.jld2
+examples/*.png
 
 # AI tools
 CLAUDE.md

@@ -48,11 +48,13 @@ Last-Modified: 2026-02-12
 
 | File | Description | Data |
 |------|-------------|------|
-| `110_si_vasp.jl` | Si VASP — basic workflow (interpolation → transport) | `benchmarks/data/Si.vasp/` |
-| `111_si_qe.jl` | Si Quantum ESPRESSO | `examples/data/Si.ESPRESSO/` |
-| `112_si_wien2k.jl` | Si Wien2k (data not bundled, see script) | [BoltzTraP2 data/Si](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Si) |
-| `113_si_gene.jl` | Si GENE (BoltzTraP1 format) | `examples/data/Si.GENE/` |
-| `114_si_abinit.jl` | Si ABINIT (requires NCDatasets.jl) | `examples/data/Si.abinit/` |
+| `110_si_vasp_pbe_paw.jl` | Si VASP PBE-PAW — basic workflow (interpolation → transport) | `benchmarks/data/Si.vasp/` |
+| `111_si_qe_lda_nc.jl` | Si QE LDA-NC | `examples/data/Si.ESPRESSO/` |
+| `112_si_wien2k_lda_lapw.jl` | Si Wien2k LDA-LAPW (data not bundled, see script) | [BoltzTraP2 data/Si](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Si) |
+| `113_si_gene_pbe_paw.jl` | Si GENE PBE-PAW (BoltzTraP1 format) | `examples/data/Si.GENE/` |
+| `114_si_abinit_pbe_paw.jl` | Si ABINIT PBE-PAW (requires NCDatasets.jl) | `examples/data/Si.abinit/` |
+| `117_si_vasp_pbe_paw_scissor.jl` | Si VASP PBE-PAW scissor operator (Eg=1.17 eV) | `benchmarks/data/Si.vasp/` |
+| `118_si_vasp_pbe_paw_cv.jl` | Si VASP PBE-PAW electronic heat capacity | `benchmarks/data/Si.vasp/` |
 
 ### 3yz: Magnetic
 
@@ -72,7 +74,7 @@ Last-Modified: 2026-02-12
 cd BoltzTraP.jl
 
 # Run a single example
-julia --project=. examples/110_si_vasp.jl
+julia --project=. examples/110_si_vasp_pbe_paw.jl
 ```
 
 ## Dependencies
