@@ -20,14 +20,19 @@ using BoltzTraP
 # Path to Si VASP data
 datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
 
+# Output file stem
+stem = splitext(basename(@__FILE__))[1]
+
 # Step 1: Interpolate band structure
 println("Step 1: Interpolating band structure...")
 interp = run_interpolate(datadir; kpoints=10000, verbose=true)
+save_interpolation(joinpath(@__DIR__, stem * "_interp.jld2"), interp)
 
 # Step 2: Compute transport (DOS is needed for C_v)
 println("\nStep 2: Computing transport coefficients...")
 temperatures = [100.0, 200.0, 300.0, 400.0, 500.0]
 transport = run_integrate(interp; temperatures=temperatures, verbose=true)
+save_integrate(joinpath(@__DIR__, stem * "_transport.jld2"), transport)
 
 # Step 3: Compute electronic heat capacity
 println("\nStep 3: Computing electronic heat capacity...")
@@ -59,6 +64,6 @@ p = plot(; xlabel="μ - E_F (eV)", ylabel="C_v (10⁻²⁴ J/K)",
 for (i, T) in enumerate(temperatures)
     plot!(p, mu, cv[i, :] .* 1e24; label="$(Int(T)) K", linewidth=2)
 end
-output_png = joinpath(@__DIR__, "118_cv_Si_VASP_PBE-PAW.png")
+output_png = joinpath(@__DIR__, stem * ".png")
 savefig(p, output_png)
 println("Saved plot to $output_png")

@@ -22,17 +22,23 @@ using BoltzTraP
 # Path to Si VASP data
 datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
 
+# Output file stem
+stem = splitext(basename(@__FILE__))[1]
+
 # Step 1: Interpolate band structure
 println("Step 1: Interpolating band structure...")
 interp = run_interpolate(datadir; kpoints=5000, verbose=true)
+save_interpolation(joinpath(@__DIR__, stem * "_interp.jld2"), interp)
 
 # Step 2: Transport WITHOUT scissor correction
 println("\nStep 2: Transport without scissor correction...")
 transport_nosci = run_integrate(interp; temperatures=[300.0], verbose=true)
+save_integrate(joinpath(@__DIR__, stem * "_transport_nosci.jld2"), transport_nosci)
 
 # Step 3: Transport WITH scissor correction (target gap = 1.17 eV)
 println("\nStep 3: Transport with scissor correction (gap = 1.17 eV)...")
 transport_sci = run_integrate(interp; temperatures=[300.0], scissor=1.17, verbose=true)
+save_integrate(joinpath(@__DIR__, stem * "_transport_sci.jld2"), transport_sci)
 
 # Step 4: Compare results
 println("\nComparison at T = 300 K:")
@@ -65,6 +71,6 @@ p3 = plot(mu_nosci, transport_nosci.kappa[1,1,iT,:];
 plot!(p3, mu_sci, transport_sci.kappa[1,1,iT,:];
     linewidth=2, color=:red)
 p = plot(p1, p2, p3; layout=(3, 1), size=(700, 900), xlims=(-1.0, 1.5), left_margin=5Plots.mm)
-output_png = joinpath(@__DIR__, "117_transport_Si_VASP_PBE-PAW_scissor_300K.png")
+output_png = joinpath(@__DIR__, stem * "_transport_300K.png")
 savefig(p, output_png)
 println("Saved plot to $output_png")
