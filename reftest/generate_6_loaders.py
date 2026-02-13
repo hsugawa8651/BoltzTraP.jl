@@ -101,6 +101,7 @@ def generate_vasp_reference():
     Test materials:
     - Si: Non-magnetic semiconductor (docs example)
     - PbTe: Non-magnetic thermoelectric (docs example)
+    - Li: BCC metal, spin-polarized VASP calculation
     """
     print("\n=== VASP Loader Reference ===")
 
@@ -108,6 +109,7 @@ def generate_vasp_reference():
         # (directory_name, output_name, description)
         ("Si.vasp", "vasp_si", "Si - non-magnetic semiconductor"),
         ("PbTe.vasp.unpolarized", "vasp_pbte", "PbTe - non-magnetic thermoelectric"),
+        ("Li.vasp", "vasp_li", "Li - BCC metal (spin-polarized VASP)"),
     ]
 
     for dirname, output_name, description in test_cases:
@@ -166,6 +168,7 @@ def generate_wien2k_reference():
     - Si: Non-magnetic semiconductor (docs example)
     - CoSb3: Skutterudite (reftest only)
     - Bi2Te3: Topological insulator with SOC (reftest only)
+    - Li: BCC metal, non-magnetic
     """
     print("\n=== Wien2k Loader Reference ===")
 
@@ -173,6 +176,7 @@ def generate_wien2k_reference():
         ("Si", "wien2k_si", "Si - non-magnetic semiconductor"),
         ("CoSb3", "wien2k_cosb3", "CoSb3 - skutterudite"),
         ("Bi2Te3", "wien2k_bi2te3", "Bi2Te3 - topological insulator (SOC)"),
+        ("Li.W2K", "wien2k_li", "Li - non-magnetic metal (BCC)"),
     ]
 
     for dirname, output_name, description in test_cases:
@@ -194,11 +198,13 @@ def generate_gene_reference():
 
     Test materials:
     - Si: Non-magnetic semiconductor (converted from VASP)
+    - Li: BCC metal (converted from spin-polarized VASP)
     """
     print("\n=== GENE Loader Reference ===")
 
     test_cases = [
         ("Si.GENE", "gene_si", "Si - non-magnetic semiconductor"),
+        ("Li.GENE.fromvasp", "gene_li", "Li - BCC metal (from spin-polarized VASP)"),
     ]
 
     for dirname, output_name, description in test_cases:

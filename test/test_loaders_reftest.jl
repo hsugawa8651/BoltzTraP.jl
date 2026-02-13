@@ -107,6 +107,7 @@ end
             # (npz_file, data_dir, description, is_spin_polarized)
             ("vasp_si.npz", "Si.vasp", "Si - non-magnetic semiconductor", false),
             ("vasp_pbte.npz", "PbTe.vasp.unpolarized", "PbTe - thermoelectric", false),
+            ("vasp_li.npz", "Li.vasp", "Li - BCC metal (spin-polarized VASP)", true),
         ]
 
         for (npz_file, data_dir, description, is_spin) in test_cases
@@ -196,6 +197,7 @@ end
             ("wien2k_si.npz", "Si", "Si - non-magnetic semiconductor", false),
             ("wien2k_cosb3.npz", "CoSb3", "CoSb3 - skutterudite", false),
             ("wien2k_bi2te3.npz", "Bi2Te3", "Bi2Te3 - topological insulator (SOC)", false),
+            ("wien2k_li.npz", "Li.W2K", "Li - non-magnetic metal (BCC)", false),
         ]
 
         for (npz_file, data_dir, description, is_spin) in test_cases
@@ -231,7 +233,9 @@ end
     @testset "GENE loader" begin
         test_cases = [
         # (npz_file, data_dir, description, is_spin_polarized)
-            ("gene_si.npz", "Si.GENE", "Si - non-magnetic semiconductor", false),]
+            ("gene_si.npz", "Si.GENE", "Si - non-magnetic semiconductor", false),
+            ("gene_li.npz", "Li.GENE.fromvasp", "Li - BCC metal (GENE has no spin info)", false),
+        ]
 
         for (npz_file, data_dir, description, is_spin) in test_cases
             @testset "$description" begin
