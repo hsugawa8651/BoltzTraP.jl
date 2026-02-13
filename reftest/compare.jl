@@ -626,6 +626,7 @@ function run_all_tests()
         compare_li_integrate_e2e()
         compare_gene_li_integrate_e2e()
         compare_bi2te3_integrate_e2e()
+        compare_cosb3_integrate_e2e()
         compare_qe_si_integrate_e2e()
         compare_wien2k_si_integrate_e2e()
         compare_abinit_si_integrate_e2e()
@@ -1799,6 +1800,130 @@ function compare_gene_li_integrate_e2e()
 end
 
 """
+    compare_cosb3_integrate_e2e()
+
+Test end-to-end integrate workflow for CoSb3 Wien2k (dosweight=2, non-magnetic skutterudite).
+"""
+function compare_cosb3_integrate_e2e()
+    ref_file = joinpath(DATA_DIR, "cosb3_end2end.npz")
+    if !isfile(ref_file)
+        @test_skip "cosb3_end2end.npz not found (run generate_5_e2e.py)"
+        return
+    end
+
+    ref = load_reference("cosb3_end2end")
+
+    if !haskey(ref, "eband")
+        @test_skip "Transport data not in cosb3_end2end.npz (regenerate with Python)"
+        return
+    end
+
+    @testset "CoSb3 E2E integrate" begin
+        if !@isdefined(BoltzTraP) || !isdefined(BoltzTraP, :calc_onsager_coefficients)
+            @test_skip "calc_onsager_coefficients not implemented"
+            return
+        end
+
+        vuc = Float64(ref["vuc"])
+        dosweight = Float64(ref["dosweight"])
+        Tr = ref["Tr"]
+        mur = ref["mur"]
+
+        @testset "BTPDOS" begin
+            if !isdefined(BoltzTraP, :BTPDOS)
+                @test_skip "BTPDOS not implemented"
+                return
+            end
+
+            eband_ref = ref["eband"]
+            vvband_ref = ref["vvband"]
+
+            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+
+            epsilon_ref = ref["epsilon"]
+            dos_ref = ref["dos"]
+
+            @test length(epsilon_julia) == length(epsilon_ref)
+            @test epsilon_julia ≈ epsilon_ref rtol=0.01
+            @test dos_julia ≈ dos_ref rtol=0.1
+        end
+
+        @testset "fermi_integrals" begin
+            if !isdefined(BoltzTraP, :fermi_integrals)
+                @test_skip "fermi_integrals not implemented"
+                return
+            end
+
+            epsilon = ref["epsilon"]
+            dos = ref["dos"]
+            vvdos = ref["vvdos"]
+
+            N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
+                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+            )
+
+            L0_ref = ref["L0"]
+            L1_ref = ref["L1"]
+            L2_ref = ref["L2"]
+
+            @test size(L0_julia) == size(L0_ref)
+            @test L0_julia ≈ L0_ref rtol=0.01
+            @test L1_julia ≈ L1_ref rtol=0.01
+            @test L2_julia ≈ L2_ref rtol=0.01
+
+            println("  CoSb3 fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+        end
+
+        @testset "calc_onsager_coefficients" begin
+            L0 = ref["L0"]
+            L1 = ref["L1"]
+            L2 = ref["L2"]
+
+            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
+                L0, L1, L2, Tr, vuc
+            )
+
+            sigma_ref = ref["sigma"]
+            S_ref = ref["S"]
+            kappa_ref = ref["kappa"]
+
+            @test size(sigma_julia) == size(sigma_ref)
+            @test sigma_julia ≈ sigma_ref rtol=0.01
+            @test S_julia ≈ S_ref rtol=0.1 atol=1e-6
+            @test kappa_julia ≈ kappa_ref rtol=0.01
+
+            iT = 2
+            imu = size(sigma_julia, 2) ÷ 2
+            println("  CoSb3 sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+        end
+
+        @testset "solve_for_mu" begin
+            if !isdefined(BoltzTraP, :solve_for_mu)
+                @test_skip "solve_for_mu not implemented"
+                return
+            end
+
+            epsilon = ref["epsilon"]
+            dos = ref["dos"]
+            nelect = Float64(ref["nelect"])
+            mu0_ref = ref["mu0"]
+
+            for (iT, T) in enumerate(Tr)
+                mu0_julia = BoltzTraP.solve_for_mu(
+                    epsilon, dos, nelect, T;
+                    dosweight=dosweight, refine=true, try_center=true
+                )
+
+                de = epsilon[2] - epsilon[1]
+                @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
+
+                println("  CoSb3 T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+            end
+        end
+    end
+end
+
+"""
     compare_bi2te3_integrate_e2e()
 
 Test end-to-end integrate workflow for Bi2Te3 Wien2k SOC (dosweight=1).
@@ -1964,6 +2089,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
                 compare_li_integrate_e2e()
                 compare_gene_li_integrate_e2e()
                 compare_bi2te3_integrate_e2e()
+                compare_cosb3_integrate_e2e()
                 compare_qe_si_integrate_e2e()
                 compare_wien2k_si_integrate_e2e()
                 compare_abinit_si_integrate_e2e()
@@ -1981,6 +2107,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
                 compare_gene_li_integrate_e2e()
             elseif case == "bi2te3_integrate_e2e"
                 compare_bi2te3_integrate_e2e()
+            elseif case == "cosb3_integrate_e2e"
+                compare_cosb3_integrate_e2e()
             elseif case == "bt2_python_format"
                 compare_bt2_python_format()
             elseif case == "bt2"
