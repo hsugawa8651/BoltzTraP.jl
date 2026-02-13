@@ -1,6 +1,6 @@
 # BoltzTraP.jl Examples
 
-Last-Modified: 2026-02-12
+Last-Modified: 2026-02-13
 
 ## Numbering System
 
@@ -55,6 +55,10 @@ Last-Modified: 2026-02-12
 | `114_si_abinit_pbe_paw.jl` | Si ABINIT PBE-PAW (requires NCDatasets.jl) | `examples/data/Si.abinit/` |
 | `117_si_vasp_pbe_paw_scissor.jl` | Si VASP PBE-PAW scissor operator (Eg=1.17 eV) | `benchmarks/data/Si.vasp/` |
 | `118_si_vasp_pbe_paw_cv.jl` | Si VASP PBE-PAW electronic heat capacity | `benchmarks/data/Si.vasp/` |
+| `120_pbte_vasp_pbe_paw.jl` | PbTe VASP PBE-PAW — thermoelectric semiconductor | `examples/data/PbTe.vasp.unpolarized/` |
+| `130_li_vasp_pbe_paw.jl` | Li VASP PBE-PAW — BCC metal (spin-polarized, data not bundled) | [BoltzTraP2 data/Li.vasp](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Li.vasp) |
+| `132_li_wien2k_lda_lapw.jl` | Li Wien2k LDA-LAPW (data not bundled) | [BoltzTraP2 data/Li.W2K](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Li.W2K) |
+| `133_li_gene_pbe_paw.jl` | Li GENE PBE-PAW (from VASP, no spin info) | `examples/data/Li.GENE/` |
 
 ### 3yz: Magnetic
 
