@@ -59,6 +59,7 @@ Last-Modified: 2026-02-13
 | `130_li_vasp_pbe_paw.jl` | Li VASP PBE-PAW — BCC metal (spin-polarized, data not bundled) | [BoltzTraP2 data/Li.vasp](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Li.vasp) |
 | `132_li_wien2k_lda_lapw.jl` | Li Wien2k LDA-LAPW (data not bundled) | [BoltzTraP2 data/Li.W2K](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Li.W2K) |
 | `133_li_gene_pbe_paw.jl` | Li GENE PBE-PAW (from VASP, no spin info) | `examples/data/Li.GENE/` |
+| `150_bi2te3_wien2k_soc.jl` | Bi2Te3 Wien2k SOC — topological insulator (data not bundled) | [BoltzTraP2 data/Bi2Te3](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Bi2Te3) |
 
 ### 3yz: Magnetic
 

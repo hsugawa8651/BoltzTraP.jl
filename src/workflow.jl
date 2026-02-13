@@ -85,6 +85,7 @@ function run_interpolate(
     absolute::Bool = false,
     verbose::Bool = false,
     symprec::Real = 1e-5,
+    dosweight::Union{Float64,Nothing} = nothing,
 )
     # Convert DFTData to NamedTuple for existing implementation
     data_nt = (
@@ -109,6 +110,7 @@ function run_interpolate(
         absolute,
         verbose,
         symprec,
+        dosweight,
     )
 end
 
@@ -141,6 +143,7 @@ function run_interpolate(
     absolute::Bool = false,
     verbose::Bool = false,
     symprec::Real = 1e-5,
+    dosweight::Union{Float64,Nothing} = nothing,
 )
     # Concatenate spin channels (Python BoltzTraP2 convention)
     # ebands: (nbands, nkpts, 2) → (2*nbands, nkpts, 1)
@@ -176,6 +179,7 @@ function run_interpolate(
         absolute,
         verbose,
         symprec,
+        dosweight,
     )
 end
 
@@ -249,6 +253,7 @@ function run_interpolate(
     absolute::Bool = false,
     verbose::Bool = false,
     symprec::Real = 1e-5,
+    dosweight::Union{Float64,Nothing} = nothing,
 )
     # Log received arguments for debugging
     @debug "run_interpolate called" source output kpoints multiplier emin emax absolute verbose symprec
@@ -300,9 +305,12 @@ function run_interpolate(
     fermi = data.fermi  # in Ha
     nbands_total = size(ebands_raw, 1)
 
-    # Determine dosweight from spin polarization
+    # Determine dosweight from spin polarization (or use explicit override)
     # Use magmom to detect collinear (ebands may be concatenated for collinear)
-    dosweight = isnothing(magmom) ? 2.0 : 1.0
+    # Override with explicit dosweight for SOC (dosweight=1.0, magmom=nothing)
+    if isnothing(dosweight)
+        dosweight = isnothing(magmom) ? 2.0 : 1.0
+    end
 
     # 5. Filter bands by energy
     # emin/emax are in Ha (relative to Fermi unless absolute=true)
@@ -418,6 +426,7 @@ function run_interpolate(
     absolute::Bool = false,
     verbose::Bool = false,
     symprec::Real = 1e-5,
+    dosweight::Union{Float64,Nothing} = nothing,
 )
     # Log CLI arguments
     @debug "run_interpolate(directory) called" directory output kpoints multiplier emin emax absolute verbose symprec
@@ -444,6 +453,7 @@ function run_interpolate(
         absolute,
         verbose,
         symprec,
+        dosweight,
     )
 end
 
