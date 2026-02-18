@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Python setup with conda (BoltzTraP2 requires spglib C headers)
       - name: Setup Miniconda
