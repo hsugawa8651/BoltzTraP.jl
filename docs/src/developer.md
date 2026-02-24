@@ -53,12 +53,12 @@ end
 - `selected_bands`: Band indices used
 - `spacegroup_number`, `spacegroup_symbol`: Space group info
 
-### IntegrateResult
+### TransportResult
 
 Stores transport coefficients from BZ integration.
 
 ```julia
-struct IntegrateResult
+struct TransportResult
     temperatures::Vector{Float64}    # Temperatures (K)
     mu_values::Vector{Float64}       # Chemical potentials (eV)
     sigma::Array{Float64,4}          # Conductivity (3×3×nT×nμ), S/m
@@ -87,7 +87,7 @@ end
 
 ## I/O Data Format
 
-All loaders (`load_vasp`, `load_qe`, `load_dftk`) return a NamedTuple:
+All loaders (`load_vasp`, `load_qe`, `load_wien2k`, `load_gene`, `load_abinit`, `load_dftk`) return a NamedTuple:
 
 ```julia
 (
@@ -194,7 +194,7 @@ export load_newformat
 ### Adding a New Transport Property
 
 1. Add calculation in `src/bandlib.jl`
-2. Add to `IntegrateResult` struct in `src/io/serialization.jl`
+2. Add to `TransportResult` struct in `src/io/serialization.jl`
 3. Update `run_integrate` in `src/workflow.jl`
 4. Add CLI option in `src/cli.jl` (if needed)
 
@@ -373,6 +373,9 @@ The CLI uses `load_dft()` to automatically detect the DFT format:
 |--------|-----------|
 | VASP | `vasprun.xml` exists in directory |
 | QE | `*.save/data-file-schema.xml` or `*.save/data-file.xml` exists |
+| Wien2k | `case.struct` + `case.energy` (or variants) exist |
+| GENE | `case.structure` + `case.energy` exist |
+| ABINIT | `*_GSR.nc` NetCDF file exists (requires NCDatasets.jl) |
 
 ### Forcing a Format
 
@@ -408,7 +411,11 @@ src/
 ├── io/
 │   ├── loader.jl       # Auto-detection logic
 │   ├── vasp.jl         # VASP loader
-│   └── qe.jl           # QE loader
+│   ├── qe.jl           # QE loader
+│   ├── wien2k.jl       # Wien2k loader
+│   ├── gene.jl         # GENE/Generic loader
+│   ├── abinit.jl       # ABINIT loader (extension)
+│   └── serialization.jl # JLD2/BT2 serialization
 └── ...
 
 ftest/                  # Functional tests (manual)
@@ -438,18 +445,18 @@ test/                   # Unit tests (automated)
 
 ## Migration Guide
 
-### v0.2 (upcoming): Magnetic Material Support
+### v0.3 (upcoming): Collinear Magnetic Material Support
 
-The `spintype` metadata field has been added to both `InterpolationResult` and `IntegrateResult` to prepare for magnetic material support in v0.2.
+The `spintype` metadata field was added in v0.1 to both `InterpolationResult` and `TransportResult` to prepare for magnetic material support.
 
-**Current behavior (v0.1):**
+**Current behavior (v0.2):**
 - All calculations assume non-magnetic (unpolarized) materials
 - `metadata["spintype"]` = `"Unpolarized"` (always)
 
-**Planned v0.2 changes:**
-- `SpinType` enum: `Unpolarized`, `Collinear`, `NonCollinear`
-- Parametric types: `InterpolationResult{ST}` where `ST<:SpinType`
-- Spin-polarized VASP/QE support
+**Planned v0.3 changes:**
+- `SpinType` hierarchy: `NonMagnetic`, `Collinear`
+- Parametric types: `DFTData{N}` where N is number of spin channels
+- Spin-polarized VASP/QE/Wien2k/GENE support
 
 **Forward compatibility:**
-Files saved with v0.1 will be loadable in v0.2. The `spintype` metadata field ensures smooth migration.
+Files saved with v0.1/v0.2 will be loadable in v0.3. The `spintype` metadata field ensures smooth migration.

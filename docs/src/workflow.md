@@ -173,7 +173,7 @@ transport = run_integrate(interp; temperatures=[300.0])
 using BoltzTraP
 
 format = detected_format("./calculation")
-println("Detected: $format")  # "vasp" or "qe" or nothing
+println("Detected: $format")  # "VASP", "QE", "Wien2k", "GENE", "ABINIT", or nothing
 ```
 
 This is used internally by [`run_interpolate`](@ref) and [`load_dft`](@ref) for auto-detection.

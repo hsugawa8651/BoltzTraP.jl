@@ -106,7 +106,7 @@ boltztrap interpolate ./Si.vasp --emin -0.5 --emax 0.5
 | [`TransportResult`](@ref) | Transport tensors and DOS |
 | [`DFTData`](@ref) | Abstract type for DFT input data |
 | [`NonMagneticData`](@ref) | Non-magnetic (unpolarized) DFT data |
-| [`SpinPolarizedData`](@ref) | Spin-polarized DFT data (defined, full support in v0.2) |
+| [`SpinPolarizedData`](@ref) | Spin-polarized DFT data (defined, full support in v0.3) |
 
 ---
 
@@ -138,6 +138,6 @@ function process(data::NonMagneticData)
 end
 ```
 
-!!! note "v0.2: Magnetic Material Support"
+!!! note "v0.3: Magnetic Material Support"
     `SpinPolarizedData` is defined but not yet fully implemented.
-    Full support for spin-polarized calculations is planned for v0.2.
+    Full support for spin-polarized calculations is planned for v0.3.

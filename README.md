@@ -7,15 +7,16 @@
 
 Julia port of [BoltzTraP2 v25.11.1](https://pypi.org/project/BoltzTraP2/25.11.1/) ([source](https://gitlab.com/sousaw/BoltzTraP2)), a band structure interpolation and transport coefficient calculator.
 
-## Features (v0.1)
+## Features
 
-* Nonmagnetic materials (spin-polarized support planned)
+* Nonmagnetic materials (collinear magnetic support in v0.3)
+* Electronic heat capacity (`calc_cv`) and scissor correction (`apply_scissor`)
 
 ### Available Commands
 
 | Feature | CLI | API | Input | Output |
 |---------|-----|-----|-------|--------|
-| Band interpolation | `boltztrap interpolate` | `run_interpolate()` | VASP, QE, DFTK (`scfres`) | `InterpolationResult` (`.jld2`, `.bt2`) |
+| Band interpolation | `boltztrap interpolate` | `run_interpolate()` | VASP, QE, Wien2k, GENE, ABINIT, DFTK (`scfres`) | `InterpolationResult` (`.jld2`, `.bt2`) |
 | Transport calculation | `boltztrap integrate` | `run_integrate()` | `InterpolationResult` (`.jld2`, `.bt2`) | `TransportResult` (`.jld2`) |
 | Plot bands | `boltztrap plotbands` | `plot_bands()` | `InterpolationResult` (`.jld2`, `.bt2`) | PNG, PDF |
 | Plot transport | `boltztrap plot` | `plot_transport()` | `TransportResult` (`.jld2`) | PNG, PDF |
@@ -34,7 +35,7 @@ See [hsugawa8651.github.io/BoltzTraP.jl](https://hsugawa8651.github.io/BoltzTraP
 
 ## Validation
 
-BoltzTraP.jl is validated against Python BoltzTraP2 through 75 reference tests. To run validation tests locally:
+BoltzTraP.jl is validated against Python BoltzTraP2 through 75 reference tests covering symmetry, interpolation, transport, I/O, and end-to-end workflows (< 10⁻⁶ relative error). To run validation tests locally:
 
 ```bash
 # Generate reference data (requires Python BoltzTraP2)

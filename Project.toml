@@ -2,7 +2,7 @@ name = "BoltzTraP"
 uuid = "cbda18ea-c181-4d25-a1c9-354b8a2900c6"
 license = "GPL-3.0-or-later"
 authors = ["Hiroharu Sugawara <hsugawa@gmail.com>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -37,7 +37,7 @@ BenchmarkTools = "1.6.3"
 Brillouin = "0.5"
 CodecXz = "0.7"
 Comonicon = "1.0.8"
-DFTK = "0.7.20"
+DFTK = "0.7.20, 0.7.21"
 FFTW = "1"
 Interpolations = "0.15, 0.16"
 JLD2 = "0.4, 0.5"

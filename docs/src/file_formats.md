@@ -10,7 +10,7 @@ See [`detected_format`](@ref) for automatic format detection.
 
 **Example:**
 ```julia
-format = detected_format("./calculation")  # Returns "VASP", "QE", or nothing
+format = detected_format("./calculation")  # Returns "VASP", "QE", "Wien2k", "GENE", "ABINIT", or nothing
 ```
 
 ### VASP
@@ -31,9 +31,9 @@ Si.vasp/
 └── EIGENVAL       # Optional
 ```
 
-### Quantum ESPRESSO (experimental)
+### Quantum ESPRESSO
 
-Support for Quantum ESPRESSO output is experimental:
+Reads Quantum ESPRESSO output:
 
 | File | Description |
 |------|-------------|
@@ -183,4 +183,4 @@ boltztrap interpolate ./Si.vasp -o si_interp.bt2
 ## Next Steps
 
 - [Interpolation](@ref) - `InterpolationResult` and save/load functions
-- [Integration](@ref) - `IntegrateResult` and save/load functions
+- [Integration](@ref) - `TransportResult` and save/load functions

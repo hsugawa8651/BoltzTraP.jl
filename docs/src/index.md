@@ -14,7 +14,7 @@ Julia implementation of [BoltzTraP2](https://www.imc.tuwien.ac.at/forschungsbere
 
 | Feature | CLI | API | Input | Output |
 |---------|-----|-----|-------|--------|
-| Band interpolation | `boltztrap interpolate` | [`run_interpolate`](@ref)`()` | VASP, QE, DFTK (`scfres`) | [`InterpolationResult`](@ref) (`.jld2`, `.bt2`) |
+| Band interpolation | `boltztrap interpolate` | [`run_interpolate`](@ref)`()` | VASP, QE, Wien2k, GENE, ABINIT, DFTK (`scfres`) | [`InterpolationResult`](@ref) (`.jld2`, `.bt2`) |
 | Transport calculation | `boltztrap integrate` | [`run_integrate`](@ref)`()` | [`InterpolationResult`](@ref) (`.jld2`, `.bt2`) | [`TransportResult`](@ref) (`.jld2`) |
 | Plot bands | `boltztrap plotbands` | `plot_bands()` | [`InterpolationResult`](@ref) (`.jld2`, `.bt2`) | PNG, PDF |
 | Plot transport | `boltztrap plot` | `plot_transport()` | [`TransportResult`](@ref) (`.jld2`) | PNG, PDF |

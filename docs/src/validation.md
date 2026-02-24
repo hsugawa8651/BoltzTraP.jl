@@ -57,7 +57,7 @@ For package checksums, test data checksums, and verification instructions, see [
 | Interpolation | 10 | Fourier coefficient fitting |
 | Reconstruction | 15 | Band energies and velocities via FFT |
 | Transport | 20 | Fermi integrals, Onsager coefficients |
-| I/O | 10 | VASP/QE file parsing |
+| I/O | 10 | VASP, QE, Wien2k, GENE, ABINIT file parsing |
 | End-to-end | 10 | Complete workflow validation |
 
 ### Reference Data Scripts
@@ -70,13 +70,19 @@ See [`reftest/README.md`](https://github.com/hsugawa8651/BoltzTraP.jl/blob/main/
 ```
 reftest/
 ├── README.md                         # Complete usage instructions
+├── common.py                         # Shared utilities for generators
+├── compare.jl                        # Julia comparison script
+├── convert_dft_to_gene.py            # DFT → GENE format converter
+├── generate_0_unit_test_data.py      # [0] Unit test fixtures (test/data/)
 ├── generate_1_sphere.py              # [1] Sphere, equivalences, symmetry
 ├── generate_2_interpolation_si.py    # [2] Interpolation (Si, cubic)
 ├── generate_3_transport.py           # [3] Transport coefficients
 ├── generate_4_io_poscar.py           # [4] POSCAR I/O
 ├── generate_4_io_bt2.py              # [4] BT2 file format
 ├── generate_5_e2e.py                 # [5] End-to-end (Si, Li, PbTe)
-├── compare.jl                        # Julia comparison script
+├── generate_6_loaders.py             # [6] DFT loader validation
+├── generate_synthetic_lowsym.py      # [7] Synthetic low-symmetry test data
+├── generate_synthetic_p1.py          # [7] Synthetic P1 triclinic data
 └── data/                             # Generated .npz files (gitignored)
     ├── si_interpolation.npz
     ├── si_end2end.npz
@@ -88,11 +94,14 @@ reftest/
 
 | Category | Script | Description |
 |----------|--------|-------------|
+| 0 | `generate_0_unit_test_data.py` | Unit test fixtures |
 | 1 | `generate_1_sphere.py` | Symmetry and equivalences |
 | 2 | `generate_2_interpolation_*.py` | Interpolation coefficients |
 | 3 | `generate_3_transport.py` | Transport coefficients |
 | 4 | `generate_4_io_*.py` | File I/O (POSCAR, BT2) |
 | 5 | `generate_5_e2e.py` | End-to-end workflows |
+| 6 | `generate_6_loaders.py` | DFT loader validation (VASP, QE, Wien2k, GENE, ABINIT) |
+| 7 | `generate_synthetic_*.py` | Synthetic low-symmetry test data |
 | - | `compare.jl` | Julia comparison against reference data |
 
 ## Verify It Yourself
