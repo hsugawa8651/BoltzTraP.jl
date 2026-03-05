@@ -70,7 +70,7 @@ println("Seebeck at 300K: ", transport.seebeck[1, 1, 1, :])
 
 - DFTK uses atomic units (Hartree, Bohr) internally - no conversion needed
 - Dense k-grid (10x10x10 or more) recommended for accurate interpolation
-- Only non-spin-polarized calculations are supported
+- Non-spin-polarized and collinear magnetic calculations are supported (v0.3+)
 
 ---
 

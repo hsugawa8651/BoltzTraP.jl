@@ -12,7 +12,7 @@ Reference testing ensures BoltzTraP.jl produces results identical to the origina
 |--------|-------------|
 | Location | [`reftest/`](https://github.com/hsugawa8651/BoltzTraP.jl/tree/main/reftest) directory |
 | Tolerance | < 10⁻⁶ relative error |
-| Test count | 75+ reference tests |
+| Test count | 80+ reference tests |
 | Data source | [BoltzTraP2 v25.11.1](https://gitlab.com/souza-group/BoltzTraP2) |
 
 ## What is Tested
@@ -33,6 +33,7 @@ Reference tests validate numerical equivalence for:
 |----------|-----------|------|---------|
 | Si | Diamond (Fd-3m) | Semiconductor | High-symmetry cubic |
 | PbTe | Rock salt (Fm-3m) | Thermoelectric | Heavy elements |
+| Fe | BCC (Im-3m) | Ferromagnetic metal | Collinear magnetic |
 | Synthetic | Monoclinic, Triclinic | - | Low-symmetry validation |
 
 ### Test Categories
@@ -46,6 +47,7 @@ Tests for k-point symmetry and equivalence class generation.
 | `unit_cube` | Generic | Unit cube lattice vectors |
 | `simple_cubic` | Generic | Simple cubic with atoms |
 | `si_diamond` | Si | Diamond structure symmetry |
+| `fe_bcc_magnetic` | Fe | BCC with magnetic moments |
 | `monoclinic` | Generic | Monoclinic space group |
 | `triclinic_p1` | Generic | P1 (no symmetry) |
 
@@ -85,6 +87,7 @@ Complete workflow tests from DFT data to transport coefficients.
 |------|----------|-------------|
 | `si_end2end` | Si | Full Si workflow |
 | `pbte_end2end` | PbTe | Full PbTe workflow |
+| `fe_collinear_e2e` | Fe | Full Fe collinear workflow |
 
 ## Running Reference Tests
 

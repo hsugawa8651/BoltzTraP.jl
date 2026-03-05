@@ -178,6 +178,27 @@ function _unpack_qe_element(name::AbstractString)
 end
 
 #=
+    _generate_qe_tags(extended_species)
+
+Generate atomic tags from QE extended species names.
+
+Python BoltzTraP2 uses these tags to generate dummy magmom values for symmetry breaking.
+Same-named extended species get the same tag (0-based).
+
+# Example
+```julia
+_generate_qe_tags(["Fe1", "Fe1", "Fe2", "Fe2"]) # → [0, 0, 1, 1]
+```
+
+# Reference
+Python BoltzTraP2 io.py:1413-1422 and io.py:1526-1528
+=#
+function _generate_qe_tags(extended_species::Vector{String})
+    unique_ext = unique(extended_species)
+    return [findfirst(==(s), unique_ext) - 1 for s in extended_species]  # 0-based
+end
+
+#=
     read_qe_bands_gnu(filename)
 
 Read band energies from QE bands.x output (bands.dat.gnu format).
@@ -466,6 +487,7 @@ function read_qe_xml(filename::String)
     # (XML may contain multiple: input and output structures)
     positions_cart = zeros(3, 0)
     species = String[]
+    extended_species = String[]  # Keep original extended names for tags generation
 
     # Look for atomic_positions in output section
     output_struct_match = match(
@@ -475,8 +497,11 @@ function read_qe_xml(filename::String)
     if !isnothing(output_struct_match)
         atom_pattern = r"<atom[^>]*name=\"([^\"]+)\"[^>]*>(.*?)</atom>"s
         for m in eachmatch(atom_pattern, output_struct_match.captures[1])
+            raw_name = strip(m.captures[1])
+            # Keep extended name for tags generation (Python BoltzTraP2 compatibility)
+            push!(extended_species, raw_name)
             # Extract base element from QE extended name (e.g., "Cr1" -> "Cr")
-            push!(species, _unpack_qe_element(m.captures[1]))
+            push!(species, _unpack_qe_element(raw_name))
             pos = parse.(Float64, split(strip(m.captures[2])))
             positions_cart = hcat(positions_cart, pos)
         end
@@ -489,8 +514,11 @@ function read_qe_xml(filename::String)
         if !isnothing(atomic_struct_match)
             atom_pattern = r"<atom[^>]*name=\"([^\"]+)\"[^>]*>(.*?)</atom>"s
             for m in eachmatch(atom_pattern, atomic_struct_match.captures[1])
+                raw_name = strip(m.captures[1])
+                # Keep extended name for tags generation (Python BoltzTraP2 compatibility)
+                push!(extended_species, raw_name)
                 # Extract base element from QE extended name (e.g., "Cr1" -> "Cr")
-                push!(species, _unpack_qe_element(m.captures[1]))
+                push!(species, _unpack_qe_element(raw_name))
                 pos = parse.(Float64, split(strip(m.captures[2])))
                 positions_cart = hcat(positions_cart, pos)
             end
@@ -514,6 +542,7 @@ function read_qe_xml(filename::String)
         lattice = lattice,
         positions = positions,
         species = species,
+        extended_species = extended_species,  # For tags generation (Python BoltzTraP2 compatibility)
         kpoints = kpoints,
         weights = weights,
         ebands = ebands_raw,
@@ -693,6 +722,16 @@ function load_qe(directory::String)
         occupations_3d[:, :, ispin] = raw.occupations[band_start:band_end, :]
     end
 
+    # Generate dummy magmom from atomic tags (Python BoltzTraP2 compatibility)
+    # Purpose: break symmetry for magnetic calculations
+    # Reference: Python BoltzTraP2 io.py:1526-1528
+    #   nruter["magmom"] = (np.array(nruter["atoms"].get_tags(), dtype=np.float64) + 1.0)
+    magmom = nothing
+    if !isempty(raw.extended_species)
+        tags = _generate_qe_tags(raw.extended_species)
+        magmom = Float64.(tags) .+ 1.0
+    end
+
     # Return DFTData with appropriate type parameter
     return DFTData(
         lattice = raw.lattice,
@@ -704,6 +743,6 @@ function load_qe(directory::String)
         occupations = occupations_3d,
         fermi = raw.fermi,
         nelect = Float64(raw.nelect),
-        magmom = nothing,  # QE magmom handling would require additional parsing
+        magmom = magmom,
     )
 end

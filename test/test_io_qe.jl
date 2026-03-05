@@ -3,7 +3,8 @@
 # Part of BoltzTraP.jl
 
 using Test
-using BoltzTraP: read_qe_bands_gnu, read_qe_kpoints, read_qe_xml, read_qe_output
+using BoltzTraP: read_qe_bands_gnu, read_qe_kpoints, read_qe_xml, read_qe_output, load_qe
+using BoltzTraP: _generate_qe_tags
 
 @testset "Quantum ESPRESSO I/O" begin
     @testset "read_qe_bands_gnu" begin
@@ -236,4 +237,105 @@ using BoltzTraP: read_qe_bands_gnu, read_qe_kpoints, read_qe_xml, read_qe_output
             @test data.ebands[6, 1] ≈ 9.2345
         end
     end
+
+    @testset "_generate_qe_tags" begin
+        # Test tags generation following Python BoltzTraP2 behavior
+        # Same extended species get same tag (0-based)
+        @test _generate_qe_tags(["Fe1", "Fe1", "Fe2", "Fe2"]) == [0, 0, 1, 1]
+        @test _generate_qe_tags(["Si", "Si"]) == [0, 0]
+        @test _generate_qe_tags(["Cr1", "Cr2", "Cr1", "Cr2"]) == [0, 1, 0, 1]
+        @test _generate_qe_tags(["Fe_up", "Fe_down"]) == [0, 1]
+    end
+
+    @testset "load_qe with extended species (magmom generation)" begin
+        # Synthetic QE XML with extended species (e.g., Fe1, Fe2 for antiferromagnetic)
+        qe_xml_extended = """<?xml version="1.0"?>
+<qes:espresso xmlns:qes="http://www.quantum-espresso.org/ns/qes/qes-1.0">
+ <output>
+  <atomic_structure>
+   <cell>
+    <a1>5.40 0.00 0.00</a1>
+    <a2>0.00 5.40 0.00</a2>
+    <a3>0.00 0.00 5.40</a3>
+   </cell>
+   <atomic_positions>
+    <atom name="Fe1" index="1">0.0 0.0 0.0</atom>
+    <atom name="Fe1" index="2">2.70 2.70 0.0</atom>
+    <atom name="Fe2" index="3">2.70 0.0 2.70</atom>
+    <atom name="Fe2" index="4">0.0 2.70 2.70</atom>
+   </atomic_positions>
+  </atomic_structure>
+  <band_structure>
+   <lsda>false</lsda>
+   <fermi_energy>0.2500</fermi_energy>
+   <nelec>32.0</nelec>
+   <nks>1</nks>
+   <nbnd>4</nbnd>
+   <ks_energies>
+    <k_point weight="1.0">0.0 0.0 0.0</k_point>
+    <eigenvalues size="4">-0.10 0.20 0.20 0.30</eigenvalues>
+    <occupations size="4">1.0 1.0 1.0 1.0</occupations>
+   </ks_energies>
+  </band_structure>
+ </output>
+</qes:espresso>
+"""
+        mktempdir() do tmpdir
+            xml_file = joinpath(tmpdir, "data-file-schema.xml")
+            write(xml_file, qe_xml_extended)
+
+            # Test read_qe_xml returns extended_species
+            raw = read_qe_xml(xml_file)
+            @test raw.extended_species == ["Fe1", "Fe1", "Fe2", "Fe2"]
+            @test raw.species == ["Fe", "Fe", "Fe", "Fe"]
+
+            # Test load_qe generates dummy magmom
+            data = load_qe(tmpdir)
+            @test !isnothing(data.magmom)
+            @test length(data.magmom) == 4
+            # magmom = tags + 1.0 = [0, 0, 1, 1] + 1.0 = [1.0, 1.0, 2.0, 2.0]
+            @test data.magmom ≈ [1.0, 1.0, 2.0, 2.0]
+        end
+
+        # Test with simple species (no extended names)
+        qe_xml_simple = """<?xml version="1.0"?>
+<qes:espresso xmlns:qes="http://www.quantum-espresso.org/ns/qes/qes-1.0">
+ <output>
+  <atomic_structure>
+   <cell>
+    <a1>5.13 5.13 0.00</a1>
+    <a2>0.00 5.13 5.13</a2>
+    <a3>5.13 0.00 5.13</a3>
+   </cell>
+   <atomic_positions>
+    <atom name="Si" index="1">0.0 0.0 0.0</atom>
+    <atom name="Si" index="2">2.565 2.565 2.565</atom>
+   </atomic_positions>
+  </atomic_structure>
+  <band_structure>
+   <lsda>false</lsda>
+   <fermi_energy>0.2345</fermi_energy>
+   <nelec>8.0</nelec>
+   <nks>1</nks>
+   <nbnd>4</nbnd>
+   <ks_energies>
+    <k_point weight="1.0">0.0 0.0 0.0</k_point>
+    <eigenvalues size="4">-0.189 0.25 0.25 0.25</eigenvalues>
+    <occupations size="4">1.0 1.0 1.0 1.0</occupations>
+   </ks_energies>
+  </band_structure>
+ </output>
+</qes:espresso>
+"""
+        mktempdir() do tmpdir
+            xml_file = joinpath(tmpdir, "data-file-schema.xml")
+            write(xml_file, qe_xml_simple)
+
+            data = load_qe(tmpdir)
+            # For simple species, tags = [0, 0], magmom = [1.0, 1.0]
+            @test !isnothing(data.magmom)
+            @test data.magmom ≈ [1.0, 1.0]
+        end
+    end
+
 end

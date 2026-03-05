@@ -5,16 +5,8 @@
 
 using LinearAlgebra
 
-#=
-    MagmomType
-
-Enum for magnetic moment types.
-=#
-@enum MagmomType begin
-    Unpolarized = 0
-    Collinear = 1
-    Noncollinear = 2
-end
+# Note: SpinType (Unpolarized, Collinear, NonCollinear) is defined in spintypes.jl
+# and included before this file. Used for magnetic moment type dispatch.
 
 #=
     compute_bounds(lattvec::AbstractMatrix, radius::Real) -> Vector{Int}
@@ -154,7 +146,7 @@ function find_permutation(
 end
 
 #=
-    determine_compatibility(rotation, perm, magmom, mtype, symprec)
+    determine_compatibility(rotation, perm, magmom, spintype, symprec)
 
 Check if a symmetry operation is compatible with the magnetic configuration.
 
@@ -165,20 +157,20 @@ forward operation and time-reversal operation are compatible.
 - `rotation`: 3×3 Cartesian rotation matrix
 - `perm`: Atomic permutation vector
 - `magmom`: Magnetic moments (`nothing`, `Vector{Float64}`, or `Vector` of 3-vectors)
-- `mtype`: MagmomType enum value
+- `spintype`: SpinType instance (Unpolarized(), Collinear(), or NonCollinear())
 - `symprec`: Symmetry precision
 =#
 function determine_compatibility(
     rotation::AbstractMatrix,
     perm::AbstractVector{<:Integer},
     magmom,
-    mtype::MagmomType,
+    spintype::SpinType,
     symprec::Real,
 )
-    if mtype == Unpolarized
+    if spintype isa Unpolarized
         # No magnetic constraints - both forward and backward are compatible
         return (forward = true, backward = true)
-    elseif mtype == Collinear
+    elseif spintype isa Collinear
         # Collinear: check if moments match after permutation
         # Allow for spin flip (time reversal)
         natoms = length(perm)
@@ -202,7 +194,7 @@ function determine_compatibility(
         end
 
         return (forward = forward_ok, backward = backward_ok)
-    else  # Noncollinear
+    else  # NonCollinear
         # Non-collinear: apply rotation to magnetic moment vectors
         natoms = length(perm)
         forward_ok = true
@@ -230,23 +222,26 @@ function determine_compatibility(
 end
 
 #=
-    get_magmom_type(magmom) -> MagmomType
+    get_spintype(magmom) -> SpinType
 
-Determine the type of magnetic moment from the input.
+Determine the spin type from the magnetic moment input.
 
-- `nothing` → Unpolarized
-- `Vector{<:Real}` → Collinear
-- `Vector{<:AbstractVector}` (3D vectors) → Noncollinear
+- `nothing` → Unpolarized()
+- `Vector{<:Real}` → Collinear()
+- `Vector{<:AbstractVector}` (3D vectors) → NonCollinear()
 =#
-function get_magmom_type(magmom)
+function get_spintype(magmom)
     if isnothing(magmom)
-        return Unpolarized
+        return Unpolarized()
     elseif eltype(magmom) <: Real
-        return Collinear
+        return Collinear()
     else
-        return Noncollinear
+        return NonCollinear()
     end
 end
+
+# Backward compatibility alias
+const get_magmom_type = get_spintype
 
 #=
     calc_nrotations(lattvec, positions, types, magmom; symprec=1e-5)

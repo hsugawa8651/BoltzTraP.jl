@@ -266,6 +266,18 @@ function read_vasprun(filename::String)
         end
     end
 
+    # Extract MAGMOM (magnetic moments)
+    # Format in vasprun.xml: <v name="MAGMOM">  1.0  1.0  ... </v>
+    magmom = nothing
+    magmom_pattern = r"<v name=\"MAGMOM\">\s*(.*?)\s*</v>"s
+    m = match(magmom_pattern, content)
+    if !isnothing(m)
+        magmom_str = strip(m.captures[1])
+        if !isempty(magmom_str)
+            magmom = parse.(Float64, split(magmom_str))
+        end
+    end
+
     return (
         lattice = lattice,
         rec_lattice = rec_lattice,
@@ -277,6 +289,7 @@ function read_vasprun(filename::String)
         occupations = occupations,
         fermi = fermi,
         nelect = nelect,
+        magmom = magmom,
     )
 end
 
@@ -320,7 +333,7 @@ function load_vasp(directory::String)
         occupations = raw.occupations,
         fermi = raw.fermi * EV_TO_HA,
         nelect = raw.nelect,
-        magmom = nothing,  # TODO: Extract from vasprun.xml if available
+        magmom = raw.magmom,  # Extracted from vasprun.xml
     )
 end
 

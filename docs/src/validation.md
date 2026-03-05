@@ -22,10 +22,10 @@ This approach guarantees that BoltzTraP.jl produces results identical to the ori
 
 | Aspect | Details |
 |--------|---------|
-| Reference tests | 75 tests |
+| Test cases | 727 (5004 assertions) |
 | Tolerance | < 10⁻⁶ relative error |
 | Data source | BoltzTraP2 v25.11.1 (PyPI) |
-| Materials tested | Si, PbTe |
+| Materials tested | Si, PbTe, Fe (collinear) |
 
 ### Reference Data Source
 
@@ -39,10 +39,11 @@ All reference data originates from the test materials included in the [BoltzTraP
 
 **DFT Calculation Details:**
 
-| Material | Structure | DFT Code | XC Functional | k-grid | ENCUT (eV) | Pseudopotential |
-|----------|-----------|----------|---------------|--------|------------|-----------------|
-| Si | Diamond (Fd-3m) | VASP | PBE | 17×17×17 | 306.7 | PAW_PBE Si |
-| PbTe | Rock salt (Fm-3m) | VASP | PBE | 16×16×16 | 300.0 | PAW_PBE Pb_d, Te |
+| Material | Structure | DFT Code | XC Functional | k-grid | Pseudopotential |
+|----------|-----------|----------|---------------|--------|-----------------|
+| Si | Diamond (Fd-3m) | VASP | PBE | 17×17×17 | PAW_PBE Si |
+| PbTe | Rock salt (Fm-3m) | VASP | PBE | 16×16×16 | PAW_PBE Pb_d, Te |
+| Fe | BCC (Im-3m) | QE | PBE | - | ONCV |
 
 **Data Provenance and Verification:**
 
@@ -50,15 +51,15 @@ For package checksums, test data checksums, and verification instructions, see [
 
 ### Components Tested
 
-| Component | Tests | Description |
-|-----------|-------|-------------|
-| Symmetry | 5 | Space group detection, rotations |
-| Equivalences | 5 | k-point equivalence classes |
-| Interpolation | 10 | Fourier coefficient fitting |
-| Reconstruction | 15 | Band energies and velocities via FFT |
-| Transport | 20 | Fermi integrals, Onsager coefficients |
-| I/O | 10 | VASP, QE, Wien2k, GENE, ABINIT file parsing |
-| End-to-end | 10 | Complete workflow validation |
+| Component | Test Cases | Description |
+|-----------|------------|-------------|
+| Symmetry | 37 | Space group detection, rotations, equivalences |
+| Types | 46 | DFTData, SpinTypes, BandData |
+| Interpolation | 57 | Fourier coefficient fitting, reconstruction |
+| Transport | 31 | Fermi integrals, Onsager coefficients |
+| I/O | 130 | VASP/QE file parsing |
+| Loaders | 92 | Multi-format loader comparison |
+| Workflow | 63 | End-to-end magnetic validation |
 
 ### Reference Data Scripts
 
@@ -259,12 +260,11 @@ Comparison figures are saved in `validation/`:
 
 ## Available Materials
 
-Only non-magnetic materials (ISPIN=1) are supported:
-
 | Material | Type | Description |
 |----------|------|-------------|
 | Si | Semiconductor | Silicon (diamond structure) |
 | PbTe | Thermoelectric | Lead telluride |
+| Fe | Ferromagnetic metal | BCC Iron (collinear, T=1000K) |
 
 ## Available Properties
 

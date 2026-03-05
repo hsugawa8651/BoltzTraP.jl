@@ -9,7 +9,12 @@ Julia port of [BoltzTraP2 v25.11.1](https://pypi.org/project/BoltzTraP2/25.11.1/
 
 ## Features
 
-* Nonmagnetic materials (collinear magnetic support in v0.3)
+| Material Type | Support |
+|--------------|---------|
+| Non-magnetic | ✅ Full |
+| Collinear magnetic | ✅ Full (v0.3) |
+| Non-collinear magnetic | ⬜ Planned |
+
 * Electronic heat capacity (`calc_cv`) and scissor correction (`apply_scissor`)
 
 ### Available Commands
@@ -32,6 +37,21 @@ Pkg.add("BoltzTraP")
 ## Documentation
 
 See [hsugawa8651.github.io/BoltzTraP.jl](https://hsugawa8651.github.io/BoltzTraP.jl) for full documentation.
+
+## Quick Start
+
+```julia
+using BoltzTraP
+
+# Non-magnetic: Si (VASP)
+interp = run_interpolate("./Si.vasp"; kpoints=5000)
+transport = run_integrate(interp; temperatures=[300.0, 500.0])
+
+# Collinear magnetic: Fe (QE)
+# No code changes needed — spin polarization is detected automatically
+interp = run_interpolate("./Fe.qe"; kpoints=5000)
+transport = run_integrate(interp; temperatures=[300.0, 1000.0])
+```
 
 ## Validation
 

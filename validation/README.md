@@ -100,6 +100,30 @@ Figures are saved as `validation/transport_<title>_<T>K.png`:
 
 Custom path can be specified with `-o` option.
 
+## Fe Collinear Magnetic (T=1000K)
+
+Fe collinear magnetic transport validation at T=1000K.
+
+### Generate reference and Julia results
+
+```bash
+# Generate Python reference (requires BoltzTraP2)
+cd reftest
+python generate_collinear.py fe --data-dir /path/to/BoltzTraP2/data
+
+# Generate Julia transport plot
+julia --project validation/plot_fe_transport.jl
+```
+
+### Output
+
+| File | Description |
+|------|-------------|
+| `transport_Fe_1000K_total.png` | Fe total transport (Python vs Julia) |
+
+**Note**: At T=1000K, thermal broadening smooths oscillations, enabling clean validation.
+At lower temperatures (T=300K), Seebeck coefficient shows ~±250 μV/K oscillations due to the BoltzTraP Fourier method limitation for metals.
+
 ## Figure Contents
 
 3-panel vertical layout showing:

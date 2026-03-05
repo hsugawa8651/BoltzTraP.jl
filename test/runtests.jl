@@ -90,6 +90,8 @@ end
 
     # Type tests
     include("test_types.jl")
+    include("test_spintypes.jl")
+    include("test_banddata.jl")
     include("test_dftdata_integration.jl")
 
     # Structure validation tests (requires BoltzTraP2-public data)
@@ -114,6 +116,7 @@ end
         include("test_fite.jl")
         include("test_bandlib.jl")
         include("test_calc_N_solve_mu.jl")
+        include("test_workflow_magnetic.jl")
     end
 
     # DFTK extension tests (only if DFTK is available)

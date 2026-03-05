@@ -98,4 +98,77 @@ using NPZ
             @test_skip "Reference data not available"
         end
     end
+
+    @testset "get_spintype" begin
+        # Test SpinType inference from magmom
+        @test BoltzTraP.get_spintype(nothing) isa BoltzTraP.Unpolarized
+        @test BoltzTraP.get_spintype([1.0, 2.0]) isa BoltzTraP.Collinear
+        @test BoltzTraP.get_spintype([[0.0, 0.0, 1.0], [0.0, 0.0, 2.0]]) isa BoltzTraP.NonCollinear
+    end
+
+    @testset "determine_compatibility" begin
+        # Test symmetry compatibility with different spin types
+        rot = Matrix{Float64}(I, 3, 3)  # Identity rotation
+        perm = [1, 2]  # No permutation
+
+        @testset "Unpolarized" begin
+            compat = BoltzTraP.determine_compatibility(
+                rot, perm, nothing, BoltzTraP.Unpolarized(), 1e-5
+            )
+            @test compat.forward == true
+            @test compat.backward == true
+        end
+
+        @testset "Collinear - same moments" begin
+            magmom = [1.0, 1.0]
+            compat = BoltzTraP.determine_compatibility(
+                rot, perm, magmom, BoltzTraP.Collinear(), 1e-5
+            )
+            @test compat.forward == true
+            # Same moments: backward (time reversal) requires m_i + m_j ≈ 0
+            @test compat.backward == false
+        end
+
+        @testset "Collinear - opposite moments with swap" begin
+            # Test with swap permutation (like in anti-ferromagnetic case)
+            perm_swap = [2, 1]  # Atom 1 maps to atom 2 and vice versa
+            magmom = [1.0, -1.0]
+            compat = BoltzTraP.determine_compatibility(
+                rot, perm_swap, magmom, BoltzTraP.Collinear(), 1e-5
+            )
+            # With swap: m_1=1.0 vs m_2=-1.0 → forward fails (|1-(-1)|=2)
+            @test compat.forward == false
+            # With swap: m_1 + m_2 = 1 + (-1) = 0 → backward succeeds (time reversal)
+            @test compat.backward == true
+        end
+    end
+
+    @testset "calc_nrotations with magmom (collinear)" begin
+        # Test using PbTe collinear reference data
+        REFTEST_DIR = joinpath(@__DIR__, "..", "reftest", "data")
+        reference_file = joinpath(REFTEST_DIR, "pbte_collinear.npz")
+
+        if isfile(reference_file)
+            ref = npzread(reference_file)
+
+            # Extract structure data
+            lattvec = ref["lattvec"]  # 3x3, columns are vectors
+            positions = ref["positions"]  # (natom, 3) fractional
+            types = Int.(ref["types"])  # atomic numbers
+            magmom = ref["magmom"]  # (natom,) scalar magmom
+
+            # Convert positions to Vector of SVector for calc_nrotations
+            pos_vec = [SVector{3,Float64}(positions[i, :]) for i in 1:size(positions, 1)]
+
+            # Calculate nrotations
+            nrot = BoltzTraP.calc_nrotations(lattvec, pos_vec, types, magmom)
+
+            # Compare with Python reference
+            @test nrot == Int(ref["nrotations"])  # Should be 48
+        else
+            @warn "Reference file not found: $reference_file"
+            @test_skip "PbTe collinear reference data not available"
+        end
+    end
+
 end

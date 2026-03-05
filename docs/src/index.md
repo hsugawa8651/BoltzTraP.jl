@@ -41,7 +41,13 @@ For detailed CLI usage, see [CLI Workflow](@ref). For Julia API, see [API Workfl
 
 ## Scope and Limitations
 
-This package currently supports **non-magnetic materials** (spin-polarized support planned).
+### Supported Materials
+
+| Material Type | Support | Notes |
+|--------------|---------|-------|
+| Non-magnetic | ✅ Full | Default (dosweight=2) |
+| Collinear magnetic | ✅ Full | Spin-polarized (dosweight=1) |
+| Non-collinear magnetic | ⬜ Planned | v0.4+ |
 
 ### Features beyond Python BoltzTraP2
 

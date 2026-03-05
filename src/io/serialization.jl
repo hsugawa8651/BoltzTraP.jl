@@ -25,16 +25,16 @@ Container for interpolation results from [`run_interpolate`](@ref).
   - `metadata`: Dictionary with additional information
 
 # Metadata Keys
-
-  - `fermi_energy`: Fermi energy in Ha
-  - `nelect`: Number of electrons
-  - `dosweight`: DOS weight (2.0 for non-spin-polarized)
-  - `selected_bands`: Band indices used (UnitRange)
-  - `spacegroup_number`: International space group number (1-230)
-  - `spacegroup_symbol`: Space group symbol (e.g., "Fd-3m")
-  - `source_file`: Original DFT file path
-  - `creation_date`: ISO 8601 timestamp
-  - `generator`: "BoltzTraP.jl"
+- `fermi_energy`: Fermi energy in Ha
+- `nelect`: Number of electrons
+- `dosweight`: DOS weight (2.0 for non-spin-polarized, 1.0 for collinear)
+- `spintype`: Spin type ("Unpolarized" or "Collinear")
+- `selected_bands`: Band indices used (UnitRange)
+- `spacegroup_number`: International space group number (1-230)
+- `spacegroup_symbol`: Space group symbol (e.g., "Fd-3m")
+- `source_file`: Original DFT file path
+- `creation_date`: ISO 8601 timestamp
+- `generator`: "BoltzTraP.jl"
 
 See also: [`run_interpolate`](@ref), [`run_integrate`](@ref), [`save_interpolation`](@ref), [`load_interpolation`](@ref)
 """
@@ -80,14 +80,22 @@ Container for transport coefficients from [`run_integrate`](@ref).
 Contains transport coefficients and other quantities computed by BZ integration.
 
 # Fields
+- `temperatures`: Temperature array in Kelvin (K)
+- `mu_values`: Chemical potential array in eV
+- `sigma`: Electrical conductivity/τ tensor (3×3×nT×nμ)
+- `seebeck`: Seebeck coefficient tensor (3×3×nT×nμ) in V/K
+- `kappa`: Electronic thermal conductivity/τ tensor (3×3×nT×nμ)
+- `dos`: Density of states data (optional Dict with `epsilon`, `dos`, `vvdos`)
+- `metadata`: Dictionary with additional information
 
-  - `temperatures`: Temperature array in Kelvin (K)
-  - `mu_values`: Chemical potential array in eV
-  - `sigma`: Electrical conductivity/τ tensor (3×3×nT×nμ)
-  - `seebeck`: Seebeck coefficient tensor (3×3×nT×nμ) in V/K
-  - `kappa`: Electronic thermal conductivity/τ tensor (3×3×nT×nμ)
-  - `dos`: Density of states data (optional Dict with `epsilon`, `dos`, `vvdos`)
-  - `metadata`: Dictionary with source info, creation date, etc.
+# Metadata Keys
+- `fermi_energy`: Fermi energy in Ha
+- `nelect`: Number of electrons
+- `dosweight`: DOS weight (2.0 for non-spin-polarized, 1.0 for collinear)
+- `spintype`: Spin type ("Unpolarized" or "Collinear")
+- `source_file`: Original DFT file path
+- `creation_date`: ISO 8601 timestamp
+- Additional keys from interpolation step are preserved
 
 See also: [`run_integrate`](@ref), [`save_integrate`](@ref), [`load_integrate`](@ref)
 """
@@ -204,12 +212,19 @@ end
 
 function load_interpolation_jld2(filename::String)
     data = load(filename)
+    metadata = get(data, "metadata", Dict{String,Any}())
+
+    # v0.1 backward compatibility: add spintype default if missing
+    if !haskey(metadata, "spintype")
+        metadata["spintype"] = "Unpolarized"
+    end
+
     return InterpolationResult(
         data["coeffs"],
         data["equivalences"],
         data["lattvec"],
         get(data, "atoms", nothing),
-        get(data, "metadata", Dict{String,Any}()),
+        metadata
     )
 end
 
@@ -228,6 +243,13 @@ end
 
 function load_integrate_jld2(filename::String)
     data = load(filename)
+    metadata = get(data, "metadata", Dict{String,Any}())
+
+    # v0.1 backward compatibility: add spintype default if missing
+    if !haskey(metadata, "spintype")
+        metadata["spintype"] = "Unpolarized"
+    end
+
     return TransportResult(
         data["temperatures"],
         data["mu_values"],
@@ -235,7 +257,7 @@ function load_integrate_jld2(filename::String)
         data["seebeck"],
         data["kappa"],
         get(data, "dos", nothing),
-        get(data, "metadata", Dict{String,Any}()),
+        metadata
     )
 end
 
@@ -283,6 +305,11 @@ function from_bt2_dict(data::Dict)
 
     atoms = get(data, "atoms", nothing)
     metadata = get(data, "metadata", Dict{String,Any}())
+
+    # v0.1 backward compatibility: add spintype default if missing
+    if !haskey(metadata, "spintype")
+        metadata["spintype"] = "Unpolarized"
+    end
 
     return InterpolationResult(coeffs, equivalences, lattvec, atoms, metadata)
 end
@@ -455,6 +482,11 @@ function from_python_bt2(data::AbstractVector)
 
     # Convert atoms dict to Julia Dict
     atoms = _json3_to_dict(atoms_dict)
+
+    # v0.1 backward compatibility: add spintype default if missing
+    if !haskey(metadata, "spintype")
+        metadata["spintype"] = "Unpolarized"
+    end
 
     return InterpolationResult(coeffs, equivalences, lattvec, atoms, metadata)
 end

@@ -714,6 +714,244 @@ def generate_abinit_si_interpolate(include_transport=True):
     return output_path
 
 
+def generate_bi2te3_interpolate(include_transport=True):
+    """Generate reference for Bi2Te3 interpolation (Wien2k SOC).
+
+    Bi2Te3 is a topological insulator with spin-orbit coupling.
+    Wien2k SOC uses case.energyso, dosweight=1.
+    """
+    print("\nGenerating Bi2Te3 interpolation reference...")
+
+    data_path = get_material_path("Bi2Te3")
+    data = dft.DFTData(str(data_path))
+
+    print(f"  Loaded: {data_path}")
+    print(f"  K-points: {data.kpoints.shape}")
+    print(f"  Bands: {data.ebands.shape}")
+    print(f"  Fermi: {data.fermi} Ha")
+    print(f"  dosweight: {data.dosweight}")
+    print(f"  nelect: {data.nelect}")
+
+    lattvec = data.atoms.get_cell().T
+    vuc = np.abs(np.linalg.det(lattvec))
+    print(f"  Unit cell volume: {vuc:.4f} Bohr^3")
+
+    nkpt_target = 5000
+    equivalences = sphere.get_equivalences(data.atoms, data.magmom, nkpt_target)
+
+    print(f"  Equivalences: {len(equivalences)}")
+
+    coeffs = fite.fitde3D(data, equivalences)
+
+    print(f"  Coefficients: {coeffs.shape}")
+
+    ebands_reconstructed, _ = fite.getBands(
+        data.kpoints, equivalences, lattvec, coeffs
+    )
+
+    max_error = np.max(np.abs(ebands_reconstructed - data.ebands))
+    print(f"  Reconstruction error: {max_error:.2e}")
+
+    save_dict = {
+        'lattvec': lattvec,
+        'kpoints': data.kpoints,
+        'ebands': data.ebands,
+        'fermi': data.fermi,
+        'nelect': data.nelect,
+        'dosweight': data.dosweight,
+        'vuc': vuc,
+        'n_equivalences': len(equivalences),
+        'equiv_sizes': np.array([len(eq) for eq in equivalences]),
+        'equiv_reps': np.array([eq[0] for eq in equivalences]),
+        'coeffs_real': coeffs.real,
+        'coeffs_imag': coeffs.imag,
+        'ebands_reconstructed': ebands_reconstructed,
+        'max_reconstruction_error': max_error,
+    }
+
+    if include_transport:
+        print("\n  Computing transport (E2E integrate)...")
+
+        print("    getBTPbands...")
+        eband, vvband, cband = fite.getBTPbands(equivalences, coeffs, lattvec)
+        print(f"    eband: {eband.shape}, vvband: {vvband.shape}")
+
+        print("    BTPDOS...")
+        epsilon, dos, vvdos, *_ = bandlib.BTPDOS(eband, vvband, npts=DEFAULT_NPTS_DOS)
+        print(f"    epsilon: {epsilon.shape}, dos: {dos.shape}")
+
+        Tr = DEFAULT_TEMPERATURES
+        mu_margin = 0.1
+        mu_min = data.fermi - mu_margin
+        mu_max = data.fermi + mu_margin
+        mur = np.linspace(mu_min, mu_max, 200)
+        print(f"    Tr: {Tr}, mur: {len(mur)} points")
+
+        print("    fermiintegrals...")
+        N, L0, L1, L2, *_ = bandlib.fermiintegrals(
+            epsilon, dos, vvdos, mur, Tr, dosweight=data.dosweight
+        )
+        print(f"    L0: {L0.shape}")
+
+        print("    calc_Onsager_coefficients...")
+        sigma, S, kappa, *_ = bandlib.calc_Onsager_coefficients(
+            L0, L1, L2, mur, Tr, vuc
+        )
+        print(f"    sigma: {sigma.shape}")
+
+        print("    solve_for_mu...")
+        mu0 = np.zeros(len(Tr))
+        for iT, T in enumerate(Tr):
+            mu0[iT] = bandlib.solve_for_mu(
+                epsilon, dos, data.nelect, T, data.dosweight,
+                refine=True, try_center=True
+            )
+            print(f"      T={T}K: mu0={mu0[iT]:.6f} Ha")
+
+        save_dict.update({
+            'eband': eband,
+            'vvband': vvband,
+            'epsilon': epsilon,
+            'dos': dos,
+            'vvdos': vvdos,
+            'Tr': Tr,
+            'mur': mur,
+            'N': N,
+            'L0': L0,
+            'L1': L1,
+            'L2': L2,
+            'sigma': sigma,
+            'S': S,
+            'kappa': kappa,
+            'mu0': mu0,
+        })
+
+    output_path = os.path.join(OUTPUT_DIR, 'bi2te3_end2end.npz')
+    np.savez(output_path, **save_dict)
+
+    print(f"  Saved: {output_path}")
+    return output_path
+
+
+def generate_cosb3_interpolate(include_transport=True):
+    """Generate reference for CoSb3 interpolation (Wien2k).
+
+    CoSb3 is a skutterudite thermoelectric material (16 atoms/cell).
+    Wien2k non-magnetic, dosweight=2.
+    """
+    print("\nGenerating CoSb3 interpolation reference...")
+
+    data_path = get_material_path("CoSb3")
+    data = dft.DFTData(str(data_path))
+
+    print(f"  Loaded: {data_path}")
+    print(f"  K-points: {data.kpoints.shape}")
+    print(f"  Bands: {data.ebands.shape}")
+    print(f"  Fermi: {data.fermi} Ha")
+    print(f"  dosweight: {data.dosweight}")
+    print(f"  nelect: {data.nelect}")
+
+    lattvec = data.atoms.get_cell().T
+    vuc = np.abs(np.linalg.det(lattvec))
+    print(f"  Unit cell volume: {vuc:.4f} Bohr^3")
+
+    nkpt_target = 5000
+    equivalences = sphere.get_equivalences(data.atoms, data.magmom, nkpt_target)
+
+    print(f"  Equivalences: {len(equivalences)}")
+
+    coeffs = fite.fitde3D(data, equivalences)
+
+    print(f"  Coefficients: {coeffs.shape}")
+
+    ebands_reconstructed, _ = fite.getBands(
+        data.kpoints, equivalences, lattvec, coeffs
+    )
+
+    max_error = np.max(np.abs(ebands_reconstructed - data.ebands))
+    print(f"  Reconstruction error: {max_error:.2e}")
+
+    save_dict = {
+        'lattvec': lattvec,
+        'kpoints': data.kpoints,
+        'ebands': data.ebands,
+        'fermi': data.fermi,
+        'nelect': data.nelect,
+        'dosweight': data.dosweight,
+        'vuc': vuc,
+        'n_equivalences': len(equivalences),
+        'equiv_sizes': np.array([len(eq) for eq in equivalences]),
+        'equiv_reps': np.array([eq[0] for eq in equivalences]),
+        'coeffs_real': coeffs.real,
+        'coeffs_imag': coeffs.imag,
+        'ebands_reconstructed': ebands_reconstructed,
+        'max_reconstruction_error': max_error,
+    }
+
+    if include_transport:
+        print("\n  Computing transport (E2E integrate)...")
+
+        print("    getBTPbands...")
+        eband, vvband, cband = fite.getBTPbands(equivalences, coeffs, lattvec)
+        print(f"    eband: {eband.shape}, vvband: {vvband.shape}")
+
+        print("    BTPDOS...")
+        epsilon, dos, vvdos, *_ = bandlib.BTPDOS(eband, vvband, npts=DEFAULT_NPTS_DOS)
+        print(f"    epsilon: {epsilon.shape}, dos: {dos.shape}")
+
+        Tr = DEFAULT_TEMPERATURES
+        mu_margin = 0.1
+        mu_min = data.fermi - mu_margin
+        mu_max = data.fermi + mu_margin
+        mur = np.linspace(mu_min, mu_max, 200)
+        print(f"    Tr: {Tr}, mur: {len(mur)} points")
+
+        print("    fermiintegrals...")
+        N, L0, L1, L2, *_ = bandlib.fermiintegrals(
+            epsilon, dos, vvdos, mur, Tr, dosweight=data.dosweight
+        )
+        print(f"    L0: {L0.shape}")
+
+        print("    calc_Onsager_coefficients...")
+        sigma, S, kappa, *_ = bandlib.calc_Onsager_coefficients(
+            L0, L1, L2, mur, Tr, vuc
+        )
+        print(f"    sigma: {sigma.shape}")
+
+        print("    solve_for_mu...")
+        mu0 = np.zeros(len(Tr))
+        for iT, T in enumerate(Tr):
+            mu0[iT] = bandlib.solve_for_mu(
+                epsilon, dos, data.nelect, T, data.dosweight,
+                refine=True, try_center=True
+            )
+            print(f"      T={T}K: mu0={mu0[iT]:.6f} Ha")
+
+        save_dict.update({
+            'eband': eband,
+            'vvband': vvband,
+            'epsilon': epsilon,
+            'dos': dos,
+            'vvdos': vvdos,
+            'Tr': Tr,
+            'mur': mur,
+            'N': N,
+            'L0': L0,
+            'L1': L1,
+            'L2': L2,
+            'sigma': sigma,
+            'S': S,
+            'kappa': kappa,
+            'mu0': mu0,
+        })
+
+    output_path = os.path.join(OUTPUT_DIR, 'cosb3_end2end.npz')
+    np.savez(output_path, **save_dict)
+
+    print(f"  Saved: {output_path}")
+    return output_path
+
+
 if __name__ == '__main__':
 
     generate_si_interpolate()
@@ -721,5 +959,7 @@ if __name__ == '__main__':
     generate_qe_si_interpolate()
     generate_wien2k_si_interpolate()
     generate_abinit_si_interpolate()
+    generate_bi2te3_interpolate()
+    generate_cosb3_interpolate()
 
     print("\nDone!")

@@ -451,7 +451,8 @@ end
 # ABINIT Format Writer (requires NCDatasets.jl)
 # ============================================================================
 
-function write_abinit(dir, lattice, positions, species, kpoints, ebands, fermi, nelect)
+function write_abinit(dir, lattice, positions, species, kpoints, ebands, fermi, nelect;
+                      spinat::Union{Nothing,Matrix{Float64}}=nothing)
     if !NCDATASETS_AVAILABLE
         return false
     end
@@ -545,6 +546,14 @@ function write_abinit(dir, lattice, positions, species, kpoints, ebands, fermi, 
         # Number of electrons (scalar)
         nelect_var = NCDatasets.defVar(ds, "nelect", Float64, ())
         nelect_var[] = Float64(nelect)
+
+        # Spinat (magnetic moments) - optional, (3, natom)
+        # For collinear calculations, the z-component (spinat[3, :]) is used
+        if !isnothing(spinat)
+            spinat_var = NCDatasets.defVar(ds, "spinat", Float64,
+                ("three", "number_of_atoms"))
+            spinat_var[:, :] = spinat
+        end
     end
 
     return true
