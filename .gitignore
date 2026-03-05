@@ -15,7 +15,7 @@ docs/site/
 /test/Manifest.toml
 
 # Conflict backup files (VS Code etc.)
-**/[Conflict]*
+**/Conflict*
 
 # IDE and editors
 *.swp
