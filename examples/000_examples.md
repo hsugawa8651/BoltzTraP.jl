@@ -1,6 +1,6 @@
 # BoltzTraP.jl Examples
 
-Last-Modified: 2026-02-13
+Last-Modified: 2026-03-17
 
 ## Numbering System
 
@@ -64,7 +64,9 @@ Last-Modified: 2026-02-13
 
 ### 3yz: Magnetic
 
-(planned)
+| File | Description | Data |
+|------|-------------|------|
+| `310_fe_qe_collinear.jl` | Fe QE PBE — BCC collinear magnetic metal | `examples/data/Fe.ESPRESSO.collinear/` |
 
 ### 7xx: Visualization
 
