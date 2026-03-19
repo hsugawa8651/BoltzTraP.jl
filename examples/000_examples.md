@@ -70,7 +70,9 @@ Last-Modified: 2026-03-17
 
 ### 7xx: Visualization
 
-(planned)
+| File | Description | Data |
+|------|-------------|------|
+| `710_si_vasp_plotbands.jl` | Si VASP PBE-PAW — band structure plot along high-symmetry path | `benchmarks/data/Si.vasp/` |
 
 ### 9xx: Validation
 
