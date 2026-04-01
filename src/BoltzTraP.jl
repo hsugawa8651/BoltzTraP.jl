@@ -63,6 +63,7 @@ include("plottypes.jl")
 
 # Plotting functions
 include("plotting.jl")
+include("fallbacks.jl")
 
 # Describe functions (result inspection)
 include("describe.jl")
@@ -113,6 +114,7 @@ export save_integrate, load_integrate
 # Plotting
 export plot_bands, plot_transport
 export BandPlotData, TransportPlotData
+export savefig_publication
 
 # Describe (result inspection)
 export describe
