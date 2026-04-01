@@ -5,7 +5,6 @@
 using Comonicon: @cast, @main
 using JLD2: load
 using Logging
-using Plots
 
 #=
     _setup_logging(debug::Bool)
@@ -629,6 +628,14 @@ boltztrap plotbands si_interp.bt2 --kpath "G:0,0,0;X:0.5,0,0.5|G-X-G"
     kpath::String = "",
     output::String = "",
 )
+    # Load Plots and Brillouin for plotting extension
+    try
+        @eval using Plots
+        @eval using Brillouin
+    catch
+        error("plotbands requires Plots.jl and Brillouin.jl. Install with: Pkg.add([\"Plots\", \"Brillouin\"])")
+    end
+
     if !isfile(file)
         error("File not found: $file")
     end

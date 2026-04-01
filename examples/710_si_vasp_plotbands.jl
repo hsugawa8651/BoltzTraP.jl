@@ -16,6 +16,7 @@
 #   julia --project=. examples/710_si_vasp_plotbands.jl
 
 using BoltzTraP
+using Plots  # Required for plot_bands (package extension)
 
 # Path to Si VASP data
 datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")

@@ -93,6 +93,7 @@ end
     include("test_spintypes.jl")
     include("test_banddata.jl")
     include("test_dftdata_integration.jl")
+    include("test_plottypes.jl")
 
     # Structure validation tests (requires BoltzTraP2-public data)
     if isdir(joinpath(@__DIR__, "..", "..", "BoltzTraP2-public", "data"))
