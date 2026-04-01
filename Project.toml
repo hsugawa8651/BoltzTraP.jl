@@ -28,10 +28,12 @@ StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 
 [weakdeps]
 DFTK = "acf6eb54-70d9-11e9-0013-234b7a5f5337"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 
 [extensions]
 BoltzTraPDFTKExt = "DFTK"
 BoltzTraPNCDatasetsExt = "NCDatasets"
+BoltzTraPRecipesBaseExt = "RecipesBase"
 
 [compat]
 BenchmarkTools = "1.6.3"
@@ -51,6 +53,7 @@ PseudoPotentialData = "0.2.4"
 PythonPlot = "1.0.6"
 Spglib = "1"
 StaticArrays = "1"
+RecipesBase = "1"
 StatsBase = "0.34"
 StatsPlots = "0.15.8"
 julia = "1.10"

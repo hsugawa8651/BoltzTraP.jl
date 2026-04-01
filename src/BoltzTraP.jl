@@ -58,6 +58,9 @@ include("io/loader.jl")  # Auto-detection (must be after format-specific loaders
 # High-level workflow
 include("workflow.jl")
 
+# Plotting types (backend-independent)
+include("plottypes.jl")
+
 # Plotting functions
 include("plotting.jl")
 
@@ -109,6 +112,7 @@ export save_integrate, load_integrate
 
 # Plotting
 export plot_bands, plot_transport
+export BandPlotData, TransportPlotData
 
 # Describe (result inspection)
 export describe
