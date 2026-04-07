@@ -1,14 +1,77 @@
 # Plotting
 
-BoltzTraP.jl provides plotting functions for visualizing band structures and transport coefficients.
+BoltzTraP.jl provides plotting via package extensions:
 
-!!! note "No additional setup required"
-    [`plot_bands`](@ref) and [`plot_transport`](@ref) work directly after `using BoltzTraP`.
-    For custom plots, add `using Plots` to access the full Plots.jl API.
+| Extension | Trigger | Functionality |
+|-----------|---------|---------------|
+| RecipesBaseExt | `using RecipesBase` (or any backend) | `plot(data)` recipes for `BandPlotData` / `TransportPlotData` |
+| PlotsExt | `using Plots` | `plot_bands`, `plot_transport` (full-featured with auto k-path) |
+| PythonPlotExt | `using PythonPlot` | Planned |
 
 ---
 
-## Band Structure Plotting
+## RecipesBase Recipes
+
+These recipes are activated when any RecipesBase-compatible backend is loaded.
+
+```julia
+using BoltzTraP, Plots   # or CairoMakie, etc.
+```
+
+### Band Structure — `BandPlotData`
+
+`BandPlotData` is a backend-independent container created internally by `plot_bands`.
+
+```julia
+interp = run_interpolate("./Si.vasp"; kpoints=5000)
+bpd = BandPlotData(interp)  # created internally by plot_bands
+plot(bpd)
+```
+
+The recipe draws band lines, a Fermi level (red dashed), and vertical lines at high-symmetry points.
+
+| Attribute | Default |
+|-----------|---------|
+| ylabel | `"Energy (eV)"` |
+| ylims | `(emin, emax)` |
+| xticks | high-symmetry labels |
+| framestyle | `:box` |
+| linecolor | `:black` |
+| linewidth | 1.5 |
+
+### Transport Coefficients — `TransportPlotData`
+
+```julia
+transport = run_integrate(interp; temperatures=[300.0])
+tpd = TransportPlotData(transport)  # created internally by plot_transport
+plot(tpd)
+```
+
+| Attribute | Default |
+|-----------|---------|
+| xlabel | from data |
+| ylabel | from data |
+| title | from data |
+| linewidth | 2 |
+
+### Customization
+
+Override any attribute with standard keyword arguments:
+
+```julia
+plot(bpd, ylabel="E − E_F (eV)", linecolor=:blue, size=(800, 600))
+```
+
+---
+
+## Plots.jl Convenience Functions
+
+!!! note "Requires Plots.jl"
+    [`plot_bands`](@ref) and [`plot_transport`](@ref) require `using Plots`.
+    They internally create `BandPlotData` / `TransportPlotData` and provide
+    additional features such as automatic k-path generation via Brillouin.jl.
+
+### Band Structure Plotting
 
 [`plot_bands`](@ref) plots interpolated band structure along high-symmetry k-paths.
 
