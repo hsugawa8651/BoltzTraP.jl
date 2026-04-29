@@ -8,8 +8,8 @@ authors:
     email: hsugawa@gmail.com
 repository-code: "https://github.com/hsugawa8651/BoltzTraP.jl"
 license: GPL-3.0-or-later
-version: 0.3.1
-date-released: 2026-04-27
+version: 0.3.2
+date-released: 2026-04-29
 doi: "10.5281/zenodo.19832309"
 keywords:
   - band structure
