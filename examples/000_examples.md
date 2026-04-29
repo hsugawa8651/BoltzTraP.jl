@@ -1,6 +1,6 @@
 # BoltzTraP.jl Examples
 
-Last-Modified: 2026-03-17
+Last-Modified: 2026-04-29
 
 ## Numbering System
 
@@ -55,6 +55,7 @@ Last-Modified: 2026-03-17
 | `114_si_abinit_pbe_paw.jl` | Si ABINIT PBE-PAW (requires NCDatasets.jl) | `examples/data/Si.abinit/` |
 | `117_si_vasp_pbe_paw_scissor.jl` | Si VASP PBE-PAW scissor operator (Eg=1.17 eV) | `benchmarks/data/Si.vasp/` |
 | `118_si_vasp_pbe_paw_cv.jl` | Si VASP PBE-PAW electronic heat capacity | `benchmarks/data/Si.vasp/` |
+| `119_si_vasp_pbe_paw_publication.jl` | Si VASP PBE-PAW — publication-quality transport figures via PythonPlot | reuses `110_si_vasp_pbe_paw_transport.jld2` |
 | `120_pbte_vasp_pbe_paw.jl` | PbTe VASP PBE-PAW — thermoelectric semiconductor | `examples/data/PbTe.vasp.unpolarized/` |
 | `130_li_vasp_pbe_paw.jl` | Li VASP PBE-PAW — BCC metal (spin-polarized, data not bundled) | [BoltzTraP2 data/Li.vasp](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Li.vasp) |
 | `132_li_wien2k_lda_lapw.jl` | Li Wien2k LDA-LAPW (data not bundled) | [BoltzTraP2 data/Li.W2K](https://gitlab.com/sousaw/BoltzTraP2/-/tree/master/data/Li.W2K) |
@@ -95,6 +96,7 @@ All examples use:
 Some examples additionally require:
 - `DFTK` (for DFTK.jl integration examples, 115/315)
 - `Plots` (for visualization examples, 7xx)
+- `PythonPlot` (for publication-quality figure example, 119)
 
 ## See Also
 

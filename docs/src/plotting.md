@@ -6,7 +6,7 @@ BoltzTraP.jl provides plotting via package extensions:
 |-----------|---------|---------------|
 | RecipesBaseExt | `using RecipesBase` (or any backend) | `plot(data)` recipes for `BandPlotData` / `TransportPlotData` |
 | PlotsExt | `using Plots` | `plot_bands`, `plot_transport` (full-featured with auto k-path) |
-| PythonPlotExt | `using PythonPlot` | Planned |
+| PythonPlotExt | `using PythonPlot` | `savefig_publication` for publication-quality PDF/PNG/SVG figures |
 
 ---
 
@@ -174,6 +174,80 @@ plot_transport("si_transport.jld2"; quantity="sigma", abscissa="T")
 
 ---
 
+## Publication-quality Figures with PythonPlot
+
+[`savefig_publication`](@ref) writes publication-quality PDF, PNG, or SVG
+figures via [PythonPlot.jl](https://github.com/JuliaPy/PythonPlot.jl).
+Loading `PythonPlot` activates `BoltzTraPPythonPlotExt`, which handles
+matplotlib through `CondaPkg`/`PythonCall` (no manual matplotlib install
+required).
+
+### Builder: `build_transport_plot_data`
+
+[`build_transport_plot_data`](@ref) extracts a `TransportPlotData` from a
+`TransportResult`, performing label formatting, unit conversion, and input
+validation in one place. The same `TransportPlotData` is consumed by the
+RecipesBase recipe, `plot_transport` (Plots), and `savefig_publication`
+(PythonPlot), so all backends render identical data and labels.
+
+```julia
+using BoltzTraP
+
+transport = load_integrate("si_transport.jld2")
+
+tpd = build_transport_plot_data(transport;
+    quantity = "seebeck",       # "seebeck"/"S", "sigma"/"conductivity", "kappa"/"thermal"
+    component = "xx",           # xx, yy, zz, xy, xz, yz, yx, zx, zy
+    abscissa = "mu",            # "mu" or "T"
+    temperature = 300.0,        # K — used when abscissa = "mu"
+)
+```
+
+`build_transport_plot_data` raises `ArgumentError` for unknown quantity,
+component, or abscissa values, and when the requested temperature is not
+present in `transport.temperatures`.
+
+### `savefig_publication`
+
+```julia
+using BoltzTraP, PythonPlot
+
+# Single panel (PDF inferred from the file extension)
+savefig_publication(tpd, "seebeck.pdf";
+    axis_width_cm = 8.0, axis_height_cm = 5.0)
+
+# 1×3 subplot grid for S, σ, κ vs μ at T = 300 K
+tpds = [
+    build_transport_plot_data(transport;
+        quantity = q, component = "xx", abscissa = "mu", temperature = 300.0)
+    for q in ("seebeck", "sigma", "kappa")
+]
+savefig_publication(tpds, "transport_combined.pdf";
+    axis_width_cm = 6.0, axis_height_cm = 4.5,
+    layout = (1, 3))
+```
+
+Layout, margins, and gaps are specified in centimeters; the figure size in
+inches is derived internally. Output format is inferred from the file
+extension (`.pdf`, `.png`, `.svg`, ...).
+
+### Demo: Si transport at T = 300 K
+
+The figures below were produced from `examples/110_si_vasp_pbe_paw.jl`
+followed by `examples/119_si_vasp_pbe_paw_publication.jl`:
+
+- [Combined S/σ/κ vs μ (1×3 layout)](assets/publication_Si_combined_300K.pdf)
+- [Seebeck vs μ (single panel)](assets/publication_Si_seebeck_300K.pdf)
+
+### Band figures
+
+`savefig_publication(::BandPlotData, path; ...)` is also provided. Construct
+a `BandPlotData` from interpolated band energies and a k-path before
+calling it; an end-to-end builder for band data is planned for a future
+release.
+
+---
+
 ## CLI Commands
 
 For command-line usage, see [CLI Workflow](@ref):
@@ -195,4 +269,6 @@ boltztrap plot si_transport.jld2 -q sigma --abscissa T -o sigma_T.png
 ```@docs
 plot_bands
 plot_transport
+build_transport_plot_data
+savefig_publication
 ```
