@@ -362,8 +362,9 @@ function BoltzTraP.plot_transport(
     mu_index::Int = 0,
     output::Union{String,Nothing} = nothing,
 )
-    # Build normalized plot data; bug-A (abscissa fallthrough) and
-    # bug-B (uppercase ylabel) are caught and fixed inside the builder.
+    # Build normalized plot data. The builder validates quantity/component/
+    # abscissa (raising ArgumentError on unknown values) and formats ylabels
+    # using display symbols (S, σ, κ) so all backends share the same output.
     tpd = BoltzTraP.build_transport_plot_data(
         result;
         quantity = quantity,
