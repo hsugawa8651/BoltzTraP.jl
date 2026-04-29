@@ -122,7 +122,7 @@ using JLD2
 
             # Create v0.1-style data (no spintype in metadata)
             coeffs_v01 = rand(ComplexF64, 4, 100)
-            equivs_v01 = [rand(-5:5, 10, 3) for _ in 1:100]
+            equivs_v01 = [rand(-5:5, 10, 3) for _ = 1:100]
             lattvec_v01 = rand(3, 3)
             metadata_v01 = Dict{String,Any}(
                 "version" => "0.1.0",
@@ -133,12 +133,13 @@ using JLD2
             )
 
             # Save directly using JLD2 (bypassing our save function that adds spintype)
-            jldsave(path;
-                coeffs=coeffs_v01,
-                equivalences=equivs_v01,
-                lattvec=lattvec_v01,
-                atoms=nothing,
-                metadata=metadata_v01
+            jldsave(
+                path;
+                coeffs = coeffs_v01,
+                equivalences = equivs_v01,
+                lattvec = lattvec_v01,
+                atoms = nothing,
+                metadata = metadata_v01,
             )
 
             # Load using our function - should add spintype default
@@ -167,14 +168,15 @@ using JLD2
             )
 
             # Save directly using JLD2
-            jldsave(path;
-                temperatures=temperatures,
-                mu_values=mu_values,
-                sigma=sigma_v01,
-                seebeck=seebeck_v01,
-                kappa=kappa_v01,
-                dos=nothing,
-                metadata=metadata_v01
+            jldsave(
+                path;
+                temperatures = temperatures,
+                mu_values = mu_values,
+                sigma = sigma_v01,
+                seebeck = seebeck_v01,
+                kappa = kappa_v01,
+                dos = nothing,
+                metadata = metadata_v01,
             )
 
             # Load using our function - should add spintype default
@@ -196,7 +198,7 @@ using JLD2
             "spintype" => "Collinear",
             "dosweight" => 1.0,  # spin-polarized
         )
-        result = InterpolationResult(interp; metadata=metadata_collinear)
+        result = InterpolationResult(interp; metadata = metadata_collinear)
 
         @test result.metadata["spintype"] == "Collinear"
 
@@ -213,11 +215,8 @@ using JLD2
 
     @testset "Collinear spintype: InterpolationResult BT2 round-trip" begin
         interp = FourierInterpolator(coeffs, equivalences, lattvec)
-        metadata_collinear = Dict{String,Any}(
-            "spintype" => "Collinear",
-            "dosweight" => 1.0,
-        )
-        result = InterpolationResult(interp; metadata=metadata_collinear)
+        metadata_collinear = Dict{String,Any}("spintype" => "Collinear", "dosweight" => 1.0)
+        result = InterpolationResult(interp; metadata = metadata_collinear)
 
         mktempdir() do dir
             path = joinpath(dir, "collinear_interp.bt2")
@@ -244,7 +243,15 @@ using JLD2
             "dosweight" => 1.0,
         )
 
-        result = TransportResult(temperatures, mu_values, sigma, seebeck, kappa, nothing, metadata)
+        result = TransportResult(
+            temperatures,
+            mu_values,
+            sigma,
+            seebeck,
+            kappa,
+            nothing,
+            metadata,
+        )
 
         mktempdir() do dir
             path = joinpath(dir, "collinear_transport.jld2")
@@ -256,5 +263,4 @@ using JLD2
             @test loaded.metadata["dosweight"] == 1.0
         end
     end
-
 end

@@ -25,13 +25,13 @@ stem = splitext(basename(@__FILE__))[1]
 
 # Step 1: Interpolate band structure
 println("Step 1: Interpolating band structure...")
-interp = run_interpolate(datadir; kpoints=10000, verbose=true)
+interp = run_interpolate(datadir; kpoints = 10000, verbose = true)
 save_interpolation(joinpath(@__DIR__, stem * "_interp.jld2"), interp)
 
 # Step 2: Compute transport (DOS is needed for C_v)
 println("\nStep 2: Computing transport coefficients...")
 temperatures = [100.0, 200.0, 300.0, 400.0, 500.0]
-transport = run_integrate(interp; temperatures=temperatures, verbose=true)
+transport = run_integrate(interp; temperatures = temperatures, verbose = true)
 save_integrate(joinpath(@__DIR__, stem * "_transport.jld2"), transport)
 
 # Step 3: Compute electronic heat capacity
@@ -51,18 +51,26 @@ println("  Si is a semiconductor → C_v ≈ 0 in the gap")
 for (i, T) in enumerate(temperatures)
     cv_max = maximum(cv[i, :])
     mu_max = transport.mu_values[argmax(cv[i, :])]
-    println("  T = $(Int(T)) K:  max C_v = $(round(cv_max, sigdigits=4)) J/K  at mu = $(round(mu_max, digits=2)) eV")
+    println(
+        "  T = $(Int(T)) K:  max C_v = $(round(cv_max, sigdigits=4)) J/K  at mu = $(round(mu_max, digits=2)) eV",
+    )
 end
 
 # Step 5: Plot C_v vs μ at multiple temperatures
 using Plots
 fermi_dft_eV = transport.metadata["fermi_dft_eV"]
 mu = transport.mu_values .- fermi_dft_eV
-p = plot(; xlabel="μ - E_F (eV)", ylabel="C_v (10⁻²⁴ J/K)",
-    xlims=(-7, -4), legend=:topright, linewidth=2, size=(700, 500),
-    left_margin=5Plots.mm)
+p = plot(;
+    xlabel = "μ - E_F (eV)",
+    ylabel = "C_v (10⁻²⁴ J/K)",
+    xlims = (-7, -4),
+    legend = :topright,
+    linewidth = 2,
+    size = (700, 500),
+    left_margin = 5Plots.mm,
+)
 for (i, T) in enumerate(temperatures)
-    plot!(p, mu, cv[i, :] .* 1e24; label="$(Int(T)) K", linewidth=2)
+    plot!(p, mu, cv[i, :] .* 1e24; label = "$(Int(T)) K", linewidth = 2)
 end
 output_png = joinpath(@__DIR__, stem * ".png")
 savefig(p, output_png)

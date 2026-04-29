@@ -149,8 +149,11 @@ Seebeck coefficient, and thermal conductivity.
       + Single value: `"300"` → [300.0]
       + Range: `"100:500:50"` (start:stop:step) → [100.0, 150.0, 200.0, ..., 500.0]
       + List: `"100,200,300"` → [100.0, 200.0, 300.0]
+
   - `-o, --output <file>`: Output file path (default: based on input)
+
   - `-b, --bins <n>`: Number of DOS histogram bins (default: auto)
+
   - `-s, --scissor <eV>`: Target band gap in eV for scissor correction.
     Shifts conduction bands to achieve the specified gap. Only for semiconductors.
 
@@ -633,7 +636,9 @@ boltztrap plotbands si_interp.bt2 --kpath "G:0,0,0;X:0.5,0,0.5|G-X-G"
         @eval using Plots
         @eval using Brillouin
     catch
-        error("plotbands requires Plots.jl and Brillouin.jl. Install with: Pkg.add([\"Plots\", \"Brillouin\"])")
+        error(
+            "plotbands requires Plots.jl and Brillouin.jl. Install with: Pkg.add([\"Plots\", \"Brillouin\"])",
+        )
     end
 
     if !isfile(file)

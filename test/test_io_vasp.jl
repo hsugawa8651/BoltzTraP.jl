@@ -391,5 +391,4 @@ Direct
             @test data.magmom ≈ [2.5, 1.5]
         end
     end
-
 end

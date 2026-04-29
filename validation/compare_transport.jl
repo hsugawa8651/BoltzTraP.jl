@@ -83,7 +83,7 @@ function load_julia_result(datafile)
     end
 end
 
-function compare_property(py_data, jl_result, prop_name; temperature=300.0)
+function compare_property(py_data, jl_result, prop_name; temperature = 300.0)
     """Compare a specific transport property between Python and Julia."""
     prop = PROPERTIES[prop_name]
 
@@ -95,8 +95,8 @@ function compare_property(py_data, jl_result, prop_name; temperature=300.0)
     py_mu_rel = (py_data.mur .- py_data.fermi) .* Ha_to_eV
 
     # Find temperature index
-    jl_iT = findfirst(t -> isapprox(t, temperature, atol=1.0), jl_result["temperatures"])
-    py_iT = findfirst(t -> isapprox(t, temperature, atol=1.0), py_data.Tr)
+    jl_iT = findfirst(t -> isapprox(t, temperature, atol = 1.0), jl_result["temperatures"])
+    py_iT = findfirst(t -> isapprox(t, temperature, atol = 1.0), py_data.Tr)
 
     if isnothing(jl_iT) || isnothing(py_iT)
         error("Temperature $(temperature) K not found in data")
@@ -107,8 +107,9 @@ function compare_property(py_data, jl_result, prop_name; temperature=300.0)
     py_vals = prop.extract_py(py_data, py_iT)
 
     # Check if using same mu grid
-    same_mu_grid = length(jl_mu_rel) == length(py_mu_rel) &&
-                   all(isapprox.(jl_mu_rel, py_mu_rel, atol=1e-6))
+    same_mu_grid =
+        length(jl_mu_rel) == length(py_mu_rel) &&
+        all(isapprox.(jl_mu_rel, py_mu_rel, atol = 1e-6))
 
     return (
         jl_mu = jl_mu_rel,
@@ -121,85 +122,142 @@ function compare_property(py_data, jl_result, prop_name; temperature=300.0)
     )
 end
 
-function create_joss_figure(py_data, jl_result, output_path; title="", xlims=(-0.5, 0.5), temperature=300.0)
+function create_joss_figure(
+    py_data,
+    jl_result,
+    output_path;
+    title = "",
+    xlims = (-0.5, 0.5),
+    temperature = 300.0,
+)
     """Create JOSS-style 3-panel vertical layout (S, sigma, kappa)."""
 
     # Compare all properties
-    cmp_S = compare_property(py_data, jl_result, "S"; temperature=temperature)
-    cmp_sigma = compare_property(py_data, jl_result, "sigma"; temperature=temperature)
-    cmp_kappa = compare_property(py_data, jl_result, "kappa"; temperature=temperature)
+    cmp_S = compare_property(py_data, jl_result, "S"; temperature = temperature)
+    cmp_sigma = compare_property(py_data, jl_result, "sigma"; temperature = temperature)
+    cmp_kappa = compare_property(py_data, jl_result, "kappa"; temperature = temperature)
 
     # Create 3-panel vertical figure
     println("Generating 3-panel figure...")
 
     # Panel (a): Seebeck
     p1 = scatter(
-        cmp_S.py_mu, cmp_S.py_vals,
-        label="Python BoltzTraP2",
-        markersize=5, markershape=:circle, markercolor=:red,
-        markerstrokewidth=0, alpha=0.8,
-        ylabel=L"$S_{xx}$ ($\mu$V/K)",
-        xlims=xlims, xformatter=_->"",
-        legend=:bottomleft, legendfontsize=8,
-        title="$title @ $(@sprintf("%.0f", cmp_S.T)) K",
-        grid=true, gridalpha=0.3,
-        left_margin=5Plots.mm, right_margin=5Plots.mm,
-        tickfontsize=9, guidefontsize=10, titlefontsize=11
+        cmp_S.py_mu,
+        cmp_S.py_vals,
+        label = "Python BoltzTraP2",
+        markersize = 5,
+        markershape = :circle,
+        markercolor = :red,
+        markerstrokewidth = 0,
+        alpha = 0.8,
+        ylabel = L"$S_{xx}$ ($\mu$V/K)",
+        xlims = xlims,
+        xformatter = _->"",
+        legend = :bottomleft,
+        legendfontsize = 8,
+        title = "$title @ $(@sprintf("%.0f", cmp_S.T)) K",
+        grid = true,
+        gridalpha = 0.3,
+        left_margin = 5Plots.mm,
+        right_margin = 5Plots.mm,
+        tickfontsize = 9,
+        guidefontsize = 10,
+        titlefontsize = 11,
     )
-    scatter!(p1, cmp_S.jl_mu, cmp_S.jl_vals,
-        label="Julia BoltzTraP.jl",
-        markersize=6, markershape=:xcross, markercolor=:blue,
-        markerstrokewidth=2, alpha=0.9
+    scatter!(
+        p1,
+        cmp_S.jl_mu,
+        cmp_S.jl_vals,
+        label = "Julia BoltzTraP.jl",
+        markersize = 6,
+        markershape = :xcross,
+        markercolor = :blue,
+        markerstrokewidth = 2,
+        alpha = 0.9,
     )
 
     # Panel (b): Conductivity (log scale)
     py_sigma_pos = max.(abs.(cmp_sigma.py_vals), 1e10)
     jl_sigma_pos = max.(abs.(cmp_sigma.jl_vals), 1e10)
     p2 = scatter(
-        cmp_sigma.py_mu, py_sigma_pos,
-        label="", markersize=5, markershape=:circle, markercolor=:red,
-        markerstrokewidth=0, alpha=0.8,
-        ylabel=L"$\sigma_{xx}/\tau$ (1/$\Omega$ms)",
-        xlims=xlims, xformatter=_->"",
-        yscale=:log10,
-        legend=false,
-        grid=true, gridalpha=0.3,
-        left_margin=5Plots.mm, right_margin=5Plots.mm,
-        tickfontsize=9, guidefontsize=10
+        cmp_sigma.py_mu,
+        py_sigma_pos,
+        label = "",
+        markersize = 5,
+        markershape = :circle,
+        markercolor = :red,
+        markerstrokewidth = 0,
+        alpha = 0.8,
+        ylabel = L"$\sigma_{xx}/\tau$ (1/$\Omega$ms)",
+        xlims = xlims,
+        xformatter = _->"",
+        yscale = :log10,
+        legend = false,
+        grid = true,
+        gridalpha = 0.3,
+        left_margin = 5Plots.mm,
+        right_margin = 5Plots.mm,
+        tickfontsize = 9,
+        guidefontsize = 10,
     )
-    scatter!(p2, cmp_sigma.jl_mu, jl_sigma_pos,
-        label="", markersize=6, markershape=:xcross, markercolor=:blue,
-        markerstrokewidth=2, alpha=0.9
+    scatter!(
+        p2,
+        cmp_sigma.jl_mu,
+        jl_sigma_pos,
+        label = "",
+        markersize = 6,
+        markershape = :xcross,
+        markercolor = :blue,
+        markerstrokewidth = 2,
+        alpha = 0.9,
     )
 
     # Panel (c): Thermal conductivity (log scale)
     py_kappa_pos = max.(abs.(cmp_kappa.py_vals), 1e5)
     jl_kappa_pos = max.(abs.(cmp_kappa.jl_vals), 1e5)
     p3 = scatter(
-        cmp_kappa.py_mu, py_kappa_pos,
-        label="", markersize=5, markershape=:circle, markercolor=:red,
-        markerstrokewidth=0, alpha=0.8,
-        xlabel=L"$\mu - E_F$ (eV)",
-        ylabel=L"$\kappa_{xx}/\tau$ (W/mKs)",
-        xlims=xlims,
-        yscale=:log10,
-        legend=false,
-        grid=true, gridalpha=0.3,
-        left_margin=5Plots.mm, right_margin=5Plots.mm,
-        bottom_margin=5Plots.mm,
-        tickfontsize=9, guidefontsize=10
+        cmp_kappa.py_mu,
+        py_kappa_pos,
+        label = "",
+        markersize = 5,
+        markershape = :circle,
+        markercolor = :red,
+        markerstrokewidth = 0,
+        alpha = 0.8,
+        xlabel = L"$\mu - E_F$ (eV)",
+        ylabel = L"$\kappa_{xx}/\tau$ (W/mKs)",
+        xlims = xlims,
+        yscale = :log10,
+        legend = false,
+        grid = true,
+        gridalpha = 0.3,
+        left_margin = 5Plots.mm,
+        right_margin = 5Plots.mm,
+        bottom_margin = 5Plots.mm,
+        tickfontsize = 9,
+        guidefontsize = 10,
     )
-    scatter!(p3, cmp_kappa.jl_mu, jl_kappa_pos,
-        label="", markersize=6, markershape=:xcross, markercolor=:blue,
-        markerstrokewidth=2, alpha=0.9
+    scatter!(
+        p3,
+        cmp_kappa.jl_mu,
+        jl_kappa_pos,
+        label = "",
+        markersize = 6,
+        markershape = :xcross,
+        markercolor = :blue,
+        markerstrokewidth = 2,
+        alpha = 0.9,
     )
 
     # Combine panels
-    fig = plot(p1, p2, p3,
-        layout=(3, 1),
-        size=(500, 600),
-        dpi=300,
-        fontfamily="Computer Modern"
+    fig = plot(
+        p1,
+        p2,
+        p3,
+        layout = (3, 1),
+        size = (500, 600),
+        dpi = 300,
+        fontfamily = "Computer Modern",
     )
 
     savefig(fig, output_path)
@@ -210,9 +268,13 @@ function create_joss_figure(py_data, jl_result, output_path; title="", xlims=(-0
     for (name, cmp) in [("S", cmp_S), ("sigma", cmp_sigma), ("kappa", cmp_kappa)]
         if cmp.same_mu_grid
             diff = abs.(cmp.jl_vals .- cmp.py_vals)
-            println("  $name: max diff = $(@sprintf("%.4g", maximum(diff))), mean = $(@sprintf("%.4g", sum(diff)/length(diff)))")
+            println(
+                "  $name: max diff = $(@sprintf("%.4g", maximum(diff))), mean = $(@sprintf("%.4g", sum(diff)/length(diff)))",
+            )
         else
-            println("  $name: different mu grids (Julia: $(length(cmp.jl_vals)), Python: $(length(cmp.py_vals)))")
+            println(
+                "  $name: different mu grids (Julia: $(length(cmp.jl_vals)), Python: $(length(cmp.py_vals)))",
+            )
         end
     end
 
@@ -220,29 +282,31 @@ function create_joss_figure(py_data, jl_result, output_path; title="", xlims=(-0
 end
 
 function print_usage()
-    println("""
-    Compare transport coefficients between Python BoltzTraP2 and Julia BoltzTraP.jl
+    println(
+        """
+Compare transport coefficients between Python BoltzTraP2 and Julia BoltzTraP.jl
 
-    Usage:
-      julia --project validation/compare_transport.jl <python_npz> <julia_jld2> [options]
+Usage:
+  julia --project validation/compare_transport.jl <python_npz> <julia_jld2> [options]
 
-    Arguments:
-      <python_npz>   Path to Python BoltzTraP2 results (npz format from reftest)
-      <julia_jld2>   Path to Julia BoltzTraP.jl transport results (jld2 format)
+Arguments:
+  <python_npz>   Path to Python BoltzTraP2 results (npz format from reftest)
+  <julia_jld2>   Path to Julia BoltzTraP.jl transport results (jld2 format)
 
-    Options:
-      -o, --output <file>   Output figure path (default: validation/transport_<title>_<T>K.png)
-      --title <name>        Material name for figure title (default: untitled)
-      --xlims <min,max>     X-axis limits in eV (default: -0.5,0.5)
-      -t, --temperature <T> Temperature in K (default: 300)
-      --alltemp             Generate figures for all common temperatures
-      -h, --help            Show this help
+Options:
+  -o, --output <file>   Output figure path (default: validation/transport_<title>_<T>K.png)
+  --title <name>        Material name for figure title (default: untitled)
+  --xlims <min,max>     X-axis limits in eV (default: -0.5,0.5)
+  -t, --temperature <T> Temperature in K (default: 300)
+  --alltemp             Generate figures for all common temperatures
+  -h, --help            Show this help
 
-    Examples:
-      julia --project validation/compare_transport.jl reftest/data/si_end2end.npz si_transport.jld2 --title Si
-      julia --project validation/compare_transport.jl reftest/data/si_end2end.npz si_transport.jld2 --title Si --alltemp
-      julia --project validation/compare_transport.jl reftest/data/pbte_end2end.npz pbte_transport.jld2 --title PbTe --xlims -0.3,0.3
-    """)
+Examples:
+  julia --project validation/compare_transport.jl reftest/data/si_end2end.npz si_transport.jld2 --title Si
+  julia --project validation/compare_transport.jl reftest/data/si_end2end.npz si_transport.jld2 --title Si --alltemp
+  julia --project validation/compare_transport.jl reftest/data/pbte_end2end.npz pbte_transport.jld2 --title PbTe --xlims -0.3,0.3
+""",
+    )
 end
 
 function parse_args(args)
@@ -300,7 +364,7 @@ function parse_args(args)
     )
 end
 
-function get_output_path(title, temperature, base_output="")
+function get_output_path(title, temperature, base_output = "")
     """Generate output path for a given temperature."""
     safe_title = replace(title, " " => "_")
     temp_int = Int(round(temperature))
@@ -374,10 +438,13 @@ function main()
         output_path = get_output_path(args.title, temp, args.output)
         println("\nGenerating figure for T=$(Int(round(temp)))K...")
         println("  Output: $output_path")
-        create_joss_figure(py_data, jl_result, output_path;
-            title=args.title,
-            xlims=args.xlims,
-            temperature=temp
+        create_joss_figure(
+            py_data,
+            jl_result,
+            output_path;
+            title = args.title,
+            xlims = args.xlims,
+            temperature = temp,
         )
     end
 

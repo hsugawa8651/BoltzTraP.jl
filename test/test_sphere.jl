@@ -103,7 +103,8 @@ using NPZ
         # Test SpinType inference from magmom
         @test BoltzTraP.get_spintype(nothing) isa BoltzTraP.Unpolarized
         @test BoltzTraP.get_spintype([1.0, 2.0]) isa BoltzTraP.Collinear
-        @test BoltzTraP.get_spintype([[0.0, 0.0, 1.0], [0.0, 0.0, 2.0]]) isa BoltzTraP.NonCollinear
+        @test BoltzTraP.get_spintype([[0.0, 0.0, 1.0], [0.0, 0.0, 2.0]]) isa
+              BoltzTraP.NonCollinear
     end
 
     @testset "determine_compatibility" begin
@@ -113,7 +114,11 @@ using NPZ
 
         @testset "Unpolarized" begin
             compat = BoltzTraP.determine_compatibility(
-                rot, perm, nothing, BoltzTraP.Unpolarized(), 1e-5
+                rot,
+                perm,
+                nothing,
+                BoltzTraP.Unpolarized(),
+                1e-5,
             )
             @test compat.forward == true
             @test compat.backward == true
@@ -122,7 +127,11 @@ using NPZ
         @testset "Collinear - same moments" begin
             magmom = [1.0, 1.0]
             compat = BoltzTraP.determine_compatibility(
-                rot, perm, magmom, BoltzTraP.Collinear(), 1e-5
+                rot,
+                perm,
+                magmom,
+                BoltzTraP.Collinear(),
+                1e-5,
             )
             @test compat.forward == true
             # Same moments: backward (time reversal) requires m_i + m_j ≈ 0
@@ -134,7 +143,11 @@ using NPZ
             perm_swap = [2, 1]  # Atom 1 maps to atom 2 and vice versa
             magmom = [1.0, -1.0]
             compat = BoltzTraP.determine_compatibility(
-                rot, perm_swap, magmom, BoltzTraP.Collinear(), 1e-5
+                rot,
+                perm_swap,
+                magmom,
+                BoltzTraP.Collinear(),
+                1e-5,
             )
             # With swap: m_1=1.0 vs m_2=-1.0 → forward fails (|1-(-1)|=2)
             @test compat.forward == false
@@ -158,7 +171,7 @@ using NPZ
             magmom = ref["magmom"]  # (natom,) scalar magmom
 
             # Convert positions to Vector of SVector for calc_nrotations
-            pos_vec = [SVector{3,Float64}(positions[i, :]) for i in 1:size(positions, 1)]
+            pos_vec = [SVector{3,Float64}(positions[i, :]) for i = 1:size(positions, 1)]
 
             # Calculate nrotations
             nrot = BoltzTraP.calc_nrotations(lattvec, pos_vec, types, magmom)
@@ -170,5 +183,4 @@ using NPZ
             @test_skip "PbTe collinear reference data not available"
         end
     end
-
 end

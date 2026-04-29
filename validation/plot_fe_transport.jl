@@ -34,7 +34,7 @@ function generate_fe_transport_plot()
     nkpts = size(ebands_concat, 2)  # 47
 
     ebands_up = ebands_concat[1:nbands_per_spin, :]
-    ebands_down = ebands_concat[nbands_per_spin+1:end, :]
+    ebands_down = ebands_concat[(nbands_per_spin+1):end, :]
     ebands_3d = zeros(nbands_per_spin, nkpts, 2)
     ebands_3d[:, :, 1] = ebands_up
     ebands_3d[:, :, 2] = ebands_down
@@ -63,8 +63,9 @@ function generate_fe_transport_plot()
         nelect = nelect,
         magmom = ref["magmom"],
     )
-    interp = BoltzTraP.run_interpolate(data; kpoints=nkpts, verbose=false)
-    transport = BoltzTraP.run_integrate(interp, mur; temperatures=temperatures, verbose=false)
+    interp = BoltzTraP.run_interpolate(data; kpoints = nkpts, verbose = false)
+    transport =
+        BoltzTraP.run_integrate(interp, mur; temperatures = temperatures, verbose = false)
 
     # Mu relative to Fermi (in eV)
     fermi_eV = fermi * HA_TO_EV
@@ -86,7 +87,7 @@ function generate_fe_transport_plot()
     idx = 1:5:length(mu_rel)  # Subsample for markers
 
     # Compute y-axis limits with integer powers
-    function int_pow_limits(data; margin=0.5)
+    function int_pow_limits(data; margin = 0.5)
         pos_data = data[data .> 0]
         if isempty(pos_data)
             return (1e15, 1e25)
@@ -103,48 +104,92 @@ function generate_fe_transport_plot()
 
     # === Total Plot (Python vs Julia comparison) ===
     p1 = plot(
-        mu_rel[idx], S_py[idx],
-        seriestype=:scatter, marker=:circle, markersize=4, color=:red,
-        label="Python BoltzTraP2",
-        ylabel=L"$S_{xx}$ ($\mu$V/K)",
-        title="Fe Collinear @ 1000 K",
-        legend=:topright, legendfontsize=7,
-        xformatter=_->"",
-        xlims=xlims,
+        mu_rel[idx],
+        S_py[idx],
+        seriestype = :scatter,
+        marker = :circle,
+        markersize = 4,
+        color = :red,
+        label = "Python BoltzTraP2",
+        ylabel = L"$S_{xx}$ ($\mu$V/K)",
+        title = "Fe Collinear @ 1000 K",
+        legend = :topright,
+        legendfontsize = 7,
+        xformatter = _->"",
+        xlims = xlims,
     )
-    plot!(p1, mu_rel[idx], S_jl[idx],
-          seriestype=:scatter, marker=:xcross, markersize=4, color=:blue,
-          label="Julia BoltzTraP.jl")
+    plot!(
+        p1,
+        mu_rel[idx],
+        S_jl[idx],
+        seriestype = :scatter,
+        marker = :xcross,
+        markersize = 4,
+        color = :blue,
+        label = "Julia BoltzTraP.jl",
+    )
 
     p2 = plot(
-        mu_rel[idx], sigma_py[idx],
-        seriestype=:scatter, marker=:circle, markersize=4, color=:red,
-        label="",
-        ylabel=L"$\sigma_{xx}/\tau$ (1/$\Omega$ms)",
-        yscale=:log10, ylims=sigma_ylims,
-        xformatter=_->"",
-        xlims=xlims,
+        mu_rel[idx],
+        sigma_py[idx],
+        seriestype = :scatter,
+        marker = :circle,
+        markersize = 4,
+        color = :red,
+        label = "",
+        ylabel = L"$\sigma_{xx}/\tau$ (1/$\Omega$ms)",
+        yscale = :log10,
+        ylims = sigma_ylims,
+        xformatter = _->"",
+        xlims = xlims,
     )
-    plot!(p2, mu_rel[idx], sigma_jl[idx],
-          seriestype=:scatter, marker=:xcross, markersize=4, color=:blue,
-          label="")
+    plot!(
+        p2,
+        mu_rel[idx],
+        sigma_jl[idx],
+        seriestype = :scatter,
+        marker = :xcross,
+        markersize = 4,
+        color = :blue,
+        label = "",
+    )
 
     p3 = plot(
-        mu_rel[idx], kappa_py[idx],
-        seriestype=:scatter, marker=:circle, markersize=4, color=:red,
-        label="",
-        ylabel=L"$\kappa_{xx}/\tau$ (W/mKs)",
-        xlabel=L"$\mu - E_F$ (eV)",
-        yscale=:log10, ylims=kappa_ylims,
-        xlims=xlims,
+        mu_rel[idx],
+        kappa_py[idx],
+        seriestype = :scatter,
+        marker = :circle,
+        markersize = 4,
+        color = :red,
+        label = "",
+        ylabel = L"$\kappa_{xx}/\tau$ (W/mKs)",
+        xlabel = L"$\mu - E_F$ (eV)",
+        yscale = :log10,
+        ylims = kappa_ylims,
+        xlims = xlims,
     )
-    plot!(p3, mu_rel[idx], kappa_jl[idx],
-          seriestype=:scatter, marker=:xcross, markersize=4, color=:blue,
-          label="")
+    plot!(
+        p3,
+        mu_rel[idx],
+        kappa_jl[idx],
+        seriestype = :scatter,
+        marker = :xcross,
+        markersize = 4,
+        color = :blue,
+        label = "",
+    )
 
-    fig = plot(p1, p2, p3, layout=(3, 1), size=(400, 500),
-               left_margin=3Plots.mm, right_margin=2Plots.mm,
-               bottom_margin=2Plots.mm, top_margin=2Plots.mm)
+    fig = plot(
+        p1,
+        p2,
+        p3,
+        layout = (3, 1),
+        size = (400, 500),
+        left_margin = 3Plots.mm,
+        right_margin = 2Plots.mm,
+        bottom_margin = 2Plots.mm,
+        top_margin = 2Plots.mm,
+    )
 
     output_path = joinpath(@__DIR__, "transport_Fe_1000K_total.png")
     savefig(fig, output_path)
@@ -163,8 +208,13 @@ function generate_fe_transport_plot()
         max_err = maximum(rel_err) * 100
         mean_err = mean(rel_err) * 100
         correlation = cor(jl, py)
-        @printf("  %s: max rel error = %.4f%%, mean = %.4f%%, correlation = %.6f\n",
-                name, max_err, mean_err, correlation)
+        @printf(
+            "  %s: max rel error = %.4f%%, mean = %.4f%%, correlation = %.6f\n",
+            name,
+            max_err,
+            mean_err,
+            correlation
+        )
     end
 
     compute_stats(sigma_jl, sigma_py, "σ_xx")

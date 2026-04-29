@@ -110,37 +110,55 @@ is_magnetic(data::DFTData) = nspin(data) > 1
 Container for band structure data with SpinType parameter.
 
 # Type Parameter
-- `ST<:SpinType`: Spin polarization type
-  - `Unpolarized`: Non-spin-polarized (dosweight=2.0, nspinor=1)
-  - `Collinear`: Collinear spin-polarized (dosweight=1.0, nspinor=2)
-  - `NonCollinear`: Non-collinear spin-polarized (dosweight=1.0, nspinor=1)
+
+  - `ST<:SpinType`: Spin polarization type
+      + `Unpolarized`: Non-spin-polarized (dosweight=2.0, nspinor=1)
+      + `Collinear`: Collinear spin-polarized (dosweight=1.0, nspinor=2)
+      + `NonCollinear`: Non-collinear spin-polarized (dosweight=1.0, nspinor=1)
 
 # Fields
-- `lattice::Matrix{Float64}`: Lattice vectors (3×3) in Bohr, columns are vectors
-- `positions::Matrix{Float64}`: Atomic positions (3×natom) in fractional coordinates
-- `species::Vector{Symbol}`: Element symbols
-- `kpoints::Matrix{Float64}`: K-points (3×nkpts) in fractional coordinates
-- `ebands::Array{Float64}`: Band energies in Hartree
-  - Unpolarized/NonCollinear: (nbands, nkpts)
-  - Collinear: (nbands, nkpts, 2)
-- `fermi::Float64`: Fermi energy in Hartree
-- `nelect::Float64`: Number of electrons
-- `magmom`: Magnetic moments
-  - `nothing` for Unpolarized
-  - `Vector{Float64}` for Collinear (scalar per atom)
-  - `Vector{Vector{Float64}}` for NonCollinear (3D vector per atom)
+
+  - `lattice::Matrix{Float64}`: Lattice vectors (3×3) in Bohr, columns are vectors
+  - `positions::Matrix{Float64}`: Atomic positions (3×natom) in fractional coordinates
+  - `species::Vector{Symbol}`: Element symbols
+  - `kpoints::Matrix{Float64}`: K-points (3×nkpts) in fractional coordinates
+  - `ebands::Array{Float64}`: Band energies in Hartree
+      + Unpolarized/NonCollinear: (nbands, nkpts)
+      + Collinear: (nbands, nkpts, 2)
+  - `fermi::Float64`: Fermi energy in Hartree
+  - `nelect::Float64`: Number of electrons
+  - `magmom`: Magnetic moments
+      + `nothing` for Unpolarized
+      + `Vector{Float64}` for Collinear (scalar per atom)
+      + `Vector{Vector{Float64}}` for NonCollinear (3D vector per atom)
 
 # Example
+
 ```julia
 # Unpolarized
-data = BandData(; lattice=L, positions=P, species=S, kpoints=K,
-                  ebands=E, fermi=0.2, nelect=8.0)
+data = BandData(;
+    lattice = L,
+    positions = P,
+    species = S,
+    kpoints = K,
+    ebands = E,
+    fermi = 0.2,
+    nelect = 8.0,
+)
 
 # Collinear
-data = BandData(; lattice=L, positions=P, species=S, kpoints=K,
-                  ebands=E, fermi=0.2, nelect=8.0, magmom=[1.0, -1.0])
+data = BandData(;
+    lattice = L,
+    positions = P,
+    species = S,
+    kpoints = K,
+    ebands = E,
+    fermi = 0.2,
+    nelect = 8.0,#=
+    magmom = [1.0, -1.0],    BandData(; lattice, positions, species, kpoints, ebands, fermi, nelect,
+)               magmom=nothing) -> BandData{ST}
 ```
-
+Construct BandData with SpinType inferred from magmom.
 See also: [`SpinType`](@ref), [`Unpolarized`](@ref), [`Collinear`](@ref), [`NonCollinear`](@ref)
 """
 struct BandData{ST<:SpinType}

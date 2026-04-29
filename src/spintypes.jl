@@ -8,9 +8,10 @@
 Abstract type representing the spin polarization of a material.
 
 Subtypes:
-- [`Unpolarized`](@ref): Non-spin-polarized (nonmagnetic)
-- [`Collinear`](@ref): Collinear spin-polarized (magnetic, scalar magnetization)
-- [`NonCollinear`](@ref): Non-collinear spin-polarized (magnetic, vector magnetization)
+
+  - [`Unpolarized`](@ref): Non-spin-polarized (nonmagnetic)
+  - [`Collinear`](@ref): Collinear spin-polarized (magnetic, scalar magnetization)
+  - [`NonCollinear`](@ref): Non-collinear spin-polarized (magnetic, vector magnetization)
 """
 abstract type SpinType end
 
@@ -20,8 +21,9 @@ abstract type SpinType end
 Spin type for non-spin-polarized (nonmagnetic) calculations.
 
 Properties:
-- `dosweight = 2.0` (spin degeneracy factor)
-- `nspinor = 1` (single spin channel)
+
+  - `dosweight = 2.0` (spin degeneracy factor)
+  - `nspinor = 1` (single spin channel)
 """
 struct Unpolarized <: SpinType end
 
@@ -31,9 +33,10 @@ struct Unpolarized <: SpinType end
 Spin type for collinear spin-polarized calculations.
 
 Properties:
-- `dosweight = 1.0` (no spin degeneracy)
-- `nspinor = 2` (two spin channels: up and down)
-- Magnetization is a scalar per atom
+
+  - `dosweight = 1.0` (no spin degeneracy)
+  - `nspinor = 2` (two spin channels: up and down)
+  - Magnetization is a scalar per atom
 """
 struct Collinear <: SpinType end
 
@@ -43,9 +46,10 @@ struct Collinear <: SpinType end
 Spin type for non-collinear spin-polarized calculations.
 
 Properties:
-- `dosweight = 1.0` (no spin degeneracy)
-- `nspinor = 1` (spinor treated together)
-- Magnetization is a 3D vector per atom
+
+  - `dosweight = 1.0` (no spin degeneracy)
+  - `nspinor = 1` (spinor treated together)
+  - Magnetization is a 3D vector per atom
 """
 struct NonCollinear <: SpinType end
 
@@ -58,9 +62,9 @@ struct NonCollinear <: SpinType end
 
 Return the DOS weight (spin degeneracy factor) for the given spin type.
 
-- `Unpolarized`: 2.0 (both spins contribute equally)
-- `Collinear`: 1.0 (spins counted separately)
-- `NonCollinear`: 1.0 (spins counted separately)
+  - `Unpolarized`: 2.0 (both spins contribute equally)
+  - `Collinear`: 1.0 (spins counted separately)
+  - `NonCollinear`: 1.0 (spins counted separately)
 """
 dosweight(::Type{Unpolarized}) = 2.0
 dosweight(::Type{Collinear}) = 1.0
@@ -71,9 +75,9 @@ dosweight(::Type{NonCollinear}) = 1.0
 
 Return the number of spin channels for the given spin type.
 
-- `Unpolarized`: 1 (single channel, degeneracy handled via dosweight)
-- `Collinear`: 2 (spin-up and spin-down channels)
-- `NonCollinear`: 1 (spinor components treated together)
+  - `Unpolarized`: 1 (single channel, degeneracy handled via dosweight)
+  - `Collinear`: 2 (spin-up and spin-down channels)
+  - `NonCollinear`: 1 (spinor components treated together)
 """
 nspinor(::Type{Unpolarized}) = 1
 nspinor(::Type{Collinear}) = 2

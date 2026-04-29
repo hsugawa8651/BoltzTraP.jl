@@ -9,7 +9,6 @@ using NPZ
 using BoltzTraP
 
 @testset "Magnetic Workflow" begin
-
     @testset "run_interpolate Collinear (DFTData{2})" begin
         # Load PbTe collinear reference data
         REFTEST_DIR = joinpath(@__DIR__, "..", "reftest", "data")
@@ -31,7 +30,7 @@ using BoltzTraP
 
         # Split into two spin channels
         ebands_spin1 = ebands_concat[1:nbands_per_spin, :]
-        ebands_spin2 = ebands_concat[nbands_per_spin+1:end, :]
+        ebands_spin2 = ebands_concat[(nbands_per_spin+1):end, :]
         ebands_3d = zeros(nbands_per_spin, nkpts, 2)
         ebands_3d[:, :, 1] = ebands_spin1
         ebands_3d[:, :, 2] = ebands_spin2
@@ -65,7 +64,7 @@ using BoltzTraP
         @test size(data.ebands, 3) == 2
 
         # Run interpolation (use nkpts as Python does with len(data.kpoints))
-        result = BoltzTraP.run_interpolate(data; kpoints=nkpts, verbose=false)
+        result = BoltzTraP.run_interpolate(data; kpoints = nkpts, verbose = false)
 
         # Verify result
         @test result isa BoltzTraP.InterpolationResult
@@ -104,7 +103,7 @@ using BoltzTraP
         nkpts = size(ebands_concat, 2)
 
         ebands_spin1 = ebands_concat[1:nbands_per_spin, :]
-        ebands_spin2 = ebands_concat[nbands_per_spin+1:end, :]
+        ebands_spin2 = ebands_concat[(nbands_per_spin+1):end, :]
         ebands_3d = zeros(nbands_per_spin, nkpts, 2)
         ebands_3d[:, :, 1] = ebands_spin1
         ebands_3d[:, :, 2] = ebands_spin2
@@ -131,10 +130,10 @@ using BoltzTraP
         )
 
         # Run interpolation
-        interp = BoltzTraP.run_interpolate(data; kpoints=nkpts, verbose=false)
+        interp = BoltzTraP.run_interpolate(data; kpoints = nkpts, verbose = false)
 
         # Run integration
-        transport = BoltzTraP.run_integrate(interp; temperatures=[300.0], verbose=false)
+        transport = BoltzTraP.run_integrate(interp; temperatures = [300.0], verbose = false)
 
         # Verify result type
         @test transport isa BoltzTraP.TransportResult
@@ -179,7 +178,7 @@ using BoltzTraP
             # Verify sigma is positive (conductivity should be non-negative)
             # Check diagonal elements at all mu values
             for k in axes(transport.sigma, 4)
-                for i in 1:3
+                for i = 1:3
                     @test transport.sigma[i, i, 1, k] >= 0.0
                 end
             end
@@ -206,7 +205,7 @@ using BoltzTraP
 
         # Split into two spin channels
         ebands_spin1 = ebands_concat[1:nbands_per_spin, :]
-        ebands_spin2 = ebands_concat[nbands_per_spin+1:end, :]
+        ebands_spin2 = ebands_concat[(nbands_per_spin+1):end, :]
         ebands_3d = zeros(nbands_per_spin, nkpts, 2)
         ebands_3d[:, :, 1] = ebands_spin1
         ebands_3d[:, :, 2] = ebands_spin2
@@ -235,7 +234,7 @@ using BoltzTraP
         @test size(data.ebands, 3) == 2
 
         # Run interpolation
-        interp = BoltzTraP.run_interpolate(data; kpoints=nkpts, verbose=false)
+        interp = BoltzTraP.run_interpolate(data; kpoints = nkpts, verbose = false)
 
         # Verify interpolation result
         @test interp isa BoltzTraP.InterpolationResult
@@ -249,7 +248,8 @@ using BoltzTraP
         # Run integration at reference temperatures and mu range
         ref_temps = ref["Tr"]
         mur = ref["mur"]  # Use same mu range as Python
-        transport = BoltzTraP.run_integrate(interp, mur; temperatures=ref_temps, verbose=false)
+        transport =
+            BoltzTraP.run_integrate(interp, mur; temperatures = ref_temps, verbose = false)
 
         # Verify transport result
         @test transport isa BoltzTraP.TransportResult
@@ -267,7 +267,7 @@ using BoltzTraP
             # Verify sigma diagonal is non-negative
             for k in axes(transport.sigma, 4)
                 for iT in axes(transport.sigma, 3)
-                    for i in 1:3
+                    for i = 1:3
                         @test transport.sigma[i, i, iT, k] >= 0.0
                     end
                 end
@@ -302,7 +302,7 @@ using BoltzTraP
                 kappa_jl = vec(transport.kappa[1, 1, iT_1000K, :])
 
                 # Compute relative errors (filter small values)
-                function max_rel_error(jl, py; threshold=1e-10)
+                function max_rel_error(jl, py; threshold = 1e-10)
                     valid = abs.(py) .> threshold
                     if !any(valid)
                         return 0.0
@@ -329,5 +329,4 @@ using BoltzTraP
             end
         end
     end
-
 end

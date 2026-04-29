@@ -20,9 +20,9 @@ using BoltzTraP
 println("Step 1: Setting up Si crystal structure...")
 # Silicon in diamond structure
 a = 10.26  # Lattice constant in Bohr
-lattice = a / 2 * [[0 1 1.]; [1 0 1.]; [1 1 0.]]
+lattice = a / 2 * [[0 1 1.0]; [1 0 1.0]; [1 1 0.0]]
 
-Si = ElementPsp(:Si; psp=load_psp("hgh/lda/si-q4"))
+Si = ElementPsp(:Si; psp = load_psp("hgh/lda/si-q4"))
 atoms = [Si, Si]
 positions = [ones(3)/8, -ones(3)/8]
 
@@ -34,13 +34,13 @@ println("Step 2: Running DFTK SCF calculation...")
 println("  (This may take a minute...)")
 # Use moderate k-grid for testing (production would use 10x10x10 or more)
 model = model_LDA(lattice, atoms, positions)
-basis = PlaneWaveBasis(model; Ecut=15, kgrid=[6, 6, 6])
+basis = PlaneWaveBasis(model; Ecut = 15, kgrid = [6, 6, 6])
 
 println("  Ecut: 15 Ha")
 println("  k-grid: 6×6×6")
 println("  Number of k-points: $(length(basis.kpoints))")
 
-scfres = self_consistent_field(basis; tol=1e-6)
+scfres = self_consistent_field(basis; tol = 1e-6)
 println("  SCF converged!")
 println("  Fermi energy: $(scfres.εF) Ha")
 println()
@@ -56,13 +56,13 @@ println()
 
 println("Step 4: Running BoltzTraP interpolation...")
 # Use lower kpoints for faster testing
-interp = run_interpolate(data; source="DFTK", kpoints=1000, verbose=false)
+interp = run_interpolate(data; source = "DFTK", kpoints = 1000, verbose = false)
 println("  Equivalences: $(length(interp.equivalences))")
 println("  Coefficients shape: $(size(interp.coeffs))")
 println()
 
 println("Step 5: Running BoltzTraP integration...")
-transport = run_integrate(interp; temperatures=[300.0], verbose=false)
+transport = run_integrate(interp; temperatures = [300.0], verbose = false)
 println("  Temperatures: $(transport.temperatures) K")
 println("  μ range: $(minimum(transport.mu_values)) to $(maximum(transport.mu_values)) Ha")
 println()

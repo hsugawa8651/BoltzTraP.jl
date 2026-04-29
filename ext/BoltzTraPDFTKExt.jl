@@ -22,30 +22,34 @@ DFTK uses atomic units internally, so no unit conversion is needed.
 Returns `DFTData{1}` for non-magnetic or `DFTData{2}` for collinear magnetic calculations.
 
 # Arguments
-- `scfres`: SCF result from DFTK `self_consistent_field`
+
+  - `scfres`: SCF result from DFTK `self_consistent_field`
 
 # Returns
+
 `DFTData{N}` with fields:
-- `lattice`: Lattice vectors (3×3) in Bohr (columns are vectors)
-- `positions`: Atomic positions (3×natoms) in fractional coordinates
-- `species`: Atom species names
-- `kpoints`: K-points (3×nkpts) in fractional coordinates
-- `weights`: K-point weights (nkpts,)
-- `ebands`: Band energies in Hartree
-  - Non-magnetic: (nbands, nkpts, 1)
-  - Collinear: (nbands, nkpts, 2) where [:,:,1]=up, [:,:,2]=down
-- `occupations`: Occupations (same shape as ebands)
-- `fermi`: Fermi energy in Hartree
-- `nelect`: Number of electrons
-- `magmom`: Magnetic moments per atom (collinear only)
+
+  - `lattice`: Lattice vectors (3×3) in Bohr (columns are vectors)
+  - `positions`: Atomic positions (3×natoms) in fractional coordinates
+  - `species`: Atom species names
+  - `kpoints`: K-points (3×nkpts) in fractional coordinates
+  - `weights`: K-point weights (nkpts,)
+  - `ebands`: Band energies in Hartree
+      + Non-magnetic: (nbands, nkpts, 1)
+      + Collinear: (nbands, nkpts, 2) where [:,:,1]=up, [:,:,2]=down
+  - `occupations`: Occupations (same shape as ebands)
+  - `fermi`: Fermi energy in Hartree
+  - `nelect`: Number of electrons
+  - `magmom`: Magnetic moments per atom (collinear only)
 
 # Example (Non-magnetic)
+
 ```julia
 using DFTK
 using BoltzTraP
 
 model = model_LDA(lattice, atoms, positions)
-basis = PlaneWaveBasis(model; Ecut=30, kgrid=[8, 8, 8])
+basis = PlaneWaveBasis(model; Ecut = 30, kgrid = [8, 8, 8])
 scfres = self_consistent_field(basis)
 
 data = load_dftk(scfres)
@@ -53,15 +57,16 @@ data = load_dftk(scfres)
 ```
 
 # Example (Collinear magnetic)
+
 ```julia
 using DFTK
 using BoltzTraP
 
 magnetic_moments = [4.0]  # Initial moment for Fe
 model = model_LDA(lattice, atoms, positions; magnetic_moments)
-basis = PlaneWaveBasis(model; Ecut=30, kgrid=[8, 8, 8])
+basis = PlaneWaveBasis(model; Ecut = 30, kgrid = [8, 8, 8])
 ρ0 = guess_density(basis, magnetic_moments)
-scfres = self_consistent_field(basis; ρ=ρ0)
+scfres = self_consistent_field(basis; ρ = ρ0)
 
 data = load_dftk(scfres)
 @assert data isa DFTData{2}
@@ -69,8 +74,9 @@ data = load_dftk(scfres)
 ```
 
 # Notes
-- Dense k-grid is required for accurate interpolation (10×10×10 or more recommended)
-- Non-collinear calculations are not supported
+
+  - Dense k-grid is required for accurate interpolation (10×10×10 or more recommended)
+  - Non-collinear calculations are not supported    # Check spin polarization type
 """
 function BoltzTraP.load_dftk(scfres)
     basis = scfres.basis
@@ -84,8 +90,10 @@ function BoltzTraP.load_dftk(scfres)
     elseif spin_pol == :collinear
         return _load_dftk_collinear(scfres)
     else
-        error("Unsupported spin_polarization: $spin_pol. " *
-              "Only :none and :collinear are supported.")
+        error(
+            "Unsupported spin_polarization: $spin_pol. " *
+            "Only :none and :collinear are supported.",
+        )
     end
 end
 
@@ -114,13 +122,13 @@ function _load_dftk_nonmagnetic(scfres)
     # Eigenvalues: (nbands, nkpts, nspin=1)
     nbands = length(scfres.eigenvalues[1])
     ebands = zeros(nbands, nkpts, 1)
-    for ik in 1:nkpts
+    for ik = 1:nkpts
         ebands[:, ik, 1] = scfres.eigenvalues[ik]
     end
 
     # Occupations: same structure as eigenvalues
     occupations = zeros(nbands, nkpts, 1)
-    for ik in 1:nkpts
+    for ik = 1:nkpts
         occupations[:, ik, 1] = scfres.occupation[ik]
     end
 
@@ -169,7 +177,7 @@ function _load_dftk_collinear(scfres)
 
     # K-points: fractional coordinates (3 × nkpts) - take only spin-up half
     kpoints = zeros(3, nkpts)
-    for ik in 1:nkpts
+    for ik = 1:nkpts
         kpoints[:, ik] = basis.kpoints[ik].coordinate
     end
 
@@ -180,16 +188,16 @@ function _load_dftk_collinear(scfres)
     # First half of scfres.eigenvalues is spin-up, second half is spin-down
     nbands = length(scfres.eigenvalues[1])
     ebands = zeros(nbands, nkpts, 2)
-    for ik in 1:nkpts
+    for ik = 1:nkpts
         ebands[:, ik, 1] = scfres.eigenvalues[ik]          # spin-up
-        ebands[:, ik, 2] = scfres.eigenvalues[ik + nkpts]  # spin-down
+        ebands[:, ik, 2] = scfres.eigenvalues[ik+nkpts]  # spin-down
     end
 
     # Occupations: same structure
     occupations = zeros(nbands, nkpts, 2)
-    for ik in 1:nkpts
+    for ik = 1:nkpts
         occupations[:, ik, 1] = scfres.occupation[ik]          # spin-up
-        occupations[:, ik, 2] = scfres.occupation[ik + nkpts]  # spin-down
+        occupations[:, ik, 2] = scfres.occupation[ik+nkpts]  # spin-down
     end
 
     # Fermi energy (already in Hartree)
@@ -254,9 +262,9 @@ function _compute_magmom(scfres, nkpts, natoms)
     # For each k-point pair (up, down), sum occupation differences
     total_up = 0.0
     total_down = 0.0
-    for ik in 1:nkpts
+    for ik = 1:nkpts
         total_up += sum(scfres.occupation[ik]) * basis.kweights[ik]
-        total_down += sum(scfres.occupation[ik + nkpts]) * basis.kweights[ik + nkpts]
+        total_down += sum(scfres.occupation[ik+nkpts]) * basis.kweights[ik+nkpts]
     end
 
     # Total spin moment (in units of electrons)

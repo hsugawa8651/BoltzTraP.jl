@@ -19,7 +19,8 @@ global_logger(ConsoleLogger(stderr, Logging.Debug))
 using BoltzTraP
 
 # Default test data path
-const DEFAULT_VASP_DIR = joinpath(@__DIR__, "..", "..", "BoltzTraP2-public", "data", "Si.vasp")
+const DEFAULT_VASP_DIR =
+    joinpath(@__DIR__, "..", "..", "BoltzTraP2-public", "data", "Si.vasp")
 
 function test_interpolate_options(vasp_dir::String)
     println()
@@ -38,7 +39,8 @@ function test_interpolate_options(vasp_dir::String)
     detected = BoltzTraP.detected_format(vasp_dir)
     println("  Detected format: $detected")
     data = BoltzTraP.load_dft(vasp_dir)
-    result = BoltzTraP.run_interpolate(data; source=vasp_dir, kpoints=500, verbose=true)
+    result =
+        BoltzTraP.run_interpolate(data; source = vasp_dir, kpoints = 500, verbose = true)
     @assert result.metadata["source"] == vasp_dir
     println("  ✓ PASS: format auto-detection works")
 
@@ -51,7 +53,12 @@ function test_interpolate_options(vasp_dir::String)
     println("-" ^ 70)
     @info "Testing format=vasp"
     data_vasp = BoltzTraP.load_vasp(vasp_dir)
-    result_vasp = BoltzTraP.run_interpolate(data_vasp; source=vasp_dir, kpoints=500, verbose=true)
+    result_vasp = BoltzTraP.run_interpolate(
+        data_vasp;
+        source = vasp_dir,
+        kpoints = 500,
+        verbose = true,
+    )
     println("  ✓ PASS: explicit VASP loading works")
 
     # ------------------------------------------------------------------
@@ -63,7 +70,12 @@ function test_interpolate_options(vasp_dir::String)
     println("-" ^ 70)
     for kpts in [500, 1000, 2000]
         @info "Testing kpoints=$kpts"
-        result = BoltzTraP.run_interpolate(data; source=vasp_dir, kpoints=kpts, verbose=false)
+        result = BoltzTraP.run_interpolate(
+            data;
+            source = vasp_dir,
+            kpoints = kpts,
+            verbose = false,
+        )
         actual = result.metadata["nkpt_target"]
         println("  kpoints=$kpts → nkpt_target=$actual")
         @assert actual == kpts "Expected nkpt_target=$kpts, got $actual"
@@ -80,10 +92,17 @@ function test_interpolate_options(vasp_dir::String)
     nkpt_orig = size(data.kpoints, 2)
     for mult in [2, 3]
         @info "Testing multiplier=$mult"
-        result = BoltzTraP.run_interpolate(data; source=vasp_dir, multiplier=mult, verbose=false)
+        result = BoltzTraP.run_interpolate(
+            data;
+            source = vasp_dir,
+            multiplier = mult,
+            verbose = false,
+        )
         expected = nkpt_orig * mult
         actual = result.metadata["nkpt_target"]
-        println("  multiplier=$mult, nkpt_original=$nkpt_orig → nkpt_target=$actual (expected $expected)")
+        println(
+            "  multiplier=$mult, nkpt_original=$nkpt_orig → nkpt_target=$actual (expected $expected)",
+        )
         @assert actual == expected "Expected nkpt_target=$expected, got $actual"
     end
     println("  ✓ PASS: multiplier option works")
@@ -96,16 +115,23 @@ function test_interpolate_options(vasp_dir::String)
     println("Test: --emin <e>, --emax <e>")
     println("-" ^ 70)
     test_cases = [
-        (emin=-Inf, emax=Inf, desc="no filter"),
-        (emin=-0.5, emax=0.5, desc="narrow range"),
-        (emin=-1.0, emax=1.0, desc="wide range"),
+        (emin = -Inf, emax = Inf, desc = "no filter"),
+        (emin = -0.5, emax = 0.5, desc = "narrow range"),
+        (emin = -1.0, emax = 1.0, desc = "wide range"),
     ]
     for tc in test_cases
         @info "Testing emin=$(tc.emin), emax=$(tc.emax)"
         result = BoltzTraP.run_interpolate(
-            data; source=vasp_dir, kpoints=500, emin=tc.emin, emax=tc.emax, verbose=false
+            data;
+            source = vasp_dir,
+            kpoints = 500,
+            emin = tc.emin,
+            emax = tc.emax,
+            verbose = false,
         )
-        println("  $(tc.desc): emin=$(result.metadata["emin"]), emax=$(result.metadata["emax"])")
+        println(
+            "  $(tc.desc): emin=$(result.metadata["emin"]), emax=$(result.metadata["emax"])",
+        )
         @assert result.metadata["emin"] == tc.emin
         @assert result.metadata["emax"] == tc.emax
     end
@@ -121,9 +147,17 @@ function test_interpolate_options(vasp_dir::String)
     for absolute in [false, true]
         @info "Testing absolute=$absolute"
         result = BoltzTraP.run_interpolate(
-            data; source=vasp_dir, kpoints=500, emin=-0.5, emax=0.5, absolute=absolute, verbose=false
+            data;
+            source = vasp_dir,
+            kpoints = 500,
+            emin = -0.5,
+            emax = 0.5,
+            absolute = absolute,
+            verbose = false,
         )
-        println("  absolute=$absolute → metadata[\"absolute\"]=$(result.metadata["absolute"])")
+        println(
+            "  absolute=$absolute → metadata[\"absolute\"]=$(result.metadata["absolute"])",
+        )
         @assert result.metadata["absolute"] == absolute
     end
     println("  ✓ PASS: absolute option works")
@@ -138,14 +172,20 @@ function test_interpolate_options(vasp_dir::String)
     tmpdir = mktempdir()
     outfile = joinpath(tmpdir, "test_output.jld2")
     @info "Testing output=$outfile"
-    result = BoltzTraP.run_interpolate(data; source=vasp_dir, kpoints=500, output=outfile, verbose=false)
+    result = BoltzTraP.run_interpolate(
+        data;
+        source = vasp_dir,
+        kpoints = 500,
+        output = outfile,
+        verbose = false,
+    )
     @assert isfile(outfile) "Output file not created"
     println("  Output file created: $outfile")
     # Verify can be loaded back
     loaded = BoltzTraP.load_interpolation(outfile)
     @assert length(loaded.equivalences) == length(result.equivalences)
     println("  Output file can be reloaded")
-    rm(tmpdir; recursive=true)
+    rm(tmpdir; recursive = true)
     println("  ✓ PASS: output option works")
 
     # ------------------------------------------------------------------
@@ -156,7 +196,8 @@ function test_interpolate_options(vasp_dir::String)
     println("Test: -v, --verbose")
     println("-" ^ 70)
     @info "Testing verbose=true"
-    result = BoltzTraP.run_interpolate(data; source=vasp_dir, kpoints=500, verbose=true)
+    result =
+        BoltzTraP.run_interpolate(data; source = vasp_dir, kpoints = 500, verbose = true)
     println("  ✓ PASS: verbose option works")
 
     return result  # Return for integrate tests
@@ -178,7 +219,7 @@ function test_integrate_options(interp_result)
     @info "Testing temperature=\"300\""
     temps = BoltzTraP._parse_temperatures("300")
     @assert temps == [300.0]
-    result = BoltzTraP.run_integrate(interp_result; temperatures=temps, verbose=false)
+    result = BoltzTraP.run_integrate(interp_result; temperatures = temps, verbose = false)
     @assert result.temperatures == [300.0]
     println("  temperature=\"300\" → $temps")
     println("  ✓ PASS")
@@ -194,7 +235,7 @@ function test_integrate_options(interp_result)
     temps = BoltzTraP._parse_temperatures("100:500:100")
     expected = [100.0, 200.0, 300.0, 400.0, 500.0]
     @assert temps == expected "Expected $expected, got $temps"
-    result = BoltzTraP.run_integrate(interp_result; temperatures=temps, verbose=false)
+    result = BoltzTraP.run_integrate(interp_result; temperatures = temps, verbose = false)
     @assert result.temperatures == expected
     println("  temperature=\"100:500:100\" → $temps")
     println("  ✓ PASS")
@@ -224,7 +265,7 @@ function test_integrate_options(interp_result)
     temps = BoltzTraP._parse_temperatures("100,250,400")
     expected = [100.0, 250.0, 400.0]
     @assert temps == expected "Expected $expected, got $temps"
-    result = BoltzTraP.run_integrate(interp_result; temperatures=temps, verbose=false)
+    result = BoltzTraP.run_integrate(interp_result; temperatures = temps, verbose = false)
     @assert result.temperatures == expected
     println("  temperature=\"100,250,400\" → $temps")
     println("  ✓ PASS")
@@ -238,7 +279,12 @@ function test_integrate_options(interp_result)
     println("-" ^ 70)
     for bins in [100, 200, 500]
         @info "Testing bins=$bins"
-        result = BoltzTraP.run_integrate(interp_result; temperatures=[300.0], bins=bins, verbose=false)
+        result = BoltzTraP.run_integrate(
+            interp_result;
+            temperatures = [300.0],
+            bins = bins,
+            verbose = false,
+        )
         actual = result.metadata["npts_dos"]
         println("  bins=$bins → npts_dos=$actual")
         @assert actual == bins "Expected npts_dos=$bins, got $actual"
@@ -255,14 +301,19 @@ function test_integrate_options(interp_result)
     tmpdir = mktempdir()
     outfile = joinpath(tmpdir, "test_transport.jld2")
     @info "Testing output=$outfile"
-    result = BoltzTraP.run_integrate(interp_result; temperatures=[300.0], output=outfile, verbose=false)
+    result = BoltzTraP.run_integrate(
+        interp_result;
+        temperatures = [300.0],
+        output = outfile,
+        verbose = false,
+    )
     @assert isfile(outfile) "Output file not created"
     println("  Output file created: $outfile")
     # Verify can be loaded back
     loaded = BoltzTraP.load_integrate(outfile)
     @assert length(loaded.temperatures) == length(result.temperatures)
     println("  Output file can be reloaded")
-    rm(tmpdir; recursive=true)
+    rm(tmpdir; recursive = true)
     println("  ✓ PASS: output option works")
 
     # ------------------------------------------------------------------
@@ -273,7 +324,7 @@ function test_integrate_options(interp_result)
     println("Test: -v, --verbose")
     println("-" ^ 70)
     @info "Testing verbose=true"
-    result = BoltzTraP.run_integrate(interp_result; temperatures=[300.0], verbose=true)
+    result = BoltzTraP.run_integrate(interp_result; temperatures = [300.0], verbose = true)
     println("  ✓ PASS: verbose option works")
 end
 

@@ -116,7 +116,7 @@ function main()
         println("  Error (expected): $(typeof(e))")
         println("  ✓ PASS")
     finally
-        rm(unknown_dir; recursive=true)
+        rm(unknown_dir; recursive = true)
     end
     println()
 
