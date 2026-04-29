@@ -1,0 +1,28 @@
+name: Format
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1.10'
+      - uses: julia-actions/cache@v2
+      - name: Install JuliaFormatter
+        run: julia -e 'using Pkg; Pkg.add(name="JuliaFormatter", version="2")'
+      - name: Check format
+        run: |
+          julia -e '
+            using JuliaFormatter
+            formatted = format(".", verbose=true)
+            if !formatted
+              println(stderr, "Some files would be reformatted by JuliaFormatter.")
+              println(stderr, "Run `julia -e \"using JuliaFormatter; format(\\\".\\\")\"` locally and commit the result.")
+              exit(1)
+            end'
