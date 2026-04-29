@@ -18,8 +18,8 @@ const CM_PER_INCH = 2.54
 # ── Helper: layout ──
 
 function _layout_axes(axis_width_cm, axis_height_cm, n;
-        margin_left_cm=1.5, margin_right_cm=0.3,
-        margin_bottom_cm=1.0, margin_top_cm=0.8,
+        margin_left_cm=2.0, margin_right_cm=0.3,
+        margin_bottom_cm=1.5, margin_top_cm=0.8,
         hgap_cm=1.8, vgap_cm=1.5,
         nrows=1, ncols=1)
     widths = axis_width_cm isa AbstractVector ? axis_width_cm : fill(axis_width_cm, ncols)
