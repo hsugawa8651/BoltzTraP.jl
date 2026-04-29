@@ -114,6 +114,7 @@ export save_integrate, load_integrate
 # Plotting
 export plot_bands, plot_transport
 export BandPlotData, TransportPlotData
+export build_transport_plot_data
 export savefig_publication
 
 # Describe (result inspection)

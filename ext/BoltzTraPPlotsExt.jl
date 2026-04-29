@@ -362,106 +362,19 @@ function BoltzTraP.plot_transport(
     mu_index::Int = 0,
     output::Union{String,Nothing} = nothing,
 )
-    # Parse component
-    comp_map = Dict(
-        "xx" => (1, 1),
-        "yy" => (2, 2),
-        "zz" => (3, 3),
-        "xy" => (1, 2),
-        "xz" => (1, 3),
-        "yz" => (2, 3),
-        "yx" => (2, 1),
-        "zx" => (3, 1),
-        "zy" => (3, 2),
-    )
-    if !haskey(comp_map, lowercase(component))
-        error("Unknown component: $component. Use xx, yy, zz, xy, xz, yz.")
-    end
-    i, j = comp_map[lowercase(component)]
-
-    # Get data array based on quantity
-    data = if quantity == "seebeck" || quantity == "S"
-        result.seebeck
-    elseif quantity == "sigma" || quantity == "conductivity"
-        result.sigma
-    elseif quantity == "kappa" || quantity == "thermal"
-        result.kappa
-    else
-        error("Unknown quantity: $quantity. Use seebeck, sigma, or kappa.")
-    end
-
-    # Get units and labels
-    units = Dict(
-        "seebeck" => "S (μV/K)",
-        "S" => "S (μV/K)",
-        "sigma" => "σ/τ (S/m)",
-        "conductivity" => "σ/τ (S/m)",
-        "kappa" => "κ/τ (W/m/K)",
-        "thermal" => "κ/τ (W/m/K)",
+    # Build normalized plot data; bug-A (abscissa fallthrough) and
+    # bug-B (uppercase ylabel) are caught and fixed inside the builder.
+    tpd = BoltzTraP.build_transport_plot_data(
+        result;
+        quantity = quantity,
+        component = component,
+        abscissa = abscissa,
+        temperature = temperature,
+        mu_index = mu_index,
     )
 
-    # Get Fermi energy
-    md = result.metadata
-    if haskey(md, "fermi_dft_Ha")
-        fermi = md["fermi_dft_Ha"]
-    elseif haskey(md, "fermi_Ha")
-        fermi = md["fermi_Ha"]
-    else
-        fermi = 0.0
-    end
-    fermi_eV = fermi * HA_TO_EV  # HA_TO_EV from units.jl
-
-    if abscissa == "mu"
-        # Plot vs chemical potential at fixed temperature
-        iT = findfirst(t -> isapprox(t, temperature, atol = 1.0), result.temperatures)
-        if isnothing(iT)
-            error("Temperature $temperature K not found. Available: $(result.temperatures)")
-        end
-
-        # data shape: (3, 3, nT, nμ)
-        y_data = data[i, j, iT, :]
-
-        # Convert units
-        if quantity in ["seebeck", "S"]
-            y_data = y_data .* 1e6  # V/K → μV/K
-        end
-
-        # μ is already in eV, relative to refined Fermi
-        # We want relative to DFT Fermi
-        mu_eV = result.mu_values .- fermi_eV
-
-        p = Plots.plot(
-            mu_eV,
-            y_data,
-            xlabel = "μ - E_F (eV)",
-            ylabel = "$(uppercase(quantity))_$(component) ($(units[quantity]))",
-            title = "T = $(Int(temperature)) K",
-            legend = false,
-            linewidth = 2,
-        )
-    else
-        # Plot vs temperature at fixed μ
-        if mu_index == 0
-            # Find μ closest to Fermi
-            mu_index = argmin(abs.(result.mu_values .- fermi_eV))
-        end
-
-        y_data = data[i, j, :, mu_index]
-
-        if quantity in ["seebeck", "S"]
-            y_data = y_data .* 1e6
-        end
-
-        p = Plots.plot(
-            result.temperatures,
-            y_data,
-            xlabel = "Temperature (K)",
-            ylabel = "$(uppercase(quantity))_$(component) ($(units[quantity]))",
-            title = "μ = $(round(result.mu_values[mu_index] - fermi_eV, digits=3)) eV",
-            legend = false,
-            linewidth = 2,
-        )
-    end
+    # Render via the RecipesBase recipe registered in BoltzTraPRecipesBaseExt.
+    p = Plots.plot(tpd; size = (600, 400), legend = false, linewidth = 2)
 
     if !isnothing(output)
         Plots.savefig(p, output)
