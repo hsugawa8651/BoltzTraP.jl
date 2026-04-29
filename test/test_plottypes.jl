@@ -9,7 +9,8 @@
         [1.0 1.1 1.2; 2.0 2.1 2.2],     # ebands_eV (2 bands × 3 kpts)
         ["Γ", "X"],                     # labels
         [0.0, 0.2],                     # positions
-        -5.0, 5.0,                      # emin, emax
+        -5.0,
+        5.0,                      # emin, emax
         0.1,                            # fermi_Ha
         "Test",                         # title
     )
@@ -40,10 +41,10 @@ end
 # and the plot_transport (Plots ext) regression tests further below.
 const _PT_NT, _PT_NMU = 2, 5
 let
-    sigma   = zeros(3, 3, _PT_NT, _PT_NMU)
+    sigma = zeros(3, 3, _PT_NT, _PT_NMU)
     seebeck = zeros(3, 3, _PT_NT, _PT_NMU)
-    kappa   = zeros(3, 3, _PT_NT, _PT_NMU)
-    for d in 1:3
+    kappa = zeros(3, 3, _PT_NT, _PT_NMU)
+    for d = 1:3
         sigma[d, d, :, :] .= 1.0
         kappa[d, d, :, :] .= 0.1
     end
@@ -92,12 +93,16 @@ end
     @test tpd.ylabel == "S_xx (μV/K)"
     @test tpd.title == "T = 300 K"
 
-    @test build_transport_plot_data(_PT_RESULT;
-        quantity = "S", component = "xx", abscissa = "mu").ylabel == "S_xx (μV/K)"
-    @test build_transport_plot_data(_PT_RESULT;
-        quantity = "sigma", component = "xx").ylabel == "σ_xx (S/m)"
-    @test build_transport_plot_data(_PT_RESULT;
-        quantity = "kappa", component = "yy").ylabel == "κ_yy (W/m/K)"
+    @test build_transport_plot_data(
+        _PT_RESULT;
+        quantity = "S",
+        component = "xx",
+        abscissa = "mu",
+    ).ylabel == "S_xx (μV/K)"
+    @test build_transport_plot_data(_PT_RESULT; quantity = "sigma", component = "xx").ylabel ==
+          "σ_xx (S/m)"
+    @test build_transport_plot_data(_PT_RESULT; quantity = "kappa", component = "yy").ylabel ==
+          "κ_yy (W/m/K)"
 
     tpd_T = build_transport_plot_data(
         _PT_RESULT;

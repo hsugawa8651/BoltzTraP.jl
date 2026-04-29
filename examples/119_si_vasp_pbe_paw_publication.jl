@@ -42,14 +42,20 @@ end
 
 # Combined 1×3 subplot showing S, σ, κ vs μ at T = 300 K
 tpds = [
-    build_transport_plot_data(transport;
-        quantity = q, component = "xx", abscissa = "mu", temperature = 300.0)
-    for q in ("seebeck", "sigma", "kappa")
+    build_transport_plot_data(
+        transport;
+        quantity = q,
+        component = "xx",
+        abscissa = "mu",
+        temperature = 300.0,
+    ) for q in ("seebeck", "sigma", "kappa")
 ]
 out_combined = joinpath(@__DIR__, stem * "combined_300K.pdf")
 savefig_publication(
-    tpds, out_combined;
-    axis_width_cm = 6.0, axis_height_cm = 4.5,
+    tpds,
+    out_combined;
+    axis_width_cm = 6.0,
+    axis_height_cm = 4.5,
     layout = (1, 3),
 )
 println("Saved: $out_combined")

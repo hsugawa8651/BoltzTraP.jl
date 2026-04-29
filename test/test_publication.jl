@@ -10,12 +10,15 @@ using PythonPlot
 @testset "savefig_publication (PythonPlot)" begin
     bpd = BandPlotData(
         [0.0, 1.0, 2.0, 3.0],                    # kdist
-        Float64[-2.0 -1.5 -1.0 -1.5;             # ebands_eV (3 bands × 4 kpts)
-                 0.0  0.5  1.0  0.5;
-                 2.0  2.5  3.0  2.5],
+        Float64[
+            -2.0 -1.5 -1.0 -1.5;             # ebands_eV (3 bands × 4 kpts)
+            0.0 0.5 1.0 0.5;
+            2.0 2.5 3.0 2.5
+        ],
         ["Γ", "X", "M", "Γ"],                    # unique_labels
         [0.0, 1.0, 2.0, 3.0],                    # unique_positions
-        -3.0, 4.0,                               # emin, emax
+        -3.0,
+        4.0,                               # emin, emax
         0.0,                                     # fermi_Ha
         "Si bands (test fixture)",               # title
     )

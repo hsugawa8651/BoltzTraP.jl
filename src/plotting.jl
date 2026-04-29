@@ -33,11 +33,11 @@ The output format is inferred from the file extension (`.pdf`, `.png`, `.svg`, .
 
 # Keyword arguments
 
-- `axis_width_cm = 8.0`, `axis_height_cm = 6.0` — Axis size in centimeters.
-- `ylims = nothing` — Y-axis range (auto if `nothing`; for `BandPlotData` defaults to `(emin, emax)`).
-- `title = ""` — Plot title (suppressed if empty; falls back to `data.title`).
-- `layout = (1, length(data))` — Subplot grid for the vector overloads.
-- `overlay = false` — Plot all `bpds` on a single axis (vector `BandPlotData` overload only).
+  - `axis_width_cm = 8.0`, `axis_height_cm = 6.0` — Axis size in centimeters.
+  - `ylims = nothing` — Y-axis range (auto if `nothing`; for `BandPlotData` defaults to `(emin, emax)`).
+  - `title = ""` — Plot title (suppressed if empty; falls back to `data.title`).
+  - `layout = (1, length(data))` — Subplot grid for the vector overloads.
+  - `overlay = false` — Plot all `bpds` on a single axis (vector `BandPlotData` overload only).
 
 See also: [`plot_bands`](@ref), [`plot_transport`](@ref).
 """
