@@ -13,7 +13,13 @@ using BoltzTraP
 
 # Default test data path
 const DEFAULT_BT2_FILE = joinpath(
-    @__DIR__, "..", "..", "BoltzTraP2-public", "data", "Si.vasp", "interpolation.bt2"
+    @__DIR__,
+    "..",
+    "..",
+    "BoltzTraP2-public",
+    "data",
+    "Si.vasp",
+    "interpolation.bt2",
 )
 
 function main()
@@ -65,7 +71,7 @@ function main()
     output_file = tempname() * ".png"
     kpath_str = "G:0,0,0;X:0.5,0,0.5;L:0.5,0.5,0.5;W:0.5,0.25,0.75|G-X-W-L-G"
     try
-        BoltzTraP.plotbands(bt2_file; npoints=30, kpath=kpath_str, output=output_file)
+        BoltzTraP.plotbands(bt2_file; npoints = 30, kpath = kpath_str, output = output_file)
         if isfile(output_file)
             fsize = filesize(output_file)
             println("  → output file: $output_file ($fsize bytes)")
@@ -87,7 +93,7 @@ function main()
     println("-" ^ 60)
     if !haskey(result.metadata, "spacegroup_number")
         try
-            BoltzTraP.plotbands(bt2_file; npoints=10, output=tempname() * ".png")
+            BoltzTraP.plotbands(bt2_file; npoints = 10, output = tempname() * ".png")
             println("  ✗ FAIL: should have raised error")
             exit(1)
         catch e
@@ -118,7 +124,7 @@ function main()
         paths = [["G", "X", "L", "G"]],
     )
     try
-        p = plot_bands(result; npoints=30, kpath=kpath_tuple, output=output_file)
+        p = plot_bands(result; npoints = 30, kpath = kpath_tuple, output = output_file)
         if isfile(output_file)
             fsize = filesize(output_file)
             println("  → output file: $output_file ($fsize bytes)")

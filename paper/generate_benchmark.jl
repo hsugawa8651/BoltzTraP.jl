@@ -26,12 +26,16 @@ function load_benchmark_results()
     python_file = joinpath(@__DIR__, "..", "benchmarks", "scaling_results_python.json")
 
     if !isfile(julia_file)
-        error("Julia benchmark results not found: $julia_file\n" *
-              "Run: julia --project benchmarks/scaling_benchmark.jl")
+        error(
+            "Julia benchmark results not found: $julia_file\n" *
+            "Run: julia --project benchmarks/scaling_benchmark.jl",
+        )
     end
     if !isfile(python_file)
-        error("Python benchmark results not found: $python_file\n" *
-              "Run: python benchmarks/scaling_benchmark.py")
+        error(
+            "Python benchmark results not found: $python_file\n" *
+            "Run: python benchmarks/scaling_benchmark.py",
+        )
     end
 
     julia_data = JSON.parsefile(julia_file)
@@ -56,90 +60,96 @@ function create_benchmark_figure(julia_data, python_data, output_path)
 
     # Create figure with dual y-axis
     fig = plot(
-        size=(700, 400),
-        dpi=300,
-        left_margin=5Plots.mm,
-        right_margin=12Plots.mm,
-        bottom_margin=5Plots.mm,
-        fontfamily="Computer Modern"
+        size = (700, 400),
+        dpi = 300,
+        left_margin = 5Plots.mm,
+        right_margin = 12Plots.mm,
+        bottom_margin = 5Plots.mm,
+        fontfamily = "Computer Modern",
     )
 
     # Left axis: Time
     scatter!(
         fig,
-        nk_values, python_times_s,
-        label="Python BoltzTraP2 (time)",
-        markersize=6,
-        markershape=:circle,
-        markercolor=:blue,
-        markerstrokewidth=0
+        nk_values,
+        python_times_s,
+        label = "Python BoltzTraP2 (time)",
+        markersize = 6,
+        markershape = :circle,
+        markercolor = :blue,
+        markerstrokewidth = 0,
     )
     plot!(
         fig,
-        nk_values, python_times_s,
-        label="",
-        linewidth=1.5,
-        linestyle=:dash,
-        color=:blue,
-        alpha=0.5
+        nk_values,
+        python_times_s,
+        label = "",
+        linewidth = 1.5,
+        linestyle = :dash,
+        color = :blue,
+        alpha = 0.5,
     )
 
     scatter!(
         fig,
-        nk_values, julia_times_s,
-        label="Julia BoltzTraP.jl (time)",
-        markersize=6,
-        markershape=:star5,
-        markercolor=:red,
-        markerstrokewidth=0
+        nk_values,
+        julia_times_s,
+        label = "Julia BoltzTraP.jl (time)",
+        markersize = 6,
+        markershape = :star5,
+        markercolor = :red,
+        markerstrokewidth = 0,
     )
     plot!(
         fig,
-        nk_values, julia_times_s,
-        label="",
-        linewidth=1.5,
-        linestyle=:solid,
-        color=:red,
-        alpha=0.5
+        nk_values,
+        julia_times_s,
+        label = "",
+        linewidth = 1.5,
+        linestyle = :solid,
+        color = :red,
+        alpha = 0.5,
     )
 
     plot!(
         fig,
-        xlabel=L"Number of $k$-points",
-        ylabel="Time (s)",
-        title="getBands Performance Scaling",
-        legend=:topleft,
-        grid=true,
-        gridalpha=0.3,
-        xlims=(0, maximum(nk_values) * 1.1),
-        ylims=(0, maximum(python_times_s) * 1.1)
+        xlabel = L"Number of $k$-points",
+        ylabel = "Time (s)",
+        title = "getBands Performance Scaling",
+        legend = :topleft,
+        grid = true,
+        gridalpha = 0.3,
+        xlims = (0, maximum(nk_values) * 1.1),
+        ylims = (0, maximum(python_times_s) * 1.1),
     )
 
     # Right axis: Memory allocation (Julia only)
     fig2 = twinx(fig)
     scatter!(
         fig2,
-        nk_values, julia_allocs,
-        label="Julia allocation (MiB)",
-        markersize=5,
-        markershape=:diamond,
-        markercolor=:green,
-        markerstrokewidth=0
+        nk_values,
+        julia_allocs,
+        label = "Julia allocation (MiB)",
+        markersize = 5,
+        markershape = :diamond,
+        markercolor = :green,
+        markerstrokewidth = 0,
     )
     plot!(
         fig2,
-        nk_values, julia_allocs,
-        label="",
-        linewidth=1.5,
-        linestyle=:dot,
-        color=:green,
-        alpha=0.5
+        nk_values,
+        julia_allocs,
+        label = "",
+        linewidth = 1.5,
+        linestyle = :dot,
+        color = :green,
+        alpha = 0.5,
     )
     plot!(
         fig2,
-        ylabel="Allocation (MiB)",
-        legend=:topright,
-        ylims=(0, maximum(julia_allocs) * 1.2)
+        ylabel = "Allocation (MiB)",
+        legend = :topright,
+        ylims = (0, maximum(julia_allocs) * 1.2),
     )
 
     savefig(fig, output_path)
@@ -151,7 +161,9 @@ function create_benchmark_figure(julia_data, python_data, output_path)
     println("  -------|-------------|------------|---------|------------")
     for (i, nk) in enumerate(nk_values)
         speedup = python_times[i] / julia_times[i]
-        println("  $(lpad(nk, 5)) | $(lpad(round(python_times[i], digits=0), 11)) | $(lpad(round(julia_times[i], digits=0), 10)) | $(lpad(round(speedup, digits=1), 7))x | $(lpad(round(julia_allocs[i], digits=1), 10))")
+        println(
+            "  $(lpad(nk, 5)) | $(lpad(round(python_times[i], digits=0), 11)) | $(lpad(round(julia_times[i], digits=0), 10)) | $(lpad(round(speedup, digits=1), 7))x | $(lpad(round(julia_allocs[i], digits=1), 10))",
+        )
     end
 
     return fig

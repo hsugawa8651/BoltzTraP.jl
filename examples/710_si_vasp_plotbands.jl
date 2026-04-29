@@ -26,10 +26,10 @@ stem = splitext(basename(@__FILE__))[1]
 
 # Step 1: Interpolate band structure
 println("Interpolating band structure...")
-interp = run_interpolate(datadir; kpoints=5000, verbose=true)
+interp = run_interpolate(datadir; kpoints = 5000, verbose = true)
 
 # Step 2: Plot band structure along high-symmetry path
 println("\nPlotting band structure...")
 output_png = joinpath(@__DIR__, stem * "_bands.png")
-plot_bands(interp; emin=-5.0, emax=5.0, output=output_png)
+plot_bands(interp; emin = -5.0, emax = 5.0, output = output_png)
 println("Saved plot to $output_png")

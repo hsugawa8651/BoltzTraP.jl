@@ -337,5 +337,4 @@ using BoltzTraP: _generate_qe_tags
             @test data.magmom ≈ [1.0, 1.0]
         end
     end
-
 end

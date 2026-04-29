@@ -37,8 +37,10 @@ Load reference data from an NPZ file.
 function load_reference(name::String)
     path = joinpath(DATA_DIR, "$(name).npz")
     if !isfile(path)
-        error("Reference file not found: $path\n" *
-              "Run 'python generate_*.py' scripts first (see reftest/README.md).")
+        error(
+            "Reference file not found: $path\n" *
+            "Run 'python generate_*.py' scripts first (see reftest/README.md).",
+        )
     end
     return npzread(path)
 end
@@ -94,10 +96,10 @@ Works for tensor bases where vectors may have different normalization.
 A, B: Arrays of shape (nbasis, 3, 3) representing tensor bases.
 Each slice A[i,:,:] is a 3x3 tensor (reshaped to 9-vector).
 """
-function same_subspace(A, B; tol=1e-10)
+function same_subspace(A, B; tol = 1e-10)
     # Flatten each tensor to a vector (nbasis x 9)
-    a_vecs = reshape(A, size(A,1), :)  # nbasis x 9
-    b_vecs = reshape(B, size(B,1), :)  # nbasis x 9
+    a_vecs = reshape(A, size(A, 1), :)  # nbasis x 9
+    b_vecs = reshape(B, size(B, 1), :)  # nbasis x 9
 
     if size(a_vecs) != size(b_vecs)
         return false
@@ -110,7 +112,7 @@ function same_subspace(A, B; tol=1e-10)
 
     # Method: For each row in A, check if it can be expressed as
     # a linear combination of rows of B
-    for i in 1:nbasis
+    for i = 1:nbasis
         v = a_vecs[i, :]  # 9-vector
 
         # Solve min_c ||B' * c - v||^2 where B' is (9 x nbasis)
@@ -124,7 +126,7 @@ function same_subspace(A, B; tol=1e-10)
     end
 
     # Also check reverse direction
-    for i in 1:nbasis
+    for i = 1:nbasis
         v = b_vecs[i, :]
         coeffs = a_vecs' \ v
         reconstructed = a_vecs' * coeffs
@@ -180,7 +182,8 @@ function compare_simple_cubic()
                 return
             end
 
-            result = BoltzTraP.calc_tensor_basis(lattvec, positions, types, nothing; symprec)
+            result =
+                BoltzTraP.calc_tensor_basis(lattvec, positions, types, nothing; symprec)
             expected = ref["tensor_basis"]
             # Check subspace equivalence (normalization may differ)
             @test same_subspace(result, expected)
@@ -231,7 +234,8 @@ function compare_si_diamond()
                 return
             end
 
-            result = BoltzTraP.calc_tensor_basis(lattvec, positions, types, nothing; symprec)
+            result =
+                BoltzTraP.calc_tensor_basis(lattvec, positions, types, nothing; symprec)
             expected = ref["tensor_basis"]
             # Check subspace equivalence (normalization may differ)
             @test same_subspace(result, expected)
@@ -245,7 +249,13 @@ function compare_si_diamond()
 
             bounds = Int.(ref["bounds"])
             result = BoltzTraP.calc_sphere_quotient_set(
-                lattvec, positions, types, nothing, radius, bounds; symprec
+                lattvec,
+                positions,
+                types,
+                nothing,
+                radius,
+                bounds;
+                symprec,
             )
 
             n_equiv = Int(ref["n_equivalences"])
@@ -254,7 +264,8 @@ function compare_si_diamond()
             # Build sets of equivalence classes for order-independent comparison
             # Each class becomes a Set of tuples (frozen set)
             julia_classes = Set([Set(Tuple.(r)) for r in result])
-            python_classes = Set([Set(Tuple.(eachrow(ref["equiv_$i"]))) for i in 0:(n_equiv-1)])
+            python_classes =
+                Set([Set(Tuple.(eachrow(ref["equiv_$i"]))) for i = 0:(n_equiv-1)])
 
             @test julia_classes == python_classes
         end
@@ -358,7 +369,13 @@ function compare_monoclinic()
 
             bounds = Int.(ref["bounds"])
             result = BoltzTraP.calc_sphere_quotient_set(
-                lattvec, positions, types, nothing, radius, bounds; symprec
+                lattvec,
+                positions,
+                types,
+                nothing,
+                radius,
+                bounds;
+                symprec,
             )
 
             n_equiv = Int(ref["n_equivalences"])
@@ -412,7 +429,13 @@ function compare_triclinic_p1()
 
             bounds = Int.(ref["bounds"])
             result = BoltzTraP.calc_sphere_quotient_set(
-                lattvec, positions, types, nothing, radius, bounds; symprec
+                lattvec,
+                positions,
+                types,
+                nothing,
+                radius,
+                bounds;
+                symprec,
             )
 
             n_equiv = Int(ref["n_equivalences"])
@@ -439,7 +462,7 @@ function compare_simple_interpolation()
         n_equiv = Int(ref["n_equivalences"])
 
         # Reconstruct equivalences from saved arrays
-        equivalences = [ref["equiv_$i"] for i in 0:(n_equiv-1)]
+        equivalences = [ref["equiv_$i"] for i = 0:(n_equiv-1)]
 
         @testset "compute_phase_factors" begin
             if !@isdefined(BoltzTraP) || !isdefined(BoltzTraP, :compute_phase_factors)
@@ -469,7 +492,7 @@ function compare_si_interpolation()
         n_equiv = Int(ref["n_equivalences"])
 
         # Reconstruct equivalences from saved arrays
-        equivalences = [ref["equiv_$i"] for i in 0:(n_equiv-1)]
+        equivalences = [ref["equiv_$i"] for i = 0:(n_equiv-1)]
 
         @testset "compute_phase_factors" begin
             if !@isdefined(BoltzTraP) || !isdefined(BoltzTraP, :compute_phase_factors)
@@ -505,7 +528,8 @@ function compare_si_interpolation()
 
             # Use getBands for reconstruction at original k-points
             if isdefined(BoltzTraP, :getBands)
-                ebands_recon, vbands = BoltzTraP.getBands(kpoints, equivalences, lattvec, coeffs)
+                ebands_recon, vbands =
+                    BoltzTraP.getBands(kpoints, equivalences, lattvec, coeffs)
                 # Reconstruction should match original bands very closely
                 @test ebands_recon ≈ ebands rtol=1e-10 atol=1e-10
             else
@@ -662,7 +686,7 @@ function compare_simple_transport()
                 return
             end
 
-            epsilon, dos, vvdos = BoltzTraP.BTPDOS(eband, vvband; npts=100)
+            epsilon, dos, vvdos = BoltzTraP.BTPDOS(eband, vvband; npts = 100)
 
             # Check shapes
             @test length(epsilon) == length(ref["epsilon"])
@@ -685,7 +709,12 @@ function compare_simple_transport()
             vvdos = ref["vvdos"]
 
             N, L0, L1, L2 = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             @test size(L0) == size(ref["L0"])
@@ -796,19 +825,20 @@ function compare_si_end2end()
             @test data.kpoints ≈ ref["kpoints"]' rtol=1e-10
             # Convert Python Ha to eV for comparison
             # Note: rtol=1e-6 accounts for VASP parser precision differences
-            @test data.ebands[:,:,1] ≈ ref["ebands"] * Ha_to_eV rtol=1e-6
+            @test data.ebands[:, :, 1] ≈ ref["ebands"] * Ha_to_eV rtol=1e-6
         end
 
         @testset "run_interpolate" begin
             # Run with same nkpt_target as Python
             # Python got 5586 equivalences with nkpt_target=5000
-            result = BoltzTraP.run_interpolate(si_path; kpoints=5000)
+            result = BoltzTraP.run_interpolate(si_path; kpoints = 5000)
 
             # Check equivalence count matches
             @test length(result.equivalences) == Int(ref["n_equivalences"])
 
             # Check coefficient dimensions
-            @test size(result.coeffs) == (size(ref["coeffs_real"], 1), size(ref["coeffs_real"], 2))
+            @test size(result.coeffs) ==
+                  (size(ref["coeffs_real"], 1), size(ref["coeffs_real"], 2))
 
             # Note: We don't compare coefficients directly because equivalence
             # ordering may differ between implementations. The reconstruction
@@ -816,12 +846,12 @@ function compare_si_end2end()
         end
 
         @testset "equivalence classes as sets" begin
-            result = BoltzTraP.run_interpolate(si_path; kpoints=5000)
+            result = BoltzTraP.run_interpolate(si_path; kpoints = 5000)
 
             # Convert Julia equivalences to set of sets
             julia_classes = Set{Set{NTuple{3,Int}}}()
             for eq in result.equivalences
-                class_set = Set(Tuple(eq[i, :]) for i in 1:size(eq, 1))
+                class_set = Set(Tuple(eq[i, :]) for i = 1:size(eq, 1))
                 push!(julia_classes, class_set)
             end
 
@@ -830,7 +860,7 @@ function compare_si_end2end()
             py_reps = ref["equiv_reps"]
             found_classes = Set{Set{NTuple{3,Int}}}()
 
-            for i in 1:size(py_reps, 1)
+            for i = 1:size(py_reps, 1)
                 py_rep = Tuple(Int.(py_reps[i, :]))
                 # Find which Julia class contains this representative
                 for jclass in julia_classes
@@ -847,11 +877,13 @@ function compare_si_end2end()
         end
 
         @testset "reconstruction accuracy" begin
-            result = BoltzTraP.run_interpolate(si_path; kpoints=5000)
+            result = BoltzTraP.run_interpolate(si_path; kpoints = 5000)
 
             # Create interpolator from result
             interp = BoltzTraP.FourierInterpolator(
-                result.coeffs, result.equivalences, result.lattvec
+                result.coeffs,
+                result.equivalences,
+                result.lattvec,
             )
 
             # Reconstruct at original k-points
@@ -916,7 +948,7 @@ function compare_si_integrate_e2e()
 
         # Reconstruct equivalences from reference
         equiv_reps = ref["equiv_reps"]
-        equivalences = [reshape(equiv_reps[i, :], 1, 3) for i in 1:n_equiv]
+        equivalences = [reshape(equiv_reps[i, :], 1, 3) for i = 1:n_equiv]
 
         # Note: getBTPbands test is skipped here because:
         # 1. Reference data only stores equivalence representatives (1 point per class)
@@ -934,7 +966,8 @@ function compare_si_integrate_e2e()
             eband_ref = ref["eband"]
             vvband_ref = ref["vvband"]
 
-            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+            epsilon_julia, dos_julia, vvdos_julia =
+                BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts = 500)
 
             epsilon_ref = ref["epsilon"]
             dos_ref = ref["dos"]
@@ -957,7 +990,12 @@ function compare_si_integrate_e2e()
             vvdos = ref["vvdos"]
 
             N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             L0_ref = ref["L0"]
@@ -969,7 +1007,9 @@ function compare_si_integrate_e2e()
             @test L1_julia ≈ L1_ref rtol=0.01
             @test L2_julia ≈ L2_ref rtol=0.01
 
-            println("  fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+            println(
+                "  fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))",
+            )
         end
 
         @testset "calc_onsager_coefficients" begin
@@ -982,9 +1022,8 @@ function compare_si_integrate_e2e()
             L1 = ref["L1"]
             L2 = ref["L2"]
 
-            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
-                L0, L1, L2, Tr, vuc
-            )
+            sigma_julia, S_julia, kappa_julia =
+                BoltzTraP.calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
             sigma_ref = ref["sigma"]
             S_ref = ref["S"]
@@ -999,7 +1038,9 @@ function compare_si_integrate_e2e()
             # Sample value at T=300K (index 2), mid-mu
             iT = 2
             imu = size(sigma_julia, 2) ÷ 2
-            println("  sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+            println(
+                "  sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])",
+            )
         end
 
         @testset "solve_for_mu" begin
@@ -1015,15 +1056,22 @@ function compare_si_integrate_e2e()
 
             for (iT, T) in enumerate(Tr)
                 mu0_julia = BoltzTraP.solve_for_mu(
-                    epsilon, dos, nelect, T;
-                    dosweight=dosweight, refine=true, try_center=true
+                    epsilon,
+                    dos,
+                    nelect,
+                    T;
+                    dosweight = dosweight,
+                    refine = true,
+                    try_center = true,
                 )
 
                 # Allow 1 histogram bin difference
                 de = epsilon[2] - epsilon[1]
                 @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
 
-                println("  T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+                println(
+                    "  T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))",
+                )
             end
         end
     end
@@ -1070,7 +1118,8 @@ function compare_qe_si_integrate_e2e()
             eband_ref = ref["eband"]
             vvband_ref = ref["vvband"]
 
-            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+            epsilon_julia, dos_julia, vvdos_julia =
+                BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts = 500)
 
             epsilon_ref = ref["epsilon"]
             dos_ref = ref["dos"]
@@ -1093,7 +1142,12 @@ function compare_qe_si_integrate_e2e()
             vvdos = ref["vvdos"]
 
             N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             L0_ref = ref["L0"]
@@ -1105,7 +1159,9 @@ function compare_qe_si_integrate_e2e()
             @test L1_julia ≈ L1_ref rtol=0.01
             @test L2_julia ≈ L2_ref rtol=0.01
 
-            println("  QE Si fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+            println(
+                "  QE Si fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))",
+            )
         end
 
         @testset "calc_onsager_coefficients" begin
@@ -1113,9 +1169,8 @@ function compare_qe_si_integrate_e2e()
             L1 = ref["L1"]
             L2 = ref["L2"]
 
-            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
-                L0, L1, L2, Tr, vuc
-            )
+            sigma_julia, S_julia, kappa_julia =
+                BoltzTraP.calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
             sigma_ref = ref["sigma"]
             S_ref = ref["S"]
@@ -1130,7 +1185,9 @@ function compare_qe_si_integrate_e2e()
             # Sample value at T=300K (index 2), mid-mu
             iT = 2
             imu = size(sigma_julia, 2) ÷ 2
-            println("  QE Si sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+            println(
+                "  QE Si sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])",
+            )
         end
 
         @testset "solve_for_mu" begin
@@ -1146,15 +1203,22 @@ function compare_qe_si_integrate_e2e()
 
             for (iT, T) in enumerate(Tr)
                 mu0_julia = BoltzTraP.solve_for_mu(
-                    epsilon, dos, nelect, T;
-                    dosweight=dosweight, refine=true, try_center=true
+                    epsilon,
+                    dos,
+                    nelect,
+                    T;
+                    dosweight = dosweight,
+                    refine = true,
+                    try_center = true,
                 )
 
                 # Allow 1 histogram bin difference
                 de = epsilon[2] - epsilon[1]
                 @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
 
-                println("  QE Si T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+                println(
+                    "  QE Si T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))",
+                )
             end
         end
     end
@@ -1201,7 +1265,8 @@ function compare_wien2k_si_integrate_e2e()
             eband_ref = ref["eband"]
             vvband_ref = ref["vvband"]
 
-            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+            epsilon_julia, dos_julia, vvdos_julia =
+                BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts = 500)
 
             epsilon_ref = ref["epsilon"]
             dos_ref = ref["dos"]
@@ -1224,7 +1289,12 @@ function compare_wien2k_si_integrate_e2e()
             vvdos = ref["vvdos"]
 
             N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             L0_ref = ref["L0"]
@@ -1236,7 +1306,9 @@ function compare_wien2k_si_integrate_e2e()
             @test L1_julia ≈ L1_ref rtol=0.01
             @test L2_julia ≈ L2_ref rtol=0.01
 
-            println("  Wien2k Si fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+            println(
+                "  Wien2k Si fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))",
+            )
         end
 
         @testset "calc_onsager_coefficients" begin
@@ -1244,9 +1316,8 @@ function compare_wien2k_si_integrate_e2e()
             L1 = ref["L1"]
             L2 = ref["L2"]
 
-            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
-                L0, L1, L2, Tr, vuc
-            )
+            sigma_julia, S_julia, kappa_julia =
+                BoltzTraP.calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
             sigma_ref = ref["sigma"]
             S_ref = ref["S"]
@@ -1261,7 +1332,9 @@ function compare_wien2k_si_integrate_e2e()
             # Sample value at T=300K (index 2), mid-mu
             iT = 2
             imu = size(sigma_julia, 2) ÷ 2
-            println("  Wien2k Si sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+            println(
+                "  Wien2k Si sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])",
+            )
         end
 
         @testset "solve_for_mu" begin
@@ -1277,15 +1350,22 @@ function compare_wien2k_si_integrate_e2e()
 
             for (iT, T) in enumerate(Tr)
                 mu0_julia = BoltzTraP.solve_for_mu(
-                    epsilon, dos, nelect, T;
-                    dosweight=dosweight, refine=true, try_center=true
+                    epsilon,
+                    dos,
+                    nelect,
+                    T;
+                    dosweight = dosweight,
+                    refine = true,
+                    try_center = true,
                 )
 
                 # Allow 1 histogram bin difference
                 de = epsilon[2] - epsilon[1]
                 @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
 
-                println("  Wien2k Si T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+                println(
+                    "  Wien2k Si T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))",
+                )
             end
         end
     end
@@ -1332,7 +1412,8 @@ function compare_abinit_si_integrate_e2e()
             eband_ref = ref["eband"]
             vvband_ref = ref["vvband"]
 
-            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+            epsilon_julia, dos_julia, vvdos_julia =
+                BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts = 500)
 
             epsilon_ref = ref["epsilon"]
             dos_ref = ref["dos"]
@@ -1355,7 +1436,12 @@ function compare_abinit_si_integrate_e2e()
             vvdos = ref["vvdos"]
 
             N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             L0_ref = ref["L0"]
@@ -1367,7 +1453,9 @@ function compare_abinit_si_integrate_e2e()
             @test L1_julia ≈ L1_ref rtol=0.01
             @test L2_julia ≈ L2_ref rtol=0.01
 
-            println("  ABINIT Si fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+            println(
+                "  ABINIT Si fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))",
+            )
         end
 
         @testset "calc_onsager_coefficients" begin
@@ -1375,9 +1463,8 @@ function compare_abinit_si_integrate_e2e()
             L1 = ref["L1"]
             L2 = ref["L2"]
 
-            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
-                L0, L1, L2, Tr, vuc
-            )
+            sigma_julia, S_julia, kappa_julia =
+                BoltzTraP.calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
             sigma_ref = ref["sigma"]
             S_ref = ref["S"]
@@ -1392,7 +1479,9 @@ function compare_abinit_si_integrate_e2e()
             # Sample value at T=300K (index 2), mid-mu
             iT = 2
             imu = size(sigma_julia, 2) ÷ 2
-            println("  ABINIT Si sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+            println(
+                "  ABINIT Si sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])",
+            )
         end
 
         @testset "solve_for_mu" begin
@@ -1408,15 +1497,22 @@ function compare_abinit_si_integrate_e2e()
 
             for (iT, T) in enumerate(Tr)
                 mu0_julia = BoltzTraP.solve_for_mu(
-                    epsilon, dos, nelect, T;
-                    dosweight=dosweight, refine=true, try_center=true
+                    epsilon,
+                    dos,
+                    nelect,
+                    T;
+                    dosweight = dosweight,
+                    refine = true,
+                    try_center = true,
                 )
 
                 # Allow 1 histogram bin difference
                 de = epsilon[2] - epsilon[1]
                 @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
 
-                println("  ABINIT Si T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+                println(
+                    "  ABINIT Si T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))",
+                )
             end
         end
     end
@@ -1461,7 +1557,8 @@ function compare_pbte_integrate_e2e()
             eband_ref = ref["eband"]
             vvband_ref = ref["vvband"]
 
-            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+            epsilon_julia, dos_julia, vvdos_julia =
+                BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts = 500)
 
             epsilon_ref = ref["epsilon"]
             dos_ref = ref["dos"]
@@ -1482,7 +1579,12 @@ function compare_pbte_integrate_e2e()
             vvdos = ref["vvdos"]
 
             N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             L0_ref = ref["L0"]
@@ -1494,7 +1596,9 @@ function compare_pbte_integrate_e2e()
             @test L1_julia ≈ L1_ref rtol=0.01
             @test L2_julia ≈ L2_ref rtol=0.01
 
-            println("  PbTe fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+            println(
+                "  PbTe fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))",
+            )
         end
 
         @testset "calc_onsager_coefficients" begin
@@ -1502,9 +1606,8 @@ function compare_pbte_integrate_e2e()
             L1 = ref["L1"]
             L2 = ref["L2"]
 
-            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
-                L0, L1, L2, Tr, vuc
-            )
+            sigma_julia, S_julia, kappa_julia =
+                BoltzTraP.calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
             sigma_ref = ref["sigma"]
             S_ref = ref["S"]
@@ -1517,7 +1620,9 @@ function compare_pbte_integrate_e2e()
 
             iT = 2
             imu = size(sigma_julia, 2) ÷ 2
-            println("  PbTe sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+            println(
+                "  PbTe sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])",
+            )
         end
 
         @testset "solve_for_mu" begin
@@ -1533,14 +1638,21 @@ function compare_pbte_integrate_e2e()
 
             for (iT, T) in enumerate(Tr)
                 mu0_julia = BoltzTraP.solve_for_mu(
-                    epsilon, dos, nelect, T;
-                    dosweight=dosweight, refine=true, try_center=true
+                    epsilon,
+                    dos,
+                    nelect,
+                    T;
+                    dosweight = dosweight,
+                    refine = true,
+                    try_center = true,
                 )
 
                 de = epsilon[2] - epsilon[1]
                 @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
 
-                println("  PbTe T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+                println(
+                    "  PbTe T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))",
+                )
             end
         end
     end
@@ -1585,7 +1697,8 @@ function compare_li_integrate_e2e()
             eband_ref = ref["eband"]
             vvband_ref = ref["vvband"]
 
-            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+            epsilon_julia, dos_julia, vvdos_julia =
+                BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts = 500)
 
             epsilon_ref = ref["epsilon"]
             dos_ref = ref["dos"]
@@ -1606,7 +1719,12 @@ function compare_li_integrate_e2e()
             vvdos = ref["vvdos"]
 
             N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             L0_ref = ref["L0"]
@@ -1618,7 +1736,9 @@ function compare_li_integrate_e2e()
             @test L1_julia ≈ L1_ref rtol=0.01
             @test L2_julia ≈ L2_ref rtol=0.01
 
-            println("  Li VASP fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+            println(
+                "  Li VASP fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))",
+            )
         end
 
         @testset "calc_onsager_coefficients" begin
@@ -1626,9 +1746,8 @@ function compare_li_integrate_e2e()
             L1 = ref["L1"]
             L2 = ref["L2"]
 
-            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
-                L0, L1, L2, Tr, vuc
-            )
+            sigma_julia, S_julia, kappa_julia =
+                BoltzTraP.calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
             sigma_ref = ref["sigma"]
             S_ref = ref["S"]
@@ -1641,7 +1760,9 @@ function compare_li_integrate_e2e()
 
             iT = 2
             imu = size(sigma_julia, 2) ÷ 2
-            println("  Li VASP sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+            println(
+                "  Li VASP sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])",
+            )
         end
 
         @testset "solve_for_mu" begin
@@ -1657,14 +1778,21 @@ function compare_li_integrate_e2e()
 
             for (iT, T) in enumerate(Tr)
                 mu0_julia = BoltzTraP.solve_for_mu(
-                    epsilon, dos, nelect, T;
-                    dosweight=dosweight, refine=true, try_center=true
+                    epsilon,
+                    dos,
+                    nelect,
+                    T;
+                    dosweight = dosweight,
+                    refine = true,
+                    try_center = true,
                 )
 
                 de = epsilon[2] - epsilon[1]
                 @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
 
-                println("  Li VASP T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+                println(
+                    "  Li VASP T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))",
+                )
             end
         end
     end
@@ -1709,7 +1837,8 @@ function compare_gene_li_integrate_e2e()
             eband_ref = ref["eband"]
             vvband_ref = ref["vvband"]
 
-            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+            epsilon_julia, dos_julia, vvdos_julia =
+                BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts = 500)
 
             epsilon_ref = ref["epsilon"]
             dos_ref = ref["dos"]
@@ -1730,7 +1859,12 @@ function compare_gene_li_integrate_e2e()
             vvdos = ref["vvdos"]
 
             N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             L0_ref = ref["L0"]
@@ -1742,7 +1876,9 @@ function compare_gene_li_integrate_e2e()
             @test L1_julia ≈ L1_ref rtol=0.01
             @test L2_julia ≈ L2_ref rtol=0.01
 
-            println("  Li GENE fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+            println(
+                "  Li GENE fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))",
+            )
         end
 
         @testset "calc_onsager_coefficients" begin
@@ -1750,9 +1886,8 @@ function compare_gene_li_integrate_e2e()
             L1 = ref["L1"]
             L2 = ref["L2"]
 
-            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
-                L0, L1, L2, Tr, vuc
-            )
+            sigma_julia, S_julia, kappa_julia =
+                BoltzTraP.calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
             sigma_ref = ref["sigma"]
             S_ref = ref["S"]
@@ -1765,7 +1900,9 @@ function compare_gene_li_integrate_e2e()
 
             iT = 2
             imu = size(sigma_julia, 2) ÷ 2
-            println("  Li GENE sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+            println(
+                "  Li GENE sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])",
+            )
         end
 
         @testset "solve_for_mu" begin
@@ -1786,14 +1923,21 @@ function compare_gene_li_integrate_e2e()
 
             for (iT, T) in enumerate(Tr)
                 mu0_julia = BoltzTraP.solve_for_mu(
-                    epsilon, dos, nelect, T;
-                    dosweight=dosweight, refine=true, try_center=true
+                    epsilon,
+                    dos,
+                    nelect,
+                    T;
+                    dosweight = dosweight,
+                    refine = true,
+                    try_center = true,
                 )
 
                 de = epsilon[2] - epsilon[1]
                 @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
 
-                println("  Li GENE T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+                println(
+                    "  Li GENE T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))",
+                )
             end
         end
     end
@@ -1838,7 +1982,8 @@ function compare_cosb3_integrate_e2e()
             eband_ref = ref["eband"]
             vvband_ref = ref["vvband"]
 
-            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+            epsilon_julia, dos_julia, vvdos_julia =
+                BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts = 500)
 
             epsilon_ref = ref["epsilon"]
             dos_ref = ref["dos"]
@@ -1859,7 +2004,12 @@ function compare_cosb3_integrate_e2e()
             vvdos = ref["vvdos"]
 
             N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             L0_ref = ref["L0"]
@@ -1871,7 +2021,9 @@ function compare_cosb3_integrate_e2e()
             @test L1_julia ≈ L1_ref rtol=0.01
             @test L2_julia ≈ L2_ref rtol=0.01
 
-            println("  CoSb3 fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+            println(
+                "  CoSb3 fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))",
+            )
         end
 
         @testset "calc_onsager_coefficients" begin
@@ -1879,9 +2031,8 @@ function compare_cosb3_integrate_e2e()
             L1 = ref["L1"]
             L2 = ref["L2"]
 
-            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
-                L0, L1, L2, Tr, vuc
-            )
+            sigma_julia, S_julia, kappa_julia =
+                BoltzTraP.calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
             sigma_ref = ref["sigma"]
             S_ref = ref["S"]
@@ -1894,7 +2045,9 @@ function compare_cosb3_integrate_e2e()
 
             iT = 2
             imu = size(sigma_julia, 2) ÷ 2
-            println("  CoSb3 sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+            println(
+                "  CoSb3 sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])",
+            )
         end
 
         @testset "solve_for_mu" begin
@@ -1910,14 +2063,21 @@ function compare_cosb3_integrate_e2e()
 
             for (iT, T) in enumerate(Tr)
                 mu0_julia = BoltzTraP.solve_for_mu(
-                    epsilon, dos, nelect, T;
-                    dosweight=dosweight, refine=true, try_center=true
+                    epsilon,
+                    dos,
+                    nelect,
+                    T;
+                    dosweight = dosweight,
+                    refine = true,
+                    try_center = true,
                 )
 
                 de = epsilon[2] - epsilon[1]
                 @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
 
-                println("  CoSb3 T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+                println(
+                    "  CoSb3 T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))",
+                )
             end
         end
     end
@@ -1962,7 +2122,8 @@ function compare_bi2te3_integrate_e2e()
             eband_ref = ref["eband"]
             vvband_ref = ref["vvband"]
 
-            epsilon_julia, dos_julia, vvdos_julia = BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts=500)
+            epsilon_julia, dos_julia, vvdos_julia =
+                BoltzTraP.BTPDOS(eband_ref, vvband_ref; npts = 500)
 
             epsilon_ref = ref["epsilon"]
             dos_ref = ref["dos"]
@@ -1983,7 +2144,12 @@ function compare_bi2te3_integrate_e2e()
             vvdos = ref["vvdos"]
 
             N_julia, L0_julia, L1_julia, L2_julia = BoltzTraP.fermi_integrals(
-                epsilon, dos, vvdos, mur, Tr; dosweight=dosweight
+                epsilon,
+                dos,
+                vvdos,
+                mur,
+                Tr;
+                dosweight = dosweight,
             )
 
             L0_ref = ref["L0"]
@@ -1995,7 +2161,9 @@ function compare_bi2te3_integrate_e2e()
             @test L1_julia ≈ L1_ref rtol=0.01
             @test L2_julia ≈ L2_ref rtol=0.01
 
-            println("  Bi2Te3 fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))")
+            println(
+                "  Bi2Te3 fermi_integrals: L0 max rel diff = $(maximum(abs.(L0_julia - L0_ref) ./ max.(abs.(L0_ref), 1e-20)))",
+            )
         end
 
         @testset "calc_onsager_coefficients" begin
@@ -2003,9 +2171,8 @@ function compare_bi2te3_integrate_e2e()
             L1 = ref["L1"]
             L2 = ref["L2"]
 
-            sigma_julia, S_julia, kappa_julia = BoltzTraP.calc_onsager_coefficients(
-                L0, L1, L2, Tr, vuc
-            )
+            sigma_julia, S_julia, kappa_julia =
+                BoltzTraP.calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
             sigma_ref = ref["sigma"]
             S_ref = ref["S"]
@@ -2018,7 +2185,9 @@ function compare_bi2te3_integrate_e2e()
 
             iT = 2
             imu = size(sigma_julia, 2) ÷ 2
-            println("  Bi2Te3 sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])")
+            println(
+                "  Bi2Te3 sigma_xx at T=$(Tr[iT])K: Julia=$(sigma_julia[iT, imu, 1, 1]), Ref=$(sigma_ref[iT, imu, 1, 1])",
+            )
         end
 
         @testset "solve_for_mu" begin
@@ -2034,14 +2203,21 @@ function compare_bi2te3_integrate_e2e()
 
             for (iT, T) in enumerate(Tr)
                 mu0_julia = BoltzTraP.solve_for_mu(
-                    epsilon, dos, nelect, T;
-                    dosweight=dosweight, refine=true, try_center=true
+                    epsilon,
+                    dos,
+                    nelect,
+                    T;
+                    dosweight = dosweight,
+                    refine = true,
+                    try_center = true,
                 )
 
                 de = epsilon[2] - epsilon[1]
                 @test abs(mu0_julia - mu0_ref[iT]) < 2 * de
 
-                println("  Bi2Te3 T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))")
+                println(
+                    "  Bi2Te3 T=$(T)K: mu0 Julia=$(round(mu0_julia, digits=6)), Ref=$(round(mu0_ref[iT], digits=6))",
+                )
             end
         end
     end

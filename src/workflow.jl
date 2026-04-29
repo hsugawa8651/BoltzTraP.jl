@@ -124,11 +124,13 @@ Spin channels are concatenated following Python BoltzTraP2 convention:
 `(2*nbands, nkpts)` before interpolation.
 
 # Arguments
-- `data`: [`DFTData{2}`](@ref) from loaders with spin-polarized data
+
+  - `data`: [`DFTData{2}`](@ref) from loaders with spin-polarized data
 
 See `run_interpolate(::NamedTuple; kwargs...)` for keyword arguments.
 
 # Returns
+
 [`InterpolationResult`](@ref) with `metadata["spintype"] = "Collinear"` and
 `metadata["dosweight"] = 1.0`.
 """
@@ -192,7 +194,7 @@ function run_interpolate(data::DFTData{N}; kwargs...) where {N}
     if N > 2
         error(
             "Non-collinear calculations (nspin=$N) are not supported.\n" *
-            "Only DFTData{1} (unpolarized) and DFTData{2} (collinear) are supported."
+            "Only DFTData{1} (unpolarized) and DFTData{2} (collinear) are supported.",
         )
     end
     # This should not be reached for N=1 or N=2
@@ -292,9 +294,8 @@ function run_interpolate(
 
     # 4. Compute equivalences
     verbose && println("Computing equivalences for ~$nkpt_target k-points...")
-    equivalences, radius, nrot = get_equivalences(
-        lattvec, positions', types, magmom, nkpt_target; symprec
-    )
+    equivalences, radius, nrot =
+        get_equivalences(lattvec, positions', types, magmom, nkpt_target; symprec)
     verbose && println("  Rotations: $nrot")
     verbose && println("  Radius: $(round(radius, digits=2))")
     verbose && println("  Equivalences: $(length(equivalences))")

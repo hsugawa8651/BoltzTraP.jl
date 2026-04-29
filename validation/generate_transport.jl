@@ -20,10 +20,8 @@ using BoltzTraP
 
 # Material configurations
 const MATERIALS = Dict(
-    "si" => (
-        input = "reftest/data/vasp_si.npz",
-        reference = "reftest/data/si_end2end.npz",
-    ),
+    "si" =>
+        (input = "reftest/data/vasp_si.npz", reference = "reftest/data/si_end2end.npz"),
     "pbte" => (
         input = "reftest/data/vasp_pbte.npz",
         reference = "reftest/data/pbte_end2end.npz",
@@ -66,7 +64,7 @@ function load_python_params(reference_file)
     )
 end
 
-function generate_transport(material; kpoints=5000, verbose=true)
+function generate_transport(material; kpoints = 5000, verbose = true)
     """Generate Julia transport results using Python's mu range."""
     if !haskey(MATERIALS, material)
         error("Unknown material: $material. Available: $(keys(MATERIALS))")
@@ -97,8 +95,12 @@ function generate_transport(material; kpoints=5000, verbose=true)
     py_params = load_python_params(config.reference)
     println("  mur points: $(length(py_params.mur))")
     println("  mur range (Ha): $(minimum(py_params.mur)) to $(maximum(py_params.mur))")
-    println("  mur - fermi range (Ha): $(minimum(py_params.mur) - py_params.fermi) to $(maximum(py_params.mur) - py_params.fermi)")
-    println("  mur range (eV): $(minimum(py_params.mur) * HA_TO_EV) to $(maximum(py_params.mur) * HA_TO_EV)")
+    println(
+        "  mur - fermi range (Ha): $(minimum(py_params.mur) - py_params.fermi) to $(maximum(py_params.mur) - py_params.fermi)",
+    )
+    println(
+        "  mur range (eV): $(minimum(py_params.mur) * HA_TO_EV) to $(maximum(py_params.mur) * HA_TO_EV)",
+    )
     println("  temperatures: $(py_params.Tr) K")
 
     # mur is already in Hartree (run_integrate expects Ha)
@@ -106,14 +108,17 @@ function generate_transport(material; kpoints=5000, verbose=true)
 
     # Run interpolation
     println("\nRunning interpolation (kpoints=$kpoints)...")
-    interp = run_interpolate(dft_data; source="VASP", kpoints=kpoints, verbose=verbose)
+    interp =
+        run_interpolate(dft_data; source = "VASP", kpoints = kpoints, verbose = verbose)
     println("  Done. Equivalences: $(length(interp.equivalences))")
 
     # Run integration with Python's mur (in Ha)
     println("\nRunning integration with Python's mur...")
-    transport = run_integrate(interp, mur_Ha;
-        temperatures=collect(Float64, py_params.Tr),
-        verbose=verbose
+    transport = run_integrate(
+        interp,
+        mur_Ha;
+        temperatures = collect(Float64, py_params.Tr),
+        verbose = verbose,
     )
     println("  Done.")
 
@@ -127,7 +132,9 @@ function generate_transport(material; kpoints=5000, verbose=true)
     println("\n" * "=" ^ 60)
     println("Summary for $material:")
     println("  mu points: $(length(transport.mu_values))")
-    println("  mu range (eV): $(minimum(transport.mu_values)) to $(maximum(transport.mu_values))")
+    println(
+        "  mu range (eV): $(minimum(transport.mu_values)) to $(maximum(transport.mu_values))",
+    )
     println("  temperatures: $(transport.temperatures) K")
     println("  output: $output_file")
     println("=" ^ 60)
@@ -197,11 +204,11 @@ function main()
 
     if args.material == "all"
         for mat in sort(collect(keys(MATERIALS)))
-            generate_transport(mat; kpoints=args.kpoints, verbose=args.verbose)
+            generate_transport(mat; kpoints = args.kpoints, verbose = args.verbose)
             println()
         end
     else
-        generate_transport(args.material; kpoints=args.kpoints, verbose=args.verbose)
+        generate_transport(args.material; kpoints = args.kpoints, verbose = args.verbose)
     end
 end
 

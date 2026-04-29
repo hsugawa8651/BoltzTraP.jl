@@ -3,7 +3,9 @@
 # Part of BoltzTraP.jl - Fallback errors
 
 function savefig_publication(args...; kwargs...)
-    throw(ArgumentError(
-        "savefig_publication requires PythonPlot.jl. Run `using PythonPlot` first."
-    ))
+    throw(
+        ArgumentError(
+            "savefig_publication requires PythonPlot.jl. Run `using PythonPlot` first.",
+        ),
+    )
 end

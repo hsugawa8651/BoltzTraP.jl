@@ -232,9 +232,14 @@ end
 
     @testset "GENE loader" begin
         test_cases = [
-        # (npz_file, data_dir, description, is_spin_polarized)
+            # (npz_file, data_dir, description, is_spin_polarized)
             ("gene_si.npz", "Si.GENE", "Si - non-magnetic semiconductor", false),
-            ("gene_li.npz", "Li.GENE.fromvasp", "Li - BCC metal (GENE has no spin info)", false),
+            (
+                "gene_li.npz",
+                "Li.GENE.fromvasp",
+                "Li - BCC metal (GENE has no spin info)",
+                false,
+            ),
         ]
 
         for (npz_file, data_dir, description, is_spin) in test_cases
@@ -543,32 +548,69 @@ end
                         NCDatasets.defDim(ds, "number_of_atom_species", 1)
                         NCDatasets.defDim(ds, "symbol_length", 80)
 
-                        lat_var = NCDatasets.defVar(ds, "primitive_vectors", Float64,
-                            ("number_of_cartesian_directions", "number_of_reduced_dimensions"))
+                        lat_var = NCDatasets.defVar(
+                            ds,
+                            "primitive_vectors",
+                            Float64,
+                            (
+                                "number_of_cartesian_directions",
+                                "number_of_reduced_dimensions",
+                            ),
+                        )
                         lat_var[:, :] = lattice
 
-                        pos_var = NCDatasets.defVar(ds, "reduced_atom_positions", Float64,
-                            ("three", "number_of_atoms"))
+                        pos_var = NCDatasets.defVar(
+                            ds,
+                            "reduced_atom_positions",
+                            Float64,
+                            ("three", "number_of_atoms"),
+                        )
                         pos_var[:, :] = positions
 
-                        species_var = NCDatasets.defVar(ds, "atom_species", Int32, ("number_of_atoms",))
+                        species_var = NCDatasets.defVar(
+                            ds,
+                            "atom_species",
+                            Int32,
+                            ("number_of_atoms",),
+                        )
                         species_var[:] = Int32[1, 1]
 
-                        names_var = NCDatasets.defVar(ds, "atom_species_names", Char,
-                            ("symbol_length", "number_of_atom_species"))
+                        names_var = NCDatasets.defVar(
+                            ds,
+                            "atom_species_names",
+                            Char,
+                            ("symbol_length", "number_of_atom_species"),
+                        )
                         chars = fill('\0', 80)
                         chars[1:2] = ['F', 'e']
                         names_var[:, 1] = chars
 
-                        kpt_var = NCDatasets.defVar(ds, "reduced_coordinates_of_kpoints", Float64,
-                            ("three", "number_of_kpoints"))
+                        kpt_var = NCDatasets.defVar(
+                            ds,
+                            "reduced_coordinates_of_kpoints",
+                            Float64,
+                            ("three", "number_of_kpoints"),
+                        )
                         kpt_var[:, :] = kpoints
 
-                        wt_var = NCDatasets.defVar(ds, "kpoint_weights", Float64, ("number_of_kpoints",))
+                        wt_var = NCDatasets.defVar(
+                            ds,
+                            "kpoint_weights",
+                            Float64,
+                            ("number_of_kpoints",),
+                        )
                         wt_var[:] = [0.5, 0.5]
 
-                        eig_var = NCDatasets.defVar(ds, "eigenvalues", Float64,
-                            ("max_number_of_states", "number_of_kpoints", "number_of_spins"))
+                        eig_var = NCDatasets.defVar(
+                            ds,
+                            "eigenvalues",
+                            Float64,
+                            (
+                                "max_number_of_states",
+                                "number_of_kpoints",
+                                "number_of_spins",
+                            ),
+                        )
                         eig_var[:, :, 1] = ebands
 
                         fermi_var = NCDatasets.defVar(ds, "fermie", Float64, ())
@@ -578,8 +620,12 @@ end
                         nelect_var[] = nelect
 
                         # Add spinat
-                        spinat_var = NCDatasets.defVar(ds, "spinat", Float64,
-                            ("three", "number_of_atoms"))
+                        spinat_var = NCDatasets.defVar(
+                            ds,
+                            "spinat",
+                            Float64,
+                            ("three", "number_of_atoms"),
+                        )
                         spinat_var[:, :] = spinat
                     end
 
@@ -593,5 +639,4 @@ end
             end
         end
     end
-
 end

@@ -17,7 +17,7 @@ println("Data loaded successfully\n")
 # Extract data for benchmarks
 lattvec = si_data["lattvec"]
 n_eq = si_data["n_equivalences"]
-equivalences = [si_data["equiv_$i"] for i in 0:(n_eq-1)]
+equivalences = [si_data["equiv_$i"] for i = 0:(n_eq-1)]
 coeffs = si_data["coeffs"]
 
 # 1. getBTPbands benchmark

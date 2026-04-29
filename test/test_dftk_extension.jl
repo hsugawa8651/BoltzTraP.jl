@@ -71,23 +71,22 @@ end
             a = 5.42  # Bohr (Fe BCC lattice constant)
             lattice = a / 2 * [[-1 1 1]; [1 -1 1]; [1 1 -1]]  # BCC primitive
 
-            Fe = ElementPsp(:Fe; psp=load_psp("hgh/lda/Fe-q8"))
+            Fe = ElementPsp(:Fe; psp = load_psp("hgh/lda/Fe-q8"))
             atoms = [Fe]
             positions = [[0.0, 0.0, 0.0]]
 
             # Collinear magnetic
             magnetic_moments = [4.0]
 
-            model = model_LDA(lattice, atoms, positions;
-                              temperature=0.01,
-                              magnetic_moments)
+            model =
+                model_LDA(lattice, atoms, positions; temperature = 0.01, magnetic_moments)
 
             # Very coarse settings for speed
-            basis = PlaneWaveBasis(model; Ecut=10, kgrid=[2, 2, 2])
+            basis = PlaneWaveBasis(model; Ecut = 10, kgrid = [2, 2, 2])
 
             # Run minimal SCF
             ρ0 = guess_density(basis, magnetic_moments)
-            scfres = self_consistent_field(basis; ρ=ρ0, tol=1e-2, maxiter=50)
+            scfres = self_consistent_field(basis; ρ = ρ0, tol = 1e-2, maxiter = 50)
 
             # Test that load_dftk returns DFTData{2}
             data = load_dftk(scfres)

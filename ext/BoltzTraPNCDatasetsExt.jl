@@ -109,7 +109,7 @@ function BoltzTraP.load_abinit(directory::String)
             occupations = occupations,
             fermi = fermi,
             nelect = nelect,
-            magmom = magmom
+            magmom = magmom,
         )
     end
 end
@@ -139,7 +139,7 @@ Convert a null-padded Char array to a trimmed String.
 function _chars_to_string(chars::AbstractVector{Char})
     # Find first null character or end
     len = length(chars)
-    for i in 1:len
+    for i = 1:len
         if chars[i] == '\0'
             len = i - 1
             break
