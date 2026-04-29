@@ -27,7 +27,7 @@ jobs:
 
       # Python setup with conda (BoltzTraP2 requires spglib C headers)
       - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           auto-activate-base: true
           python-version: '3.12'
