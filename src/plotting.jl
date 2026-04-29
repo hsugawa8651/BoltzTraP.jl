@@ -21,8 +21,24 @@ Plot transport properties. Requires `using Plots`.
 function plot_transport end
 
 """
-    savefig_publication(data, path; kwargs...)
+    savefig_publication(bpd::BandPlotData, path; kwargs...)
+    savefig_publication(bpds::AbstractVector{<:BandPlotData}, path; kwargs...)
+    savefig_publication(tpd::TransportPlotData, path; kwargs...)
+    savefig_publication(tpds::AbstractVector{<:TransportPlotData}, path; kwargs...)
 
-Save publication-quality figure. Requires `using PythonPlot`.
+Save a publication-quality figure via the PythonPlot extension.
+Requires `using PythonPlot` to activate `BoltzTraPPythonPlotExt`.
+
+The output format is inferred from the file extension (`.pdf`, `.png`, `.svg`, ...).
+
+# Keyword arguments
+
+  - `axis_width_cm = 8.0`, `axis_height_cm = 6.0` — Axis size in centimeters.
+  - `ylims = nothing` — Y-axis range (auto if `nothing`; for `BandPlotData` defaults to `(emin, emax)`).
+  - `title = ""` — Plot title (suppressed if empty; falls back to `data.title`).
+  - `layout = (1, length(data))` — Subplot grid for the vector overloads.
+  - `overlay = false` — Plot all `bpds` on a single axis (vector `BandPlotData` overload only).
+
+See also: [`plot_bands`](@ref), [`plot_transport`](@ref).
 """
 function savefig_publication end
