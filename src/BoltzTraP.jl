@@ -61,6 +61,9 @@ include("io/loader.jl")  # Auto-detection (must be after format-specific loaders
 # High-level workflow
 include("workflow.jl")
 
+# Method-dispatched transport API (AbstractBZSampling axis)
+include("solve_transport.jl")
+
 # Plotting types (backend-independent)
 include("plottypes.jl")
 
@@ -99,6 +102,7 @@ include("cli.jl")
 
 # Workflow
 export run_interpolate, run_integrate
+export solve_transport
 
 # Types
 export InterpolationResult, TransportResult

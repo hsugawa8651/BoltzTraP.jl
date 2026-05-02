@@ -103,3 +103,87 @@ end
         @test_throws ErrorException BoltzTraP.TransportSystem(ir)
     end
 end
+
+# Helper: dummy AbstractBZSampling subtype for abstract-type fallback test
+struct _DummyBZSampling <: BoltzTraP.AbstractBZSampling end
+
+@testset "solve_transport dispatch" begin
+    @testset "rejects wrong argument types (::Any fallback)" begin
+        # Build minimal valid interp + sys for the "other two args correct" cases
+        ir = let
+            coeffs = ComplexF64[1.0+0im 2.0+0im; 3.0+0im 4.0+0im]
+            equivs = [reshape([0, 0, 0], 1, 3), reshape([1, 0, 0], 1, 3)]
+            lattvec = 5.0 * Matrix{Float64}(LinearAlgebra.I, 3, 3)
+            metadata = Dict{String,Any}(
+                "fermi" => 0.5,
+                "nelect" => 8.0,
+                "dosweight" => 2.0,
+                "spintype" => "Unpolarized",
+            )
+            BoltzTraP.InterpolationResult(coeffs, equivs, lattvec, nothing, metadata)
+        end
+        fi = BoltzTraP.FourierInterpolator(
+            ir.coeffs,
+            ir.equivalences,
+            SMatrix{3,3,Float64}(ir.lattvec),
+        )
+        sys = BoltzTraP.TransportSystem(ir)
+
+        # Wrong sampling type
+        @test_throws ArgumentError solve_transport("not_sampling", fi, sys)
+        # Wrong interpolator type
+        @test_throws ArgumentError solve_transport(UniformMesh(), "not_interp", sys)
+        # Wrong sys type
+        @test_throws ArgumentError solve_transport(UniformMesh(), fi, "not_sys")
+    end
+
+    @testset "rejects subtype without concrete method (::AbstractBZSampling fallback)" begin
+        ir = let
+            coeffs = ComplexF64[1.0+0im 2.0+0im; 3.0+0im 4.0+0im]
+            equivs = [reshape([0, 0, 0], 1, 3), reshape([1, 0, 0], 1, 3)]
+            lattvec = 5.0 * Matrix{Float64}(LinearAlgebra.I, 3, 3)
+            metadata = Dict{String,Any}(
+                "fermi" => 0.5,
+                "nelect" => 8.0,
+                "dosweight" => 2.0,
+                "spintype" => "Unpolarized",
+            )
+            BoltzTraP.InterpolationResult(coeffs, equivs, lattvec, nothing, metadata)
+        end
+        fi = BoltzTraP.FourierInterpolator(
+            ir.coeffs,
+            ir.equivalences,
+            SMatrix{3,3,Float64}(ir.lattvec),
+        )
+        sys = BoltzTraP.TransportSystem(ir)
+
+        # _DummyBZSampling has no concrete solve_transport method, falls to
+        # the abstract-type fallback that throws ErrorException.
+        @test_throws ErrorException solve_transport(_DummyBZSampling(), fi, sys)
+    end
+
+    @testset "concrete UniformMesh + FourierInterpolator on Si VASP" begin
+        datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
+        if isdir(datadir) && isfile(joinpath(datadir, "vasprun.xml"))
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            sys = BoltzTraP.TransportSystem(ir)
+            fi = BoltzTraP.FourierInterpolator(
+                ir.coeffs,
+                ir.equivalences,
+                SMatrix{3,3,Float64}(ir.lattvec),
+            )
+            result = solve_transport(UniformMesh(), fi, sys; temperatures = [300.0])
+
+            @test result isa TransportResult
+            @test size(result.sigma, 1) == 3
+            @test size(result.sigma, 2) == 3
+            @test size(result.sigma, 3) == 1   # 1 temperature
+            @test size(result.sigma, 4) == length(result.mu_values)
+            @test !any(isnan, result.sigma)
+            @test !any(isnan, result.seebeck)
+            @test !any(isnan, result.kappa)
+        else
+            @warn "Skipping solve_transport Si VASP integration test: data not found at $datadir"
+        end
+    end
+end
