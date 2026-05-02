@@ -105,7 +105,7 @@ export InterpolationResult, TransportResult
 export DFTData, NonMagneticData, SpinPolarizedData, nspin, is_magnetic
 
 # BZ sampling
-export AbstractBZSampling, UniformMesh
+export AbstractBZSampling, UniformMesh, TransportSystem
 
 # Spin types (v0.3 magnetic support)
 export SpinType, Unpolarized, Collinear, NonCollinear

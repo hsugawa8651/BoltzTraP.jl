@@ -74,6 +74,34 @@ function InterpolationResult(
 end
 
 """
+    TransportSystem(interp::InterpolationResult) -> TransportSystem
+
+Build a [`TransportSystem`](@ref) from an `InterpolationResult`, extracting
+lattice (Bohr), Fermi energy (Ha), electron count, DOS weight, and spin type
+from the standard metadata keys.
+
+Required metadata keys: `"fermi"` (Ha), `"nelect"`, `"dosweight"`,
+`"spintype"` (`"Unpolarized"` / `"Collinear"` / `"NonCollinear"`).
+"""
+function TransportSystem(interp::InterpolationResult)
+    lat = SMatrix{3,3,Float64}(interp.lattvec)
+    fermi = interp.metadata["fermi"]
+    nelect = interp.metadata["nelect"]
+    dosweight = interp.metadata["dosweight"]
+    spintype_str = interp.metadata["spintype"]
+    spintype = if spintype_str == "Unpolarized"
+        Unpolarized()
+    elseif spintype_str == "Collinear"
+        Collinear()
+    elseif spintype_str == "NonCollinear"
+        NonCollinear()
+    else
+        error("TransportSystem: unknown spintype \"$spintype_str\" in metadata")
+    end
+    return TransportSystem(lat, fermi, nelect, dosweight, spintype)
+end
+
+"""
     TransportResult
 
 Container for transport coefficients from [`run_integrate`](@ref).

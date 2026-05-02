@@ -31,3 +31,31 @@ struct UniformMesh <: AbstractBZSampling
 end
 
 UniformMesh() = UniformMesh(nothing)
+
+#=
+    TransportSystem(lattice, fermi, nelect, dosweight, spintype)
+    TransportSystem(interp::InterpolationResult)
+
+System-level constants needed for transport calculations: lattice, Fermi
+energy, electron count, DOS weight, and spin type. These quantities are
+conventionally spread across `InterpolationResult.metadata` and the
+underlying band data; this struct unifies them as a single, dispatched
+data carrier for the new `solve_transport` API.
+
+Fields:
+- `lattice::SMatrix{3,3,Float64,9}`: 3×3 lattice vectors (columns) in Bohr
+- `fermi::Float64`: Fermi energy in Hartree
+- `nelect::Float64`: number of electrons per unit cell
+- `dosweight::Float64`: DOS weight (2.0 = non-magnetic, 1.0 = spin-polarized)
+- `spintype::SpinType`: `Unpolarized()` / `Collinear()` / `NonCollinear()`
+
+The `TransportSystem(::InterpolationResult)` constructor is defined in
+`io/serialization.jl` (after `InterpolationResult` itself is defined).
+=#
+struct TransportSystem
+    lattice::SMatrix{3,3,Float64,9}
+    fermi::Float64
+    nelect::Float64
+    dosweight::Float64
+    spintype::SpinType
+end

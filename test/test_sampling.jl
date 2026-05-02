@@ -46,3 +46,60 @@ struct _DummySubtypeInterp <: BoltzTraP.AbstractInterpolator end
         )
     end
 end
+
+@testset "TransportSystem" begin
+    # Synthetic InterpolationResult helpers (avoid heavy run_interpolate path)
+    function _synth_interp(;
+        fermi::Float64 = 0.5,
+        nelect::Float64 = 8.0,
+        dosweight::Float64 = 2.0,
+        spintype::String = "Unpolarized",
+    )
+        coeffs = ComplexF64[1.0+0im 2.0+0im; 3.0+0im 4.0+0im]
+        equivs = [reshape([0, 0, 0], 1, 3), reshape([1, 0, 0], 1, 3)]
+        lattvec = 5.0 * Matrix{Float64}(LinearAlgebra.I, 3, 3)
+        metadata = Dict{String,Any}(
+            "fermi" => fermi,
+            "nelect" => nelect,
+            "dosweight" => dosweight,
+            "spintype" => spintype,
+        )
+        return BoltzTraP.InterpolationResult(coeffs, equivs, lattvec, nothing, metadata)
+    end
+
+    @testset "construction from InterpolationResult (non-magnetic Si-like)" begin
+        ir = _synth_interp(;
+            fermi = 0.5,
+            nelect = 8.0,
+            dosweight = 2.0,
+            spintype = "Unpolarized",
+        )
+        sys = BoltzTraP.TransportSystem(ir)
+
+        @test sys.lattice ≈ ir.lattvec
+        @test sys.fermi == 0.5
+        @test sys.nelect == 8.0
+        @test sys.dosweight == 2.0
+        @test sys.spintype isa Unpolarized
+    end
+
+    @testset "construction (collinear magnetic Fe-like)" begin
+        ir = _synth_interp(;
+            fermi = 0.3,
+            nelect = 26.0,
+            dosweight = 1.0,
+            spintype = "Collinear",
+        )
+        sys = BoltzTraP.TransportSystem(ir)
+
+        @test sys.fermi == 0.3
+        @test sys.nelect == 26.0
+        @test sys.dosweight == 1.0
+        @test sys.spintype isa Collinear
+    end
+
+    @testset "unknown spintype throws" begin
+        ir = _synth_interp(; spintype = "AlienSpin")
+        @test_throws ErrorException BoltzTraP.TransportSystem(ir)
+    end
+end
