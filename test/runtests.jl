@@ -93,6 +93,7 @@ end
     include("test_spintypes.jl")
     include("test_banddata.jl")
     include("test_dftdata_integration.jl")
+    include("test_sampling.jl")
     include("test_plottypes.jl")
     include("test_publication.jl")
 

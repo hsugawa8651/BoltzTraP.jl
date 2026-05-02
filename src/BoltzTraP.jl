@@ -40,6 +40,9 @@ include("equivalences.jl")
 # Fourier interpolation
 include("interpolation.jl")
 
+# BZ sampling abstractions (dispatch axis for solve_transport)
+include("sampling.jl")
+
 # Band reconstruction via FFT
 include("reconstruction.jl")
 
@@ -100,6 +103,9 @@ export run_interpolate, run_integrate
 # Types
 export InterpolationResult, TransportResult
 export DFTData, NonMagneticData, SpinPolarizedData, nspin, is_magnetic
+
+# BZ sampling
+export AbstractBZSampling, UniformMesh
 
 # Spin types (v0.3 magnetic support)
 export SpinType, Unpolarized, Collinear, NonCollinear
