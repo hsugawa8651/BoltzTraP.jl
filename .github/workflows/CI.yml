@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ matrix.test_group }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -26,6 +26,9 @@ jobs:
           - macos-latest
         arch:
           - x64
+        test_group:
+          - core
+          - ext
         exclude:
           - os: macos-latest
             arch: x64
@@ -33,9 +36,19 @@ jobs:
           - os: macos-latest
             arch: aarch64
             version: '1.10'
+            test_group: core
+          - os: macos-latest
+            arch: aarch64
+            version: '1.10'
+            test_group: ext
           - os: macos-latest
             arch: aarch64
             version: '1.11'
+            test_group: core
+          - os: macos-latest
+            arch: aarch64
+            version: '1.11'
+            test_group: ext
     steps:
       - uses: actions/checkout@v6
 
@@ -49,6 +62,8 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
 
       - uses: julia-actions/julia-runtest@v1
+        with:
+          test_args: ${{ matrix.test_group }}
 
       - uses: julia-actions/julia-processcoverage@v1
 
