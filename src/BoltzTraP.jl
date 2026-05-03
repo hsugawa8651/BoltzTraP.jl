@@ -40,6 +40,9 @@ include("equivalences.jl")
 # Fourier interpolation
 include("interpolation.jl")
 
+# BZ sampling abstractions (dispatch axis for solve_transport)
+include("sampling.jl")
+
 # Band reconstruction via FFT
 include("reconstruction.jl")
 
@@ -57,6 +60,9 @@ include("io/loader.jl")  # Auto-detection (must be after format-specific loaders
 
 # High-level workflow
 include("workflow.jl")
+
+# Method-dispatched transport API (AbstractBZSampling axis)
+include("solve_transport.jl")
 
 # Plotting types (backend-independent)
 include("plottypes.jl")
@@ -96,10 +102,14 @@ include("cli.jl")
 
 # Workflow
 export run_interpolate, run_integrate
+export solve_transport
 
 # Types
 export InterpolationResult, TransportResult
 export DFTData, NonMagneticData, SpinPolarizedData, nspin, is_magnetic
+
+# BZ sampling
+export AbstractBZSampling, UniformMesh, TransportSystem
 
 # Spin types (v0.3 magnetic support)
 export SpinType, Unpolarized, Collinear, NonCollinear

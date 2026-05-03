@@ -92,6 +92,30 @@ function interpolate(interp, kpoints)
     )
 end
 
+# Abstract-type fallback for AbstractInterpolator subtypes that lack a
+# concrete implementation. Without these, dispatch falls to the ::Any
+# fallback above and the error message states "expects a concrete subtype"
+# even when the caller passed a proper subtype, which is misleading. (Issue #54.)
+#
+# Note: `interpolate(::AbstractInterpolator, kpoints)` already exists above
+# (line 64) as the default delegate that calls `interpolate_bands` and
+# `interpolate_velocities`. For a subtype-without-impl, that delegate
+# cascades through the new abstract-type methods below, so a separate
+# abstract-type method for `interpolate` is not needed.
+function interpolate_bands(interp::AbstractInterpolator, kpoints)
+    error(
+        "interpolate_bands: not implemented for $(typeof(interp)). " *
+        "Subtypes of AbstractInterpolator must define their own method.",
+    )
+end
+
+function interpolate_velocities(interp::AbstractInterpolator, kpoints)
+    error(
+        "interpolate_velocities: not implemented for $(typeof(interp)). " *
+        "Subtypes of AbstractInterpolator must define their own method.",
+    )
+end
+
 # ============================================================================
 # Convenience Functions (Default to FourierInterpolator)
 # ============================================================================
