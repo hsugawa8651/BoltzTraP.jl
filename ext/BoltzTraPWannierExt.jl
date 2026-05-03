@@ -89,7 +89,7 @@ function BoltzTraP.interpolate_velocities(interp::WannierInterpolator, kpoints)
     kpts_3xN = Matrix{Float64}(transpose(kpoints))
     Rvecs = interp.model.kRvectors.Rvectors
     H = interp.model.H
-    v_eVA = Wannier.velocity(Rvecs, H, kpts_3xN)
+    _E, v_eVA = Wannier.velocity(Rvecs, H, kpts_3xN)
     v_BT = permutedims(v_eVA, (3, 1, 2))
     return v_BT ./ (HA_TO_EV * BOHR_TO_ANG)
 end
