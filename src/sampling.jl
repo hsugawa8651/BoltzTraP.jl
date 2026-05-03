@@ -43,11 +43,12 @@ underlying band data; this struct unifies them as a single, dispatched
 data carrier for the new `solve_transport` API.
 
 Fields:
-- `lattice::SMatrix{3,3,Float64,9}`: 3×3 lattice vectors (columns) in Bohr
-- `fermi::Float64`: Fermi energy in Hartree
-- `nelect::Float64`: number of electrons per unit cell
-- `dosweight::Float64`: DOS weight (2.0 = non-magnetic, 1.0 = spin-polarized)
-- `spintype::SpinType`: `Unpolarized()` / `Collinear()` / `NonCollinear()`
+
+  - `lattice::SMatrix{3,3,Float64,9}`: 3×3 lattice vectors (columns) in Bohr
+  - `fermi::Float64`: Fermi energy in Hartree
+  - `nelect::Float64`: number of electrons per unit cell
+  - `dosweight::Float64`: DOS weight (2.0 = non-magnetic, 1.0 = spin-polarized)
+  - `spintype::SpinType`: `Unpolarized()` / `Collinear()` / `NonCollinear()`
 
 The `TransportSystem(::InterpolationResult)` constructor is defined in
 `io/serialization.jl` (after `InterpolationResult` itself is defined).
