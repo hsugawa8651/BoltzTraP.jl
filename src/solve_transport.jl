@@ -2,7 +2,7 @@
 # Copyright (C) 2026 Hiroharu Sugawara
 # Part of BoltzTraP.jl
 
-#=
+"""
     solve_transport(sampling, interp, sys; kwargs...) -> TransportResult
 
 Method-dispatched entry point for transport calculations on the
@@ -18,9 +18,7 @@ Method overloads:
 The concrete `UniformMesh + FourierInterpolator` method below mirrors the
 existing `run_integrate(::InterpolationResult)` flow so its output is
 bit-equal under default kwargs.
-=#
-
-# Generic fallback for arguments that do not match the abstract-type contract.
+"""
 function solve_transport(sampling, interp, sys; kwargs...)
     sampling isa AbstractBZSampling || throw(
         ArgumentError(
