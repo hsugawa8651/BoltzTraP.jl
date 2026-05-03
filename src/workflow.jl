@@ -515,152 +515,20 @@ function run_integrate(
     scissor::Union{Nothing,Real} = nothing,
     verbose::Bool = false,
 )
-    # Log received arguments
     @debug "run_integrate called" temperatures output bins scissor verbose
 
-    # Extract metadata
-    # Note: fermi is stored in Ha (atomic units)
-    nelect = get(interp.metadata, "nelect", 0.0)
-    dosweight = get(interp.metadata, "dosweight", 2.0)
-    fermi_dft = get(interp.metadata, "fermi", 0.0)  # in Ha
-    source = get(interp.metadata, "source_file", "unknown")
-    spintype = get(interp.metadata, "spintype", "Unpolarized")  # v0.1 compat
-
-    if nelect == 0.0
-        error("nelect not found in interpolation metadata")
-    end
-
-    verbose && println("  nelect: $nelect")
-    verbose && println("  dosweight: $dosweight")
-    verbose && println("  Fermi (from DFT): $(round(fermi_dft, digits=6)) Ha")
-
-    # 1. Reconstruct bands on FFT grid
-    verbose && println("Reconstructing bands via FFT...")
-    eband, vvband = getBTPbands(interp.coeffs, interp.equivalences, interp.lattvec)
-    nbands, npts = size(eband)
-    verbose && println("  Bands: $nbands, FFT points: $npts")
-    verbose && println(
-        "  Energy range: [$(round(minimum(eband), digits=4)), $(round(maximum(eband), digits=4))] Ha",
+    sys = TransportSystem(interp)
+    fi = FourierInterpolator(
+        interp.coeffs,
+        interp.equivalences,
+        SMatrix{3,3,Float64}(interp.lattvec),
     )
 
-    # 1.5. Apply scissor correction if requested
-    scissor_Ha = nothing
-    if !isnothing(scissor)
-        scissor_Ha = scissor * EV_TO_HA  # Convert eV to Ha
-        verbose && println("Applying scissor correction (target gap: $scissor eV)...")
+    result = solve_transport(UniformMesh(), fi, sys; temperatures, bins, scissor, verbose)
 
-        # Compute temporary DOS to find current gap
-        npts_dos_temp = bins > 0 ? bins : 500
-        epsilon_temp, dos_temp, _ = BTPDOS(eband, vvband; npts = npts_dos_temp)
+    # Restore source provenance from the interpolation metadata.
+    result.metadata["source"] = get(interp.metadata, "source_file", "unknown")
 
-        # Apply scissor to shift conduction bands
-        eband = apply_scissor(epsilon_temp, dos_temp, nelect, eband, scissor_Ha; dosweight)
-        verbose && println("  Scissor applied: target gap = $scissor eV")
-    end
-
-    # 2. Compute DOS and transport DOS
-    npts_dos = bins > 0 ? bins : 500
-    verbose && println("Computing DOS (bins=$npts_dos)...")
-    epsilon, dos, vvdos = BTPDOS(eband, vvband; npts = npts_dos)
-    verbose && println(
-        "  DOS energy range: [$(round(epsilon[1], digits=4)), $(round(epsilon[end], digits=4))] Ha",
-    )
-
-    # 3. Determine μ range (auto-generate from DOS grid)
-    # margin = 9 * kB * T_max (ensures ~1e-4 accuracy at edges)
-    kB_Ha_K = KB_AU
-    margin = 9.0 * kB_Ha_K * maximum(temperatures)
-    μ_min = epsilon[1] + margin
-    μ_max = epsilon[end] - margin
-
-    if μ_min >= μ_max
-        error("Energy window too narrow for requested temperatures")
-    end
-
-    μ_indices = findall(e -> e > μ_min && e < μ_max, epsilon)
-    μ_range = epsilon[μ_indices]
-    verbose && println(
-        "  μ range (auto): $(length(μ_range)) points in [$(round(μ_min, digits=4)), $(round(μ_max, digits=4))] Ha",
-    )
-
-    # 4. Solve for intrinsic chemical potential at each temperature
-    verbose && println("Computing intrinsic μ for each temperature...")
-    Tr = collect(Float64, temperatures)
-    nT = length(Tr)
-    μ0 = zeros(nT)
-    for (iT, T) in enumerate(Tr)
-        μ0[iT] = solve_for_mu(
-            epsilon,
-            dos,
-            nelect,
-            T;
-            dosweight,
-            refine = true,
-            try_center = true,
-        )
-        verbose && println("  T=$(T)K: μ0=$(round(μ0[iT], digits=6)) Ha")
-    end
-
-    # Refined Fermi level (T=0)
-    fermi_Ha =
-        solve_for_mu(epsilon, dos, nelect, 0.0; dosweight, refine = true, try_center = true)
-    verbose && println("  Refined Fermi: $(round(fermi_Ha, digits=6)) Ha")
-
-    # 5. Compute Fermi integrals
-    verbose && println("Computing Fermi integrals...")
-    N, L0, L1, L2 = fermi_integrals(epsilon, dos, vvdos, μ_range, Tr; dosweight)
-    verbose && println("  L0 shape: $(size(L0))")
-
-    # 6. Calculate Onsager coefficients
-    verbose && println("Computing Onsager coefficients...")
-    # Convert lattvec from Bohr to Ångström for volume calculation
-    # This matches Python BoltzTraP2's unit conventions
-    lattvec_ang = interp.lattvec * BOHR_TO_ANG  # BOHR_TO_ANG from units.jl
-    vuc = abs(det(lattvec_ang))  # Unit cell volume in Ų
-    σ, S, κ = calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
-    verbose && println("  σ shape: $(size(σ))")
-
-    # 7. Convert μ_range from Ha to eV for output (HA_TO_EV from units.jl)
-    μ_range_eV = μ_range .* HA_TO_EV
-
-    # 8. Create result
-    result_metadata = Dict{String,Any}(
-        "source" => source,
-        "nelect" => nelect,
-        "dosweight" => dosweight,
-        "spintype" => spintype,
-        "fermi_Ha" => fermi_Ha,
-        "fermi_eV" => fermi_Ha * HA_TO_EV,
-        "fermi_dft_Ha" => fermi_dft,
-        "fermi_dft_eV" => fermi_dft * HA_TO_EV,
-        "mu0_Ha" => μ0,
-        "mu0_eV" => μ0 .* HA_TO_EV,
-        "vuc_ang3" => vuc,
-        "nbands" => nbands,
-        "npts_fft" => npts,
-        "npts_dos" => npts_dos,
-    )
-    # Add scissor info if applied
-    if !isnothing(scissor)
-        result_metadata["scissor_eV"] = scissor
-        result_metadata["scissor_Ha"] = scissor_Ha
-    end
-
-    # Reshape tensors to (3, 3, nT, nμ) for TransportResult
-    nμ = length(μ_range)
-    σ_out = permutedims(σ, (3, 4, 1, 2))  # (nT, nμ, 3, 3) -> (3, 3, nT, nμ)
-    S_out = permutedims(S, (3, 4, 1, 2))
-    κ_out = permutedims(κ, (3, 4, 1, 2))
-
-    dos_info = Dict{String,Any}(
-        "epsilon_Ha" => epsilon,
-        "epsilon_eV" => epsilon .* HA_TO_EV,
-        "dos" => dos,
-    )
-
-    result = TransportResult(Tr, μ_range_eV, σ_out, S_out, κ_out, dos_info, result_metadata)
-
-    # 9. Save if output specified
     if !isnothing(output)
         verbose && println("Saving to $output...")
         save_integrate(output, result)
@@ -682,129 +550,18 @@ function run_integrate(
 )
     @debug "run_integrate(interp, mur) called" temperatures output bins scissor verbose
 
-    # Extract metadata
-    nelect = get(interp.metadata, "nelect", 0.0)
-    dosweight = get(interp.metadata, "dosweight", 2.0)
-    fermi_dft = get(interp.metadata, "fermi", 0.0)
-    source = get(interp.metadata, "source_file", "unknown")
-    spintype = get(interp.metadata, "spintype", "Unpolarized")  # v0.1 compat
-
-    if nelect == 0.0
-        error("nelect not found in interpolation metadata")
-    end
-
-    verbose && println("  nelect: $nelect")
-    verbose && println("  dosweight: $dosweight")
-    verbose && println("  Fermi (from DFT): $(round(fermi_dft, digits=6)) Ha")
-
-    # 1. Reconstruct bands on FFT grid
-    verbose && println("Reconstructing bands via FFT...")
-    eband, vvband = getBTPbands(interp.coeffs, interp.equivalences, interp.lattvec)
-    nbands, npts = size(eband)
-    verbose && println("  Bands: $nbands, FFT points: $npts")
-
-    # 1.5. Apply scissor correction if requested
-    scissor_Ha = nothing
-    if !isnothing(scissor)
-        scissor_Ha = scissor * EV_TO_HA  # Convert eV to Ha
-        verbose && println("Applying scissor correction (target gap: $scissor eV)...")
-
-        # Compute temporary DOS to find current gap
-        npts_dos_temp = bins > 0 ? bins : 500
-        epsilon_temp, dos_temp, _ = BTPDOS(eband, vvband; npts = npts_dos_temp)
-
-        # Apply scissor to shift conduction bands
-        eband = apply_scissor(epsilon_temp, dos_temp, nelect, eband, scissor_Ha; dosweight)
-        verbose && println("  Scissor applied: target gap = $scissor eV")
-    end
-
-    # 2. Compute DOS and transport DOS
-    npts_dos = bins > 0 ? bins : 500
-    verbose && println("Computing DOS (bins=$npts_dos)...")
-    epsilon, dos, vvdos = BTPDOS(eband, vvband; npts = npts_dos)
-
-    # 3. Use provided μ range (same as Python BoltzTraP2 `mur` argument)
-    μ_range = collect(Float64, mur)
-    verbose && println(
-        "  μ range (provided): $(length(μ_range)) points in [$(round(minimum(μ_range), digits=4)), $(round(maximum(μ_range), digits=4))] Ha",
+    sys = TransportSystem(interp)
+    fi = FourierInterpolator(
+        interp.coeffs,
+        interp.equivalences,
+        SMatrix{3,3,Float64}(interp.lattvec),
     )
 
-    # 4. Solve for intrinsic chemical potential at each temperature
-    verbose && println("Computing intrinsic μ for each temperature...")
-    Tr = collect(Float64, temperatures)
-    nT = length(Tr)
-    μ0 = zeros(nT)
-    for (iT, T) in enumerate(Tr)
-        μ0[iT] = solve_for_mu(
-            epsilon,
-            dos,
-            nelect,
-            T;
-            dosweight,
-            refine = true,
-            try_center = true,
-        )
-        verbose && println("  T=$(T)K: μ0=$(round(μ0[iT], digits=6)) Ha")
-    end
+    result =
+        solve_transport(UniformMesh(), fi, sys; temperatures, mur, bins, scissor, verbose)
 
-    # Refined Fermi level (T=0)
-    fermi_Ha =
-        solve_for_mu(epsilon, dos, nelect, 0.0; dosweight, refine = true, try_center = true)
-    verbose && println("  Refined Fermi: $(round(fermi_Ha, digits=6)) Ha")
+    result.metadata["source"] = get(interp.metadata, "source_file", "unknown")
 
-    # 5. Compute Fermi integrals
-    verbose && println("Computing Fermi integrals...")
-    N, L0, L1, L2 = fermi_integrals(epsilon, dos, vvdos, μ_range, Tr; dosweight)
-
-    # 6. Calculate Onsager coefficients
-    verbose && println("Computing Onsager coefficients...")
-    # Convert lattvec from Bohr to Ångström for volume calculation
-    # This matches Python BoltzTraP2's unit conventions
-    lattvec_ang = interp.lattvec * BOHR_TO_ANG  # BOHR_TO_ANG from units.jl
-    vuc = abs(det(lattvec_ang))  # Unit cell volume in Ų
-    σ, S, κ = calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
-
-    # 7. Convert μ_range from Ha to eV for output (HA_TO_EV from units.jl)
-    μ_range_eV = μ_range .* HA_TO_EV
-
-    # 8. Create result
-    result_metadata = Dict{String,Any}(
-        "source" => source,
-        "nelect" => nelect,
-        "dosweight" => dosweight,
-        "spintype" => spintype,
-        "fermi_Ha" => fermi_Ha,
-        "fermi_eV" => fermi_Ha * HA_TO_EV,
-        "fermi_dft_Ha" => fermi_dft,
-        "fermi_dft_eV" => fermi_dft * HA_TO_EV,
-        "mu0_Ha" => μ0,
-        "mu0_eV" => μ0 .* HA_TO_EV,
-        "vuc_ang3" => vuc,
-        "nbands" => nbands,
-        "npts_fft" => npts,
-        "npts_dos" => npts_dos,
-    )
-    # Add scissor info if applied
-    if !isnothing(scissor)
-        result_metadata["scissor_eV"] = scissor
-        result_metadata["scissor_Ha"] = scissor_Ha
-    end
-
-    # Reshape tensors to (3, 3, nT, nμ)
-    nμ = length(μ_range)
-    σ_out = permutedims(σ, (3, 4, 1, 2))
-    S_out = permutedims(S, (3, 4, 1, 2))
-    κ_out = permutedims(κ, (3, 4, 1, 2))
-
-    dos_info = Dict{String,Any}(
-        "epsilon_Ha" => epsilon,
-        "epsilon_eV" => epsilon .* HA_TO_EV,
-        "dos" => dos,
-    )
-
-    result = TransportResult(Tr, μ_range_eV, σ_out, S_out, κ_out, dos_info, result_metadata)
-
-    # 9. Save if output specified
     if !isnothing(output)
         verbose && println("Saving to $output...")
         save_integrate(output, result)

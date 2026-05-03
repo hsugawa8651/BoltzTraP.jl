@@ -65,6 +65,7 @@ function solve_transport(
     interp::FourierInterpolator,
     sys::TransportSystem;
     temperatures::AbstractVector{<:Real} = [300.0],
+    mur::Union{Nothing,AbstractVector{<:Real}} = nothing,
     bins::Int = 0,
     scissor::Union{Nothing,Real} = nothing,
     verbose::Bool = false,
@@ -90,15 +91,19 @@ function solve_transport(
     npts_dos = bins > 0 ? bins : 500
     epsilon, dos, vvdos = BTPDOS(eband, vvband; npts = npts_dos)
 
-    # Step 3: μ range (auto-generate from DOS grid)
-    margin = 9.0 * KB_AU * maximum(temperatures)
-    μ_min = epsilon[1] + margin
-    μ_max = epsilon[end] - margin
-    if μ_min >= μ_max
-        error("Energy window too narrow for requested temperatures")
+    # Step 3: μ range — auto-generate from DOS grid, or use caller-supplied grid
+    if isnothing(mur)
+        margin = 9.0 * KB_AU * maximum(temperatures)
+        μ_min = epsilon[1] + margin
+        μ_max = epsilon[end] - margin
+        if μ_min >= μ_max
+            error("Energy window too narrow for requested temperatures")
+        end
+        μ_indices = findall(e -> e > μ_min && e < μ_max, epsilon)
+        μ_range = epsilon[μ_indices]
+    else
+        μ_range = collect(Float64, mur)
     end
-    μ_indices = findall(e -> e > μ_min && e < μ_max, epsilon)
-    μ_range = epsilon[μ_indices]
 
     # Step 4: μ for each T + refined Fermi (T=0)
     Tr = collect(Float64, temperatures)

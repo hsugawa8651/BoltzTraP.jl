@@ -187,3 +187,40 @@ struct _DummyBZSampling <: BoltzTraP.AbstractBZSampling end
         end
     end
 end
+
+@testset "run_integrate (backward-compat wrapper)" begin
+    @testset "auto μ grid wrapper preserves source metadata" begin
+        datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
+        if isdir(datadir) && isfile(joinpath(datadir, "vasprun.xml"))
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            result = BoltzTraP.run_integrate(ir; temperatures = [300.0])
+
+            @test result isa TransportResult
+            @test size(result.sigma, 3) == 1
+            @test !any(isnan, result.sigma)
+            # source must come from IR metadata (wrapper restores), not the
+            # solve_transport delegate's hardcoded "solve_transport".
+            @test result.metadata["source"] != "solve_transport"
+            @test haskey(result.metadata, "fermi_Ha")
+            @test haskey(result.metadata, "vuc_ang3")
+        else
+            @warn "Skipping run_integrate auto-μ wrapper test: data not found at $datadir"
+        end
+    end
+
+    @testset "explicit μ grid wrapper (positional mur)" begin
+        datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
+        if isdir(datadir) && isfile(joinpath(datadir, "vasprun.xml"))
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            mur_test = collect(0.0:0.05:0.5)
+            result = BoltzTraP.run_integrate(ir, mur_test; temperatures = [300.0])
+
+            @test result isa TransportResult
+            @test length(result.mu_values) == length(mur_test)
+            @test !any(isnan, result.sigma)
+            @test result.metadata["source"] != "solve_transport"
+        else
+            @warn "Skipping run_integrate explicit-μ wrapper test: data not found at $datadir"
+        end
+    end
+end

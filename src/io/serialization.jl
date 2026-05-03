@@ -88,7 +88,8 @@ function TransportSystem(interp::InterpolationResult)
     fermi = interp.metadata["fermi"]
     nelect = interp.metadata["nelect"]
     dosweight = interp.metadata["dosweight"]
-    spintype_str = interp.metadata["spintype"]
+    # v0.1 metadata (pre-spintype era) defaults to Unpolarized.
+    spintype_str = get(interp.metadata, "spintype", "Unpolarized")
     spintype = if spintype_str == "Unpolarized"
         Unpolarized()
     elseif spintype_str == "Collinear"
