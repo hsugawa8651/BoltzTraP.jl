@@ -21,16 +21,33 @@ using Wannier
 """
     WannierInterpolator(prefix::String; spintype=Unpolarized()) -> WannierInterpolator
 
-Construct a `WannierInterpolator` from a Wannier90 file prefix.
-
-`Wannier.read_w90_interp` reads `<prefix>.win` plus the unitary matrices
-from `<prefix>.chk` (or `<prefix>.chk.fmt`) and returns an `InterpModel`
-ready for k-space interpolation. The lattice is converted from the
-Wannier.jl Ångström convention to Bohr so downstream BoltzTraP transport
-code stays in atomic units per the project's units policy.
+Construct a `WannierInterpolator` from a Wannier90 file prefix by reading
+`<prefix>.win` plus the unitary matrices from `<prefix>.chk` (or
+`<prefix>.chk.fmt`) via `Wannier.read_w90_interp`, then delegating to
+`WannierInterpolator(::Wannier.InterpModel)`.
 """
 function BoltzTraP.WannierInterpolator(prefix::String; spintype = Unpolarized())
-    imodel = Wannier.read_w90_interp(prefix)
+    return BoltzTraP.WannierInterpolator(Wannier.read_w90_interp(prefix); spintype)
+end
+
+"""
+    WannierInterpolator(imodel::Wannier.InterpModel; spintype=Unpolarized()) -> WannierInterpolator
+
+Construct a `WannierInterpolator` from an existing `Wannier.InterpModel`.
+
+This entry point lets callers feed an InterpModel produced by any
+in-process Wannierization workflow (`Wannier.read_w90` followed by
+`disentangle` and `Wannier.InterpModel`, custom initial projections,
+etc.) without first writing a `.chk` binary to disk.
+
+The lattice is converted from the Wannier.jl Ångström convention to
+Bohr to match the project's atomic-units policy (Hartree for energy,
+Bohr for length).
+"""
+function BoltzTraP.WannierInterpolator(
+    imodel::Wannier.InterpModel;
+    spintype = Unpolarized(),
+)
     lattice_ang = SMatrix{3,3,Float64}(imodel.lattice)
     lattice_bohr = lattice_ang ./ BOHR_TO_ANG
     return WannierInterpolator{typeof(spintype)}(imodel, lattice_bohr, spintype)
