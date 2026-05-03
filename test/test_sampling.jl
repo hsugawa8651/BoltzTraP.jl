@@ -224,3 +224,65 @@ end
         end
     end
 end
+
+@testset "provenance metadata" begin
+    datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
+    have_data = isdir(datadir) && isfile(joinpath(datadir, "vasprun.xml"))
+
+    @testset "solve_transport stamps sampling/interpolator + preserves legacy keys" begin
+        if have_data
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            sys = BoltzTraP.TransportSystem(ir)
+            fi = BoltzTraP.FourierInterpolator(
+                ir.coeffs,
+                ir.equivalences,
+                SMatrix{3,3,Float64}(ir.lattvec),
+            )
+            result = solve_transport(UniformMesh(), fi, sys; temperatures = [300.0])
+
+            # New provenance keys.
+            @test result.metadata["sampling"] == "UniformMesh"
+            @test result.metadata["interpolator"] == "Fourier"
+
+            # Legacy metadata keys must remain (regression: stamping is additive).
+            for key in ("nelect", "dosweight", "fermi_Ha", "vuc_ang3", "nbands", "npts_dos")
+                @test haskey(result.metadata, key)
+            end
+        else
+            @warn "Skipping provenance metadata (solve_transport): data not found at $datadir"
+        end
+    end
+
+    @testset "run_integrate wrapper preserves provenance + source override" begin
+        if have_data
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            result = BoltzTraP.run_integrate(ir; temperatures = [300.0])
+
+            # Wrapper passes through new keys from solve_transport.
+            @test result.metadata["sampling"] == "UniformMesh"
+            @test result.metadata["interpolator"] == "Fourier"
+
+            # Wrapper's source override does not clobber the provenance keys.
+            @test result.metadata["source"] != "solve_transport"
+        else
+            @warn "Skipping provenance metadata (wrapper): data not found at $datadir"
+        end
+    end
+
+    @testset "JLD2 round-trip preserves provenance keys" begin
+        if have_data
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            result = BoltzTraP.run_integrate(ir; temperatures = [300.0])
+
+            mktempdir() do dir
+                path = joinpath(dir, "provenance_roundtrip.jld2")
+                save_integrate(path, result)
+                loaded = load_integrate(path)
+                @test loaded.metadata["sampling"] == "UniformMesh"
+                @test loaded.metadata["interpolator"] == "Fourier"
+            end
+        else
+            @warn "Skipping provenance metadata (JLD2 round-trip): data not found at $datadir"
+        end
+    end
+end

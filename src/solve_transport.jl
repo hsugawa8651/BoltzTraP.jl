@@ -61,7 +61,7 @@ end
 
 # Concrete dispatch: UniformMesh + FourierInterpolator
 function solve_transport(
-    ::UniformMesh,
+    sampling::UniformMesh,
     interp::FourierInterpolator,
     sys::TransportSystem;
     temperatures::AbstractVector{<:Real} = [300.0],
@@ -147,6 +147,8 @@ function solve_transport(
 
     result_metadata = Dict{String,Any}(
         "source" => "solve_transport",
+        "sampling" => string(nameof(typeof(sampling))),
+        "interpolator" => replace(string(nameof(typeof(interp))), "Interpolator" => ""),
         "nelect" => nelect,
         "dosweight" => dosweight,
         "spintype" => spintype_str,
