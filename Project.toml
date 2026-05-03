@@ -24,6 +24,7 @@ NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PythonPlot = "274fc56d-3b97-40fa-a1cd-1b4a50311bf9"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+Wannier = "2b19380a-1f7e-4d7d-b1b8-8aa60b3321c9"
 
 [extensions]
 BoltzTraPDFTKExt = "DFTK"
@@ -31,6 +32,7 @@ BoltzTraPNCDatasetsExt = "NCDatasets"
 BoltzTraPPlotsExt = ["Plots", "Brillouin"]
 BoltzTraPPythonPlotExt = "PythonPlot"
 BoltzTraPRecipesBaseExt = "RecipesBase"
+BoltzTraPWannierExt = "Wannier"
 
 [compat]
 Brillouin = "0.5"
@@ -50,4 +52,5 @@ RecipesBase = "1"
 Spglib = "1"
 StaticArrays = "1"
 StatsBase = "0.34"
+Wannier = "0.3"
 julia = "1.10"
