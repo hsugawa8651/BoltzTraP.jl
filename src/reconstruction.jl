@@ -285,3 +285,62 @@ function getBTPbands_parallel(coeffs, equivalences, lattvec; compute_velocity = 
 
     return eband, vvband
 end
+
+#=
+    getBTPbands_wannier(interp::WannierInterpolator, mesh::UniformMesh)
+
+Wannier-path counterpart to `getBTPbands`. Generates a uniform mesh of
+fractional k-points from `mesh.nk`, evaluates `interpolate_bands` and
+`interpolate_velocities`, and constructs the velocity outer-product
+tensor `vvband = v ⊗ v` so that the downstream `BTPDOS` / Onsager flow
+in `solve_transport` is shared with the Fourier path.
+
+Requires `mesh.nk` to be an explicit tuple; `UniformMesh(nothing)` errors
+because the Wannier path has no equivalences-derived natural mesh.
+
+Returns `(eband (n_wann, npts), vvband (n_wann, 3, 3, npts))` with energy
+in Hartree and velocity outer products in (Hartree·Bohr)².
+=#
+function getBTPbands_wannier(interp::WannierInterpolator, mesh::UniformMesh)
+    isnothing(mesh.nk) && error(
+        "WannierInterpolator requires an explicit UniformMesh size, got " *
+        "UniformMesh(nothing). Pass UniformMesh((nk1, nk2, nk3)).",
+    )
+    n1, n2, n3 = mesh.nk
+    npts = n1 * n2 * n3
+    kpts = Matrix{Float64}(undef, npts, 3)
+    idx = 1
+    for k3 = 0:(n3-1), k2 = 0:(n2-1), k1 = 0:(n1-1)
+        kpts[idx, 1] = k1 / n1
+        kpts[idx, 2] = k2 / n2
+        kpts[idx, 3] = k3 / n3
+        idx += 1
+    end
+
+    eband = interpolate_bands(interp, kpts)
+    v = interpolate_velocities(interp, kpts)
+
+    n_wann = size(eband, 1)
+    vvband = zeros(n_wann, 3, 3, npts)
+    @inbounds for k = 1:npts
+        for b = 1:n_wann
+            v1 = v[1, b, k]
+            v2 = v[2, b, k]
+            v3 = v[3, b, k]
+            vvband[b, 1, 1, k] = v1 * v1
+            vvband[b, 2, 2, k] = v2 * v2
+            vvband[b, 3, 3, k] = v3 * v3
+            v12 = v1 * v2
+            v13 = v1 * v3
+            v23 = v2 * v3
+            vvband[b, 1, 2, k] = v12
+            vvband[b, 2, 1, k] = v12
+            vvband[b, 1, 3, k] = v13
+            vvband[b, 3, 1, k] = v13
+            vvband[b, 2, 3, k] = v23
+            vvband[b, 3, 2, k] = v23
+        end
+    end
+
+    return eband, vvband
+end

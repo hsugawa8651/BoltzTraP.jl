@@ -68,12 +68,68 @@ function solve_transport(
     scissor::Union{Nothing,Real} = nothing,
     verbose::Bool = false,
 )::TransportResult
+    eband, vvband = getBTPbands(interp.coeffs, interp.equivalences, interp.lattvec)
+    return _solve_transport_from_bands(
+        eband,
+        vvband,
+        sys,
+        sampling,
+        interp;
+        temperatures,
+        mur,
+        bins,
+        scissor,
+        verbose,
+    )
+end
+
+# Concrete dispatch: UniformMesh + WannierInterpolator
+function solve_transport(
+    sampling::UniformMesh,
+    interp::WannierInterpolator,
+    sys::TransportSystem;
+    temperatures::AbstractVector{<:Real} = [300.0],
+    mur::Union{Nothing,AbstractVector{<:Real}} = nothing,
+    bins::Int = 0,
+    scissor::Union{Nothing,Real} = nothing,
+    verbose::Bool = false,
+)::TransportResult
+    eband, vvband = getBTPbands_wannier(interp, sampling)
+    return _solve_transport_from_bands(
+        eband,
+        vvband,
+        sys,
+        sampling,
+        interp;
+        temperatures,
+        mur,
+        bins,
+        scissor,
+        verbose,
+    )
+end
+
+# Shared transport pipeline: DOS, μ-resolution, Fermi integrals, Onsager
+# coefficients. Both Fourier and Wannier paths feed `(eband, vvband)` of
+# matching shape — `(nbands, npts)` and `(nbands, 3, 3, npts)` — into
+# this helper, so output is bit-equal to the prior monolithic Fourier
+# implementation under default kwargs.
+function _solve_transport_from_bands(
+    eband::AbstractMatrix{<:Real},
+    vvband::AbstractArray{<:Real,4},
+    sys::TransportSystem,
+    sampling::AbstractBZSampling,
+    interp::AbstractInterpolator;
+    temperatures::AbstractVector{<:Real},
+    mur::Union{Nothing,AbstractVector{<:Real}},
+    bins::Int,
+    scissor::Union{Nothing,Real},
+    verbose::Bool,
+)::TransportResult
     nelect = sys.nelect
     dosweight = sys.dosweight
     fermi_dft = sys.fermi
 
-    # Step 1: bands via FFT (Fourier-specific)
-    eband, vvband = getBTPbands(interp.coeffs, interp.equivalences, interp.lattvec)
     nbands, npts = size(eband)
 
     # Step 1.5: optional scissor correction
