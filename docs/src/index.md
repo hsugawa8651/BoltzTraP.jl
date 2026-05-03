@@ -53,6 +53,7 @@ For detailed CLI usage, see [CLI Workflow](@ref). For Julia API, see [API Workfl
 
 - **Julia API**: Programmatic workflow with `run_interpolate()` and `run_integrate()` functions
 - **[DFTK.jl](https://dftk.org/) integration**: Direct coupling with Julia-native DFT package via `load_dftk()`
+- **[Wannier.jl](https://github.com/qiaojunfeng/Wannier.jl) integration**: Optional Wannier-basis interpolation path (v0.4+); see [Wannier.jl Integration](@ref)
 - **JLD2 format**: Fast HDF5-based native Julia format for result files
 
 ## Installation
