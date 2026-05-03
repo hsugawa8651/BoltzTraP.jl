@@ -1,4 +1,5 @@
 [deps]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 BoltzTraP = "cbda18ea-c181-4d25-a1c9-354b8a2900c6"
 Brillouin = "23470ee3-d0df-4052-8b1a-8cbd6363e7f0"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"

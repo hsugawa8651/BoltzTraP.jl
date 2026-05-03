@@ -127,4 +127,7 @@ end
     if get(ENV, "TEST_DFTK", "false") == "true"
         include("test_dftk_extension.jl")
     end
+
+    # Quality assurance (Aqua.jl)
+    include("test_aqua.jl")
 end
