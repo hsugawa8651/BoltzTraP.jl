@@ -14,7 +14,7 @@ module BoltzTraPWannierExt
 using BoltzTraP
 using BoltzTraP: WannierInterpolator, AbstractInterpolator
 using BoltzTraP: SpinType, Unpolarized
-using BoltzTraP: BOHR_TO_ANG
+using BoltzTraP: BOHR_TO_ANG, HA_TO_EV
 using StaticArrays
 using Wannier
 
@@ -34,6 +34,23 @@ function BoltzTraP.WannierInterpolator(prefix::String; spintype = Unpolarized())
     lattice_ang = SMatrix{3,3,Float64}(imodel.lattice)
     lattice_bohr = lattice_ang ./ BOHR_TO_ANG
     return WannierInterpolator{typeof(spintype)}(imodel, lattice_bohr, spintype)
+end
+
+"""
+    interpolate_bands(interp::WannierInterpolator, kpoints) -> ebands
+
+Interpolate band energies at fractional `kpoints` (`nk × 3`, BoltzTraP
+convention) using the stored `Wannier.InterpModel`. Wannier.jl expects
+`(3, nk)` and returns energies in eV; this method transposes the input
+and converts the output from eV to Hartree to match the BoltzTraP
+atomic-units policy (Hartree for energy, Bohr for length).
+
+Return shape: `(n_wann, nk)` in Hartree.
+"""
+function BoltzTraP.interpolate_bands(interp::WannierInterpolator, kpoints)
+    kpts_3xN = Matrix{Float64}(transpose(kpoints))
+    E_eV = Wannier.interpolate(interp.model, kpts_3xN)
+    return E_eV ./ HA_TO_EV
 end
 
 end # module BoltzTraPWannierExt
