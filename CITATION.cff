@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 title: "BoltzTraP.jl: Julia implementation of BoltzTraP2"
-message: "If you use this software, please cite both BoltzTraP.jl and the original BoltzTraP2 paper."
+message: "If you use this software, please cite BoltzTraP.jl together with the references listed below."
 type: software
 authors:
   - family-names: Sugawara
@@ -33,3 +33,48 @@ references:
     end: 145
     year: 2018
     doi: "10.1016/j.cpc.2018.05.010"
+  - type: article
+    authors:
+      - family-names: Pizzi
+        given-names: Giovanni
+      - family-names: Volja
+        given-names: Dmitri
+      - family-names: Kozinsky
+        given-names: Boris
+      - family-names: Fornari
+        given-names: Marco
+      - family-names: Marzari
+        given-names: Nicola
+    title: "BoltzWann: A code for the evaluation of thermoelectric and electronic transport properties with a maximally-localized Wannier functions basis"
+    journal: "Computer Physics Communications"
+    volume: 185
+    issue: 1
+    start: 422
+    end: 429
+    year: 2014
+    doi: "10.1016/j.cpc.2013.09.015"
+  - type: article
+    authors:
+      - family-names: Pizzi
+        given-names: Giovanni
+      - family-names: Vitale
+        given-names: Valerio
+      - family-names: Marzari
+        given-names: Nicola
+      - family-names: Mostofi
+        given-names: Arash A.
+      - family-names: Yates
+        given-names: Jonathan R.
+    title: "Wannier90 as a community code: new features and applications"
+    journal: "Journal of Physics: Condensed Matter"
+    volume: 32
+    issue: 16
+    start: 165902
+    year: 2020
+    doi: "10.1088/1361-648X/ab51ff"
+  - type: software
+    authors:
+      - family-names: Qiao
+        given-names: Junfeng
+    title: "Wannier.jl: Julia package for Wannier functions"
+    repository-code: "https://github.com/qiaojunfeng/Wannier.jl"

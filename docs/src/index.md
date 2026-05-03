@@ -100,13 +100,22 @@ Key differences:
 
 ## Citation
 
-If you use BoltzTraP.jl in your research, please cite both:
+If you use BoltzTraP.jl in your research, please cite the following:
 
 **BoltzTraP.jl:**
 > Sugawara, H. (2026). BoltzTraP.jl: Julia port of BoltzTraP2 for band structure interpolation and transport coefficient calculation (Version 0.3.4) [Computer software]. [doi:10.5281/zenodo.20255943](https://doi.org/10.5281/zenodo.20255943)
 
 **Original BoltzTraP2:**
 > Madsen, G. K., Carrete, J., & Verstraete, M. J. (2018). BoltzTraP2, a program for interpolating band structures and calculating semi-classical transport coefficients. *Computer Physics Communications*, 231, 140-145. [doi:10.1016/j.cpc.2018.05.010](https://doi.org/10.1016/j.cpc.2018.05.010)
+
+**BoltzWann (Wannier-basis transport methodology, reimplemented in BoltzTraP.jl v0.4+):**
+> Pizzi, G., Volja, D., Kozinsky, B., Fornari, M., & Marzari, N. (2014). BoltzWann: A code for the evaluation of thermoelectric and electronic transport properties with a maximally-localized Wannier functions basis. *Computer Physics Communications*, 185, 422-429. [doi:10.1016/j.cpc.2013.09.015](https://doi.org/10.1016/j.cpc.2013.09.015)
+
+**Wannier90 v3 (MLWF construction, used via Wannier.jl):**
+> Pizzi, G., et al. (2020). Wannier90 as a community code: new features and applications. *Journal of Physics: Condensed Matter*, 32, 165902. [doi:10.1088/1361-648X/ab51ff](https://doi.org/10.1088/1361-648X/ab51ff)
+
+**Wannier.jl (Julia MLWF construction):**
+> Qiao, J. Wannier.jl: Julia package for Wannier functions [Computer software]. [github.com/qiaojunfeng/Wannier.jl](https://github.com/qiaojunfeng/Wannier.jl)
 
 ## License
 
