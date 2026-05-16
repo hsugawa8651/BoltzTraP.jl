@@ -83,9 +83,13 @@ using BoltzTraP
         @test hasmethod(run_interpolate, Tuple{DFTData{1}})
     end
 
-    @testset "DFTData and NamedTuple produce same error with insufficient data" begin
-        # With insufficient k-points, both should throw the same error
-        # This verifies DFTData method delegates correctly to NamedTuple method
+    @testset "DFTData and NamedTuple produce same result with sparse data" begin
+        # With a sparse k-mesh the regularized normal matrix in fitde3D is
+        # rank-deficient. Since the pinv-based solve (issue #67 fix) returns
+        # the minimum-norm least-squares solution instead of raising
+        # SingularException, neither path throws. This still verifies the
+        # DFTData method delegates correctly to the NamedTuple method, i.e.
+        # both paths produce identical coefficients.
         data_dft = DFTData(
             lattice = lattice,
             positions = positions,
@@ -110,8 +114,13 @@ using BoltzTraP
             nelect = nelect,
         )
 
-        # Both should throw SingularException (insufficient k-points for fitting)
-        @test_throws LinearAlgebra.SingularException run_interpolate(data_dft; kpoints = 10)
-        @test_throws LinearAlgebra.SingularException run_interpolate(data_nt; kpoints = 10)
+        # Neither path throws (pinv handles the rank-deficient Hmat). Both
+        # must return identical coefficients, confirming the DFTData method
+        # delegates to the NamedTuple method.
+        res_dft = run_interpolate(data_dft; kpoints = 10)
+        res_nt = run_interpolate(data_nt; kpoints = 10)
+        @test res_dft.coeffs == res_nt.coeffs
+        @test !any(isnan, res_dft.coeffs)
+        @test !any(isinf, res_dft.coeffs)
     end
 end
