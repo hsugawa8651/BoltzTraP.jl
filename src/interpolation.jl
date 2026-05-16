@@ -347,10 +347,16 @@ function fitde3D(kpoints, energies, equivalences, lattvec)
     Hmat = real(phaseR[:, 2:end] * conj(weighted_phaseR)')
 
     # Solve least squares: Hmat @ rlambda = De.T
-    # Python: rlambda = lstsq(Hmat, De)[0]
+    # Python: rlambda = sp.linalg.lstsq(Hmat, De)[0]  (SVD, rank-deficient OK)
     # De.T in Python is (nk-1, nbands), our De is (nbands, nk-1)
-    # So we need De' for the solve
-    rlambda = Hmat \ De'  # (nk-1, nbands)
+    # So we need De' for the solve.
+    # Julia's `\` on a square matrix uses an LU factorization, which raises
+    # SingularException for a rank-deficient Hmat (high-symmetry small cells
+    # where the source k-mesh is sparse relative to the equivalence stars).
+    # `pinv` (Moore-Penrose, SVD-based) reproduces scipy.linalg.lstsq's
+    # minimum-norm least-squares solution and is identical to `\` for the
+    # full-rank case up to round-off.
+    rlambda = pinv(Hmat) * De'  # (nk-1, nbands)
 
     # Recover coefficients
     # Python: coeffs = rhoi * (rlambda.T @ phaseR)

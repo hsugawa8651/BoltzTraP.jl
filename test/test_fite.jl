@@ -53,6 +53,46 @@ using BoltzTraP: FourierInterpolator, interpolate, interpolate_bands, interpolat
         @test !any(isinf, coeffs)
     end
 
+    @testset "fitde3D rank-deficient Hmat (issue #67 regression)" begin
+        # Reproduce the issue #67 failure mode: when the regularized normal
+        # matrix Hmat is rank-deficient (source k-mesh sparse relative to the
+        # equivalence stars, as for high-symmetry small primitive cells),
+        # the old `Hmat \ De'` (LU) raised SingularException. The pinv fix
+        # (scipy.linalg.lstsq-equivalent SVD minimum-norm solution) must
+        # return finite coefficients without raising.
+        #
+        # Construction: reuse the validated Si fixture but truncate the
+        # equivalence-star list so that neq < nk. Then Hmat is (nk-1, nk-1)
+        # with rank <= neq-1 < nk-1, i.e. exactly singular -> the pre-fix
+        # code path would have thrown.
+        si_file = joinpath(dirname(TEST_DIR), "reftest", "data", "si_interpolation.npz")
+        if !isfile(si_file)
+            @test_skip "Si interpolation data not available"
+            return
+        end
+
+        si_data = npzread(si_file)
+        kpoints = si_data["kpoints"]
+        ebands = si_data["ebands"]
+        lattvec = si_data["lattvec"]
+        n_eq = si_data["n_equivalences"]
+        equivalences_full = [si_data["equiv_$i"] for i = 0:(n_eq-1)]
+
+        nk = size(kpoints, 1)
+        # Truncate to make neq < nk (need neq >= 3 so the rhoi reference
+        # star R[2] exists; cap at the available count).
+        neq_trunc = clamp(nk ÷ 4, 3, n_eq)
+        @test neq_trunc < nk          # ensures Hmat is rank-deficient
+        equivalences_rd = equivalences_full[1:neq_trunc]
+
+        # Regression: must NOT raise (previously SingularException).
+        coeffs = BoltzTraP.fitde3D(kpoints, ebands, equivalences_rd, lattvec)
+
+        @test size(coeffs) == (size(ebands, 1), neq_trunc)
+        @test !any(isnan, coeffs)
+        @test !any(isinf, coeffs)
+    end
+
     @testset "getBands reconstruct" begin
         # getBands should be able to reconstruct the original bands
         si_file = joinpath(dirname(TEST_DIR), "reftest", "data", "si_interpolation.npz")
@@ -254,9 +294,13 @@ using BoltzTraP: FourierInterpolator, interpolate, interpolate_bands, interpolat
         # Shapes should match
         @test size(coeffs_julia) == size(coeffs_ref)
 
-        # Coefficients should be very close (same algorithm)
+        # Coefficients should be very close. The pinv (SVD) solve in fitde3D
+        # (issue #67 fix) differs from the previous LU `\` solve by SVD
+        # round-off on well-conditioned matrices (~2e-10 here); both are
+        # equally valid least-squares solutions. Tolerance loosened from
+        # 1e-10 to 1e-9 to accommodate the LU -> SVD round-off.
         max_diff = maximum(abs.(coeffs_julia - coeffs_ref))
-        @test max_diff < 1e-10
+        @test max_diff < 1e-9
     end
 
     @testset "getBTPbands FFT reconstruction" begin
