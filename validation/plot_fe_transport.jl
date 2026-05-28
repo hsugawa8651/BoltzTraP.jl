@@ -115,7 +115,7 @@ function generate_fe_transport_plot()
         title = "Fe Collinear @ 1000 K",
         legend = :topright,
         legendfontsize = 7,
-        xformatter = _->"",
+        xformatter = _ -> "",
         xlims = xlims,
     )
     plot!(
@@ -140,7 +140,7 @@ function generate_fe_transport_plot()
         ylabel = L"$\sigma_{xx}/\tau$ (1/$\Omega$ms)",
         yscale = :log10,
         ylims = sigma_ylims,
-        xformatter = _->"",
+        xformatter = _ -> "",
         xlims = xlims,
     )
     plot!(
