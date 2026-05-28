@@ -21,6 +21,7 @@ makedocs(
             "CLI Workflow" => "cli.md",
             "API Workflow" => "workflow.md",
             "DFTK.jl Integration" => "dftk.md",
+            "Wannier.jl Integration" => "wannier.md",
             "Interpolation" => "interpolate.md",
             "Integration" => "integrate.md",
             "Utilities" => "utilities.md",

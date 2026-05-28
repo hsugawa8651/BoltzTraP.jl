@@ -7,4 +7,7 @@ using Test
 
 @testset "BoltzTraP.jl (ext)" begin
     include("test_publication.jl")
+    if get(ENV, "TEST_WANNIER", "false") == "true"
+        include("test_wannier_ext.jl")
+    end
 end

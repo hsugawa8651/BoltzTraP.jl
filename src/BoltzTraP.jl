@@ -108,8 +108,8 @@ export solve_transport
 export InterpolationResult, TransportResult
 export DFTData, NonMagneticData, SpinPolarizedData, nspin, is_magnetic
 
-# BZ sampling
-export AbstractBZSampling, UniformMesh, TransportSystem
+# BZ sampling + Wannier interpolator
+export AbstractBZSampling, UniformMesh, TransportSystem, WannierInterpolator
 
 # Spin types (v0.3 magnetic support)
 export SpinType, Unpolarized, Collinear, NonCollinear

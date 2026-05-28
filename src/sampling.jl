@@ -60,3 +60,43 @@ struct TransportSystem
     dosweight::Float64
     spintype::SpinType
 end
+
+"""
+    WannierInterpolator(prefix::String; spintype=Unpolarized())
+
+Wannier-based interpolator constructed from a Wannier90 file prefix
+(`.chk` and related files). Concrete methods for `interpolate_bands`,
+`interpolate_velocities`, and the `solve_transport` dispatch are provided
+by `BoltzTraPWannierExt`, which loads when both `Wannier` and `BoltzTraP`
+are imported.
+
+The `model` field is held as `Any` because `Wannier.InterpModel` is
+defined in the optional `Wannier.jl` package; the stub constructor below
+errors when `using Wannier` has not been invoked, ensuring users see a
+clear message rather than a `MethodError`.
+
+Fields:
+
+  - `model::Any`: a `Wannier.InterpModel` instance at runtime
+  - `lattice::SMatrix{3,3,Float64,9}`: 3×3 lattice vectors (columns) in
+    Bohr (converted from Wannier's Ångström convention by the extension)
+  - `spintype::ST`: `Unpolarized()` / `Collinear()` / `NonCollinear()`
+"""
+struct WannierInterpolator{ST<:SpinType} <: AbstractInterpolator
+    model::Any
+    lattice::SMatrix{3,3,Float64,9}
+    spintype::ST
+end
+
+# Stub: file-load constructor; the real method lives in BoltzTraPWannierExt.
+# The signature is `(args...; kwargs...)` — less specific than the extension's
+# `(prefix::String; spintype)` — so Julia dispatches to the extension method
+# when Wannier.jl is loaded and falls back to this error otherwise. This
+# matches the load_dftk / load_abinit weakdep pattern used elsewhere in BT.jl.
+function WannierInterpolator(args...; kwargs...)
+    error(
+        "WannierInterpolator(::String) requires Wannier.jl to be loaded. " *
+        "Run `using Wannier` before constructing a WannierInterpolator from " *
+        "a Wannier90 prefix.",
+    )
+end
