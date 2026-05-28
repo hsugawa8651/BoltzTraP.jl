@@ -58,7 +58,7 @@ p1 = plot(
     ylabel = "S_xx (μV/K)",
     ylims = (-50, 50),
     xlabel = "",
-    xformatter = _->"",
+    xformatter = _ -> "",
     legend = false,
     linewidth = 2,
 )
@@ -69,7 +69,7 @@ p2 = plot(
     yscale = :log10,
     ylims = (1e18, 1e22),
     xlabel = "",
-    xformatter = _->"",
+    xformatter = _ -> "",
     legend = false,
     linewidth = 2,
 )
