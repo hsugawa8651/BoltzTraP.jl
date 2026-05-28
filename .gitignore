@@ -58,6 +58,7 @@ reftest/data/*
 !reftest/data/si_interpolation.npz
 !reftest/data/calc_N_solve_mu.npz
 !reftest/data/geometries/
+!reftest/data/si_wannier_transport.jld2
 
 # Paper build artifacts
 paper/paper.pdf
