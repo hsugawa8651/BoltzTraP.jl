@@ -16,7 +16,7 @@ Abstract type for band interpolation backends.
 
 Concrete implementations:
 - `FourierInterpolator`: BoltzTraP-style Fourier interpolation (eigenvalues only)
-- `WannierInterpolator`: Wannier.jl-based interpolation (future, requires extension)
+- `WannierInterpolator`: Wannier.jl-based interpolation (provided by the Wannier.jl weakdep extension)
 
 Common API:
 - `interpolate_bands(interp, kpoints)` → eigenvalues
