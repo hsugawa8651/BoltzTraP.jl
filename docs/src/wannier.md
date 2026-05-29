@@ -140,11 +140,13 @@ external secondary reference.
 shipped with [Wannier.jl](https://github.com/qiaojunfeng/Wannier.jl)
 (`pkgdir(Wannier)/test/fixtures/silicon/silicon`, 8 Wannier functions,
 12 bands, 4×4×4 Monkhorst-Pack grid) and compares the transport
-tensors element-wise to a pre-recorded JLD2 file
-(`reftest/data/si_wannier_transport.jld2`) at `rtol = 1e-6` on σ, S,
-and κ across `T = 300, 500, 700` K. The tolerance follows the project's
-general reftest convention and absorbs cross-platform floating-point
-differences in the underlying linear algebra.
+tensors to a pre-recorded JLD2 file
+(`reftest/data/si_wannier_transport.jld2`). Si is cubic, so the
+regression compares the diagonal entries σ_ii, S_ii, κ_ii for
+i = 1, 2, 3 at `rtol = 1e-6` across `T = 300, 500, 700` K; the
+off-diagonal entries are symmetry zeros whose cross-platform noise
+floor lies above the 1e-6 threshold, while the diagonal matches
+across platforms at the 1e-12 relative level.
 
 This test runs in CI when `TEST_WANNIER=true` is set for the extension
 test group.
