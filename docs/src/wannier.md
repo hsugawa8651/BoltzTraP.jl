@@ -141,9 +141,10 @@ shipped with [Wannier.jl](https://github.com/qiaojunfeng/Wannier.jl)
 (`pkgdir(Wannier)/test/fixtures/silicon/silicon`, 8 Wannier functions,
 12 bands, 4×4×4 Monkhorst-Pack grid) and compares the transport
 tensors element-wise to a pre-recorded JLD2 file
-(`reftest/data/si_wannier_transport.jld2`) at `rtol = 1e-10` on σ, S,
-and κ across `T = 300, 500, 700` K. The tight tolerance only absorbs
-floating-point round-off, since the inputs are byte-frozen.
+(`reftest/data/si_wannier_transport.jld2`) at `rtol = 1e-6` on σ, S,
+and κ across `T = 300, 500, 700` K. The tolerance follows the project's
+general reftest convention and absorbs cross-platform floating-point
+differences in the underlying linear algebra.
 
 This test runs in CI when `TEST_WANNIER=true` is set for the extension
 test group.

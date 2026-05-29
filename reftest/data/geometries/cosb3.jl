@@ -30,7 +30,7 @@ using LinearAlgebra: I
 # Cubic conventional cell, `a` is in Bohr (Wien2k .struct default unit).
 # Literature value (Pizzi 2014 reference context) is a ≈ 9.04 Å.
 const a_bohr = 17.080296                  # Bohr
-const a_ang  = a_bohr * 0.529177210903    # ≈ 9.0385 Å
+const a_ang = a_bohr * 0.529177210903    # ≈ 9.0385 Å
 
 # Lattice sanity check — catches Bohr/Å swap errors before launching
 # multi-hour DFT runs. The repository carries a recorded incident
@@ -44,12 +44,8 @@ const a_ang  = a_bohr * 0.529177210903    # ≈ 9.0385 Å
 const cosb3_lattice = a_bohr * SMatrix{3,3,Float64}(I)
 
 # 4 Co atoms in conventional cell (Wyckoff 8c-like positions).
-const cosb3_co_positions = [
-    [0.25, 0.25, 0.25],
-    [0.75, 0.75, 0.25],
-    [0.25, 0.75, 0.75],
-    [0.75, 0.25, 0.75],
-]
+const cosb3_co_positions =
+    [[0.25, 0.25, 0.25], [0.75, 0.75, 0.25], [0.25, 0.75, 0.75], [0.75, 0.25, 0.75]]
 
 # 12 Sb atoms in conventional cell (Wyckoff 24g-like positions).
 const cosb3_sb_positions = [
@@ -70,5 +66,5 @@ const cosb3_sb_positions = [
 # Combined fractional positions and matching species symbols, in the
 # order baseline reference data expects (4 Co followed by 12 Sb).
 const cosb3_positions = vcat(cosb3_co_positions, cosb3_sb_positions)
-const cosb3_species   = vcat(fill(:Co, length(cosb3_co_positions)),
-                             fill(:Sb, length(cosb3_sb_positions)))
+const cosb3_species =
+    vcat(fill(:Co, length(cosb3_co_positions)), fill(:Sb, length(cosb3_sb_positions)))
