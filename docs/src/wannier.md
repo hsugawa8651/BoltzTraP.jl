@@ -127,3 +127,76 @@ interpolation, velocity interpolation, and the
 [`solve_transport`](@ref) entry point — share their docstrings with
 the generic [`AbstractInterpolator`](@ref) interface, so the same API
 documentation applies regardless of which interpolator is in use.
+
+## Wannier path validation
+
+The Wannier path is exercised through two regression baselines and one
+external secondary reference.
+
+### Silicon regression baseline (CI)
+
+`test/test_wannier_reftest.jl` re-runs a pipeline from
+`WannierInterpolator` to `solve_transport` on the silicon fixture
+shipped with [Wannier.jl](https://github.com/qiaojunfeng/Wannier.jl)
+(`pkgdir(Wannier)/test/fixtures/silicon/silicon`, 8 Wannier functions,
+12 bands, 4×4×4 Monkhorst-Pack grid) and compares the transport
+tensors element-wise to a pre-recorded JLD2 file
+(`reftest/data/si_wannier_transport.jld2`) at `rtol = 1e-10` on σ, S,
+and κ across `T = 300, 500, 700` K. The tight tolerance only absorbs
+floating-point round-off, since the inputs are byte-frozen.
+
+This test runs in CI when `TEST_WANNIER=true` is set for the extension
+test group.
+
+### CoSb₃ documented baseline (manual)
+
+The Wannier path was also exercised on CoSb₃ (conventional cubic
+skutterudite, space group 204, a = 17.080296 Bohr ≈ 9.04 Å; lattice
+data shipped at `reftest/data/geometries/cosb3.jl`) using a DFTK SCF
+result followed by external Wannierization with `wannier90.x`
+([Pizzi et al. 2020](https://doi.org/10.1088/1361-648X/ab51ff)) and the
+default random-projection setup. The baseline records σ_xx × τ at
+T = 300 K (τ = 10 fs) for 17 chemical-potential offsets μ_eff in eV
+relative to the intrinsic Fermi level; the full data is shipped at
+`reftest/data/cosb3_wannier_baseline.toml`. The two anchor points
+below are compared against the
+[Pizzi et al. (2014)](https://doi.org/10.1016/j.cpc.2013.09.015)
+BoltzWann reference.
+
+The two anchor points are:
+
+| μ_eff | σ_xx × τ | reference |
+|------:|---------:|:---|
+| (eV) | (×10⁶ S/m) | (×10⁶ S/m) |
+| **−1.25** | **1.0481** | ≈ 1.0 (Pizzi 2014 valence anchor, ~5% agreement) |
+| **0.00** | **0.0208** | ≈ 0 (mid-gap, expected) |
+
+Conduction-side σ_xx deviates from the Pizzi reference by roughly a
+factor of two due to the default `HydrogenicWannierProjection` setup
+(random initial centers, generic s-like Gaussians), which under-
+represents the Co d / Sb p character of the conduction manifold. The
+remaining 15 baseline values document the current state of the Wannier
+path output, not a regression target.
+
+The frozen Wannier model files used to produce these numbers
+(`cosb3.win`, `cosb3.chk`, `cosb3.eig`, `cosb3.mmn`, total ≈ 209 MB)
+come from a fixed random-projection realization that is not reproduced
+as part of the test suite. They are therefore not shipped with the
+repository; the values in `reftest/data/cosb3_wannier_baseline.toml`
+stand on their own as the documented baseline.
+
+### External QE + BoltzWann cross-check
+
+An independent reference was produced through Quantum ESPRESSO +
+`pw2wannier90` + `postw90.x boltzwann`
+([Pizzi et al. 2020](https://doi.org/10.1088/1361-648X/ab51ff)) on the
+same CoSb₃ structure, with Co d and Sb p initial projections chosen
+to match the relevant orbital character. That pipeline yields an
+isotropic σ(μ) curve for the Wannier path, computed using the
+BoltzWann methodology
+([Pizzi et al. 2014](https://doi.org/10.1016/j.cpc.2013.09.015)), and
+is recorded as an additional cross-check, not as a primary regression
+target. Quantitative agreement with Pizzi et al. (2014) is limited to
+the valence plateau under the projection choices available today; the
+external reference is included for the reader who wants an alternative
+Wannierization perspective on the same material.
