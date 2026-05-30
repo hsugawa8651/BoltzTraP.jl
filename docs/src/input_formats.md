@@ -204,7 +204,7 @@ Si.abinit/
 
 ## [DFTK.jl](@id input-dftk)
 
-See [DFTK.jl Integration](@ref) for detailed documentation.
+See [DFTK pipeline](@ref) for detailed documentation.
 
 ---
 

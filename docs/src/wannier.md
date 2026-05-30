@@ -1,4 +1,4 @@
-# Wannier.jl Integration
+# Wannier path
 
 BoltzTraP.jl supports band and velocity interpolation through a Wannier
 basis via the [Wannier.jl](https://github.com/qiaojunfeng/Wannier.jl)

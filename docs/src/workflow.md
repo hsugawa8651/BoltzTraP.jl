@@ -133,7 +133,7 @@ transport = run_integrate(interp; temperatures=[300.0])
 
 ## DFTK Workflow
 
-See [DFTK.jl Integration](@ref) for detailed documentation.
+See [DFTK pipeline](@ref) for detailed documentation.
 
 ---
 

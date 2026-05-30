@@ -1,4 +1,4 @@
-# DFTK.jl Integration
+# DFTK pipeline
 
 This is a variant of the [API Workflow](@ref) that enables a complete Julia-only workflow from first-principles electronic structure calculations to Boltzmann transport coefficients.
 
