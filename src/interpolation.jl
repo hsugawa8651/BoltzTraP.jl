@@ -53,6 +53,19 @@ Interpolate group velocities at given k-points.
 function interpolate_velocities end
 
 #=
+    velocity_matrices(interp, kpoints)
+
+Interpolate the full band-gauge covariant velocity matrices (n_wann × n_wann × 3 ×
+nk) at given k-points. Unlike [`interpolate_velocities`] (diagonal group velocity
+only), this exposes the intra-degenerate-manifold off-diagonal velocity matrix
+elements needed for a gauge-invariant transport tensor at degenerate k-points.
+
+Internal extension point: only the Wannier path implements it (in the Wannier
+extension); it is not part of the public `AbstractInterpolator` contract.
+=#
+function velocity_matrices end
+
+#=
     interpolate(interp::AbstractInterpolator, kpoints)
 
 Interpolate both band energies and velocities at given k-points.

@@ -79,6 +79,29 @@ using Wannier
         @test vbands ≈ permutedims(v_eVA, (3, 1, 2)) .* factor
     end
 
+    @testset "velocity_matrices diagonal equals interpolate_velocities" begin
+        # The full velocity matrix is read from a Wannier internal (`_get_D`); its
+        # real diagonal must equal the public `interpolate_velocities` group
+        # velocity. This guards against an upstream change to that internal (a
+        # different return-value order would break the diagonal equivalence) and
+        # ensures the degenerate construction leaves the non-degenerate bands
+        # untouched.
+        wi = WannierInterpolator(sifix)
+        kpts = [
+            0.0 0.0 0.0
+            0.5 0.0 0.0
+            0.25 0.25 0.25
+            0.1 0.2 0.3
+        ]
+        A = BoltzTraP.velocity_matrices(wi, kpts)
+        v = BoltzTraP.interpolate_velocities(wi, kpts)
+        n_wann, nk = size(v, 2), size(v, 3)
+        @test size(A) == (n_wann, n_wann, 3, nk)
+        for k = 1:nk, b = 1:n_wann, a = 1:3
+            @test real(A[b, b, a, k]) ≈ v[a, b, k] rtol = 1e-12 atol = 1e-14
+        end
+    end
+
     @testset "solve_transport smoke (UniformMesh + WannierInterpolator)" begin
         wi = WannierInterpolator(sifix)
         # Mock TransportSystem for Si: 8 valence electrons, dosweight 2.0,

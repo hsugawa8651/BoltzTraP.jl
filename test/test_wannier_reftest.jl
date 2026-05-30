@@ -6,10 +6,10 @@
 #
 # Re-runs the same `WannierInterpolator → solve_transport` pipeline that
 # `reftest/generate_wannier_si.jl` used to produce the golden file, and
-# compares the σ/S/κ tensors element-wise against the stored result.
-# Tight `rtol=1e-10` only absorbs floating-point roundoff because the
-# inputs (Wannier.jl bundled silicon fixture, mesh, smoke-level Si
-# parameters) are byte-fixed.
+# compares the σ/S/κ tensors against the stored result. The velocity tensor
+# at degenerate k-points is built gauge-invariantly (averaged over approach
+# directions), so the result is reproducible across LAPACK builds and the
+# comparison is a tight, full-tensor `rtol=1e-8`.
 
 using Test
 using BoltzTraP
@@ -58,16 +58,40 @@ using JLD2
     @test result.mu_values ≈ golden["mu_values"] rtol = 1e-10
     @test result.temperatures == golden["temperatures"]
 
-    # Diagonal-only regression on transport tensors. Si is cubic, so
-    # σ_xx = σ_yy = σ_zz by symmetry and the off-diagonal entries are
-    # numerical zeros with a cross-platform noise floor at the 1e-5
-    # relative level (Julia 1.10 vs 1.11, x86_64 vs aarch64 BLAS/LAPACK
-    # differences). The physically meaningful diagonal matches across
-    # platforms at the 1e-12 relative level, so rtol=1e-6 is a safe
-    # regression threshold for the diagonal.
-    for i in 1:3
-        @test result.sigma[i, i, :, :] ≈ golden["sigma"][i, i, :, :] rtol = 1e-6
-        @test result.seebeck[i, i, :, :] ≈ golden["seebeck"][i, i, :, :] rtol = 1e-6
-        @test result.kappa[i, i, :, :] ≈ golden["kappa"][i, i, :, :] rtol = 1e-6
+    # Full-tensor regression. The transport tensors are built from a
+    # degeneracy-aware, gauge-invariant velocity construction (the band
+    # velocities at degenerate k-points are averaged over approach
+    # directions), so the result no longer depends on the arbitrary
+    # eigenbasis a given LAPACK build picks inside a degenerate multiplet.
+    # The recomputation therefore matches the golden across platforms to
+    # near machine precision (≈ 2e-13 norm, x86_64 vs aarch64), and both
+    # diagonal and off-diagonal tensor entries are checked.
+    # Off-diagonal tensor entries are symmetry zeros, so compare with a
+    # per-tensor `atol` floor (`rtol` × the tensor's largest entry) in
+    # addition to `rtol`: the diagonal is checked at 1e-8 relative, while
+    # the near-zero off-diagonal entries are checked against the same
+    # absolute floor instead of an ill-defined relative tolerance.
+    atol_sigma = 1e-8 * maximum(abs, golden["sigma"])
+    atol_seebeck = 1e-8 * maximum(abs, golden["seebeck"])
+    atol_kappa = 1e-8 * maximum(abs, golden["kappa"])
+    for i = 1:3, j = 1:3
+        @test isapprox(
+            result.sigma[i, j, :, :],
+            golden["sigma"][i, j, :, :];
+            rtol = 1e-8,
+            atol = atol_sigma,
+        )
+        @test isapprox(
+            result.seebeck[i, j, :, :],
+            golden["seebeck"][i, j, :, :];
+            rtol = 1e-8,
+            atol = atol_seebeck,
+        )
+        @test isapprox(
+            result.kappa[i, j, :, :],
+            golden["kappa"][i, j, :, :];
+            rtol = 1e-8,
+            atol = atol_kappa,
+        )
     end
 end

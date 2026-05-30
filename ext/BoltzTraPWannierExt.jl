@@ -94,4 +94,34 @@ function BoltzTraP.interpolate_velocities(interp::WannierInterpolator, kpoints)
     return v_BT ./ (HA_TO_EV * BOHR_TO_ANG)
 end
 
+"""
+    velocity_matrices(interp::WannierInterpolator, kpoints) -> A
+
+Interpolate the full band-gauge covariant velocity matrices
+``\\bar{H}_\\alpha = U^\\dagger (\\partial_\\alpha H^W) U`` at fractional `kpoints`
+(`nk × 3`, BoltzTraP convention). The real diagonal is the band group velocity
+(equal to [`interpolate_velocities`](@ref)); the off-diagonal entries within a
+degenerate multiplet are the intra-manifold velocity matrix elements required for a
+gauge-invariant transport tensor at degenerate k-points.
+
+The covariant part is read from `Wannier._get_D` (its `Haᴴ` return); the Berry
+connection matrix `D` that `_get_D` also forms is discarded — `Haᴴ` itself contains
+no `1/ΔE` and is finite at degeneracies. Like `interpolate_velocities`, this
+requires the MDRS R-vectors produced by default by `Wannier.read_w90_interp` (the
+`WannierInterpolator(::String)` constructor); a non-MDRS model would fail in
+`_get_D`. `_get_D` is a Wannier internal — its diagonal is regression-guarded
+against `interpolate_velocities` (see `test/test_wannier_ext.jl`).
+
+Return shape: `(n_wann, n_wann, 3, nk)` in Hartree·Bohr.
+"""
+function BoltzTraP.velocity_matrices(interp::WannierInterpolator, kpoints)
+    kpts_3xN = Matrix{Float64}(transpose(kpoints))
+    Rvecs = interp.model.kRvectors.Rvectors
+    H = interp.model.H
+    _E, _U, HaH, _D = Wannier._get_D(Rvecs, H, kpts_3xN; use_degen_pert = false)
+    # HaH: (n_wann, n_wann, nk, 3) in eV·Å, band gauge.
+    A = permutedims(HaH, (1, 2, 4, 3)) ./ (HA_TO_EV * BOHR_TO_ANG)
+    return A
+end
+
 end # module BoltzTraPWannierExt
