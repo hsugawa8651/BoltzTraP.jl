@@ -301,6 +301,133 @@ because the Wannier path has no equivalences-derived natural mesh.
 Returns `(eband (n_wann, npts), vvband (n_wann, 3, 3, npts))` with energy
 in Hartree and velocity outer products in (Hartree·Bohr)².
 =#
+# Energy gap (in Hartree) below which two interpolated bands are treated as a
+# degenerate multiplet for the velocity-tensor construction. Equal to 1e-6 eV.
+const WANNIER_DEGEN_THRESHOLD_HA = 1.0e-6 * EV_TO_HA
+
+# Number of approach directions for the degenerate-manifold angular average.
+const WANNIER_DEGEN_NDIRS = 200
+
+# `n` quasi-uniform unit vectors on the sphere (Fibonacci lattice), used as the
+# approach directions for the degenerate-manifold angular average.
+function _fibonacci_directions(n::Int)
+    dirs = Vector{NTuple{3,Float64}}(undef, n)
+    ga = π * (3 - sqrt(5))
+    for i = 0:(n-1)
+        z = 1 - 2 * (i + 0.5) / n
+        r = sqrt(max(0.0, 1 - z * z))
+        θ = ga * i
+        dirs[i+1] = (r * cos(θ), r * sin(θ), z)
+    end
+    return dirs
+end
+
+# Group band indices whose energies are degenerate within `thr` (Hartree).
+# `energies` is the per-k band-energy vector; returns groups of indices into it.
+function _degenerate_groups(energies::AbstractVector, thr::Real)
+    n = length(energies)
+    order = sortperm(energies)
+    groups = Vector{Vector{Int}}()
+    current = [order[1]]
+    @inbounds for t = 2:n
+        if energies[order[t]] - energies[order[t-1]] < thr
+            push!(current, order[t])
+        else
+            push!(groups, current)
+            current = [order[t]]
+        end
+    end
+    push!(groups, current)
+    return groups
+end
+
+# Write the rank-1 velocity outer product v ⊗ v into vvband for band `b` at `k`.
+@inline function _fill_vv!(vvband, b, k, v1, v2, v3)
+    vvband[b, 1, 1, k] = v1 * v1
+    vvband[b, 2, 2, k] = v2 * v2
+    vvband[b, 3, 3, k] = v3 * v3
+    v12 = v1 * v2
+    v13 = v1 * v3
+    v23 = v2 * v3
+    vvband[b, 1, 2, k] = v12
+    vvband[b, 2, 1, k] = v12
+    vvband[b, 1, 3, k] = v13
+    vvband[b, 3, 1, k] = v13
+    vvband[b, 2, 3, k] = v23
+    vvband[b, 3, 2, k] = v23
+    return nothing
+end
+
+# Relative eigenvalue-gap below which B(d) is treated as itself degenerate along an
+# approach direction; such directions are skipped (their split basis would again be
+# LAPACK-dependent). The cut is on eigenvalues, which are platform-stable, so the
+# skip decision is reproducible.
+const WANNIER_DIRECTION_GAP_REL = 1.0e-6
+
+# Gauge-invariant velocity tensor for a degenerate multiplet via the directional
+# (angular-average) limit. For each approach direction `d`, the multiplet splits
+# along the eigenbasis of B(d) = Σ_a d_a A_a; the band-diagonal velocities in that
+# "good" basis give the semiclassical v⊗v contribution, averaged over directions.
+# Directions where B(d) is itself (near-)degenerate are skipped — there the split
+# basis is not unique and would reintroduce the LAPACK gauge dependence — and the
+# average is taken over the directions actually used. The averaged block total is
+# distributed equally over the `L` members (they share one DOS bin). If every
+# direction is degenerate (B(d) ∝ I for all d, pathological), fall back to the
+# gauge-invariant trace tr(A_i A_j).
+function _degenerate_vv!(vvband, A, grp, k, dirs)
+    L = length(grp)
+    A1 = A[grp, grp, 1, k]
+    A2 = A[grp, grp, 2, k]
+    A3 = A[grp, grp, 3, k]
+    Ab = (A1, A2, A3)
+    acc = zeros(3, 3)
+    vt = Matrix{Float64}(undef, L, 3)
+    used = 0
+    for d in dirs
+        B = d[1] .* A1 .+ d[2] .* A2 .+ d[3] .* A3
+        F = eigen(Hermitian(B))
+        vals = F.values
+        spread = vals[end] - vals[1]
+        mingap = spread
+        for m = 2:L
+            mingap = min(mingap, vals[m] - vals[m-1])
+        end
+        # Skip directions where B(d) is itself (near-)degenerate.
+        spread > 0 && mingap < WANNIER_DIRECTION_GAP_REL * spread && continue
+        used += 1
+        W = F.vectors
+        for a = 1:3
+            M = W' * Ab[a] * W
+            for m = 1:L
+                vt[m, a] = real(M[m, m])
+            end
+        end
+        for i = 1:3, j = 1:3
+            s = 0.0
+            for m = 1:L
+                s += vt[m, i] * vt[m, j]
+            end
+            acc[i, j] += s
+        end
+    end
+    if used == 0
+        # Pathological: every direction is degenerate. Use the gauge-invariant
+        # trace tr(A_i A_j) (also distributed over the block).
+        for i = 1:3, j = 1:3
+            acc[i, j] = real(tr(Ab[i] * Ab[j]))
+        end
+        used = 1
+    end
+    denom = used * L
+    for i = 1:3, j = 1:3
+        val = acc[i, j] / denom
+        for b in grp
+            vvband[b, i, j, k] = val
+        end
+    end
+    return nothing
+end
+
 function getBTPbands_wannier(interp::WannierInterpolator, mesh::UniformMesh)
     isnothing(mesh.nk) && error(
         "WannierInterpolator requires an explicit UniformMesh size, got " *
@@ -318,27 +445,29 @@ function getBTPbands_wannier(interp::WannierInterpolator, mesh::UniformMesh)
     end
 
     eband = interpolate_bands(interp, kpts)
-    v = interpolate_velocities(interp, kpts)
+    # Full covariant velocity matrices (band gauge); the diagonal is the group
+    # velocity, the intra-multiplet off-diagonal feeds the degenerate construction.
+    A = velocity_matrices(interp, kpts)
 
     n_wann = size(eband, 1)
     vvband = zeros(n_wann, 3, 3, npts)
-    @inbounds for k = 1:npts
-        for b = 1:n_wann
-            v1 = v[1, b, k]
-            v2 = v[2, b, k]
-            v3 = v[3, b, k]
-            vvband[b, 1, 1, k] = v1 * v1
-            vvband[b, 2, 2, k] = v2 * v2
-            vvband[b, 3, 3, k] = v3 * v3
-            v12 = v1 * v2
-            v13 = v1 * v3
-            v23 = v2 * v3
-            vvband[b, 1, 2, k] = v12
-            vvband[b, 2, 1, k] = v12
-            vvband[b, 1, 3, k] = v13
-            vvband[b, 3, 1, k] = v13
-            vvband[b, 2, 3, k] = v23
-            vvband[b, 3, 2, k] = v23
+    dirs = _fibonacci_directions(WANNIER_DEGEN_NDIRS)
+    for k = 1:npts
+        groups = _degenerate_groups(view(eband, :, k), WANNIER_DEGEN_THRESHOLD_HA)
+        for grp in groups
+            if length(grp) == 1
+                b = grp[1]
+                _fill_vv!(
+                    vvband,
+                    b,
+                    k,
+                    real(A[b, b, 1, k]),
+                    real(A[b, b, 2, k]),
+                    real(A[b, b, 3, k]),
+                )
+            else
+                _degenerate_vv!(vvband, A, grp, k, dirs)
+            end
         end
     end
 
