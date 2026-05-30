@@ -20,8 +20,6 @@ makedocs(
         "Guide" => [
             "CLI Workflow" => "cli.md",
             "API Workflow" => "workflow.md",
-            "DFTK.jl Integration" => "dftk.md",
-            "Wannier.jl Integration" => "wannier.md",
             "Interpolation" => "interpolate.md",
             "Integration" => "integrate.md",
             "Utilities" => "utilities.md",
@@ -33,6 +31,8 @@ makedocs(
         ],
         "Architecture" => "architecture.md",
         "Magnetic Materials" => "magnetic.md",
+        "DFTK pipeline" => "dftk.md",
+        "Wannier path" => "wannier.md",
         "Validation" => "validation.md",
         "Benchmarks" => "benchmarks.md",
         "Reference Tests" => "reftest.md",
