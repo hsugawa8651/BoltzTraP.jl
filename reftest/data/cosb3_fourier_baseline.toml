@@ -1,0 +1,31 @@
+# CoSb3 Fourier path documented baseline (manual, frozen)
+#
+# BT.jl self-consistency regression record (NOT a Pizzi-conformance test):
+# corrected-lattice geometry + DFTK SCF + compute_bands[16,16,16] NSCF + pinv
+# Fourier interpolation + solve_transport. Frozen to detect future lattice /
+# interpolation regressions. Source jld2 is not shipped (needs a 295 MB SCF
+# checkpoint to recompute); the values below are the canonical numerical record.
+#
+# Lattice: reftest/data/geometries/cosb3.jl (a = 17.080296 Bohr).
+# Units: sigma_xx_tau in 10^6 S/m; tau = 10 fs; mu_eff in eV (rel. to intrinsic
+# Fermi level); temperature = 300 K; mesh = NSCF compute_bands [16,16,16].
+
+[metadata]
+material      = "CoSb3"
+temperature_K = 300
+tau_fs        = 10
+mesh          = "NSCF compute_bands [16,16,16]"
+generator     = "DFTK SCF + compute_bands NSCF + BoltzTraP.jl pinv Fourier"
+
+[anchors]
+# Valence plateau (Pizzi 2014 ~1.0e6 S/m; ~3% agreement)
+valence_mu_eff_eV       = -1.25
+valence_sigma_xx_tau    = 0.9779
+valence_pizzi_2014_ref  = 1.0
+# Gap-centre (≈0 by gap)
+mid_gap_mu_eff_eV       = 0.00
+mid_gap_sigma_xx_tau    = 0.0394
+
+[baseline]
+mu_eff_eV    = [-2.00, -1.75, -1.50, -1.25, -1.00, -0.75, -0.50, -0.25,  0.00,  0.25,  0.50,  0.75,  1.00,  1.25,  1.50,  1.75,  2.00]
+sigma_xx_tau = [ 0.1905, 0.4830, 0.7166, 0.9779, 0.4708, 0.3973, 0.1205, 0.0617, 0.0394, 0.0485, 0.1219, 0.3814, 0.7147, 0.8354, 1.3905, 0.8436, 0.8535]
