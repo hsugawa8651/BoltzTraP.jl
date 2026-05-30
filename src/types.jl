@@ -154,10 +154,11 @@ data = BandData(;
     kpoints = K,
     ebands = E,
     fermi = 0.2,
-    nelect = 8.0,#=
-    magmom = [1.0, -1.0],    BandData(; lattice, positions, species, kpoints, ebands, fermi, nelect,
-)               magmom=nothing) -> BandData{ST}
+    nelect = 8.0,
+    magmom = [1.0, -1.0],
+)
 ```
+
 Construct BandData with SpinType inferred from magmom.
 See also: [`SpinType`](@ref), [`Unpolarized`](@ref), [`Collinear`](@ref), [`NonCollinear`](@ref)
 """
