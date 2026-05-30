@@ -60,6 +60,7 @@ reftest/data/*
 !reftest/data/geometries/
 !reftest/data/si_wannier_transport.jld2
 !reftest/data/cosb3_wannier_baseline.toml
+!reftest/data/cosb3_fourier_baseline.toml
 
 # Paper build artifacts
 paper/paper.pdf

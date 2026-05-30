@@ -105,6 +105,35 @@ reftest/
 | 7 | `generate_synthetic_*.py` | Synthetic low-symmetry test data |
 | - | `compare.jl` | Julia comparison against reference data |
 
+### CoSb₃ Fourier documented baseline (manual)
+
+The Fourier path was exercised on CoSb₃ (conventional cubic skutterudite,
+space group 204, a = 17.080296 Bohr ≈ 9.04 Å; lattice data shipped at
+`reftest/data/geometries/cosb3.jl`) using a DFTK SCF result followed by a
+non-self-consistent band evaluation (`compute_bands`) on a 16×16×16 mesh,
+then BoltzTraP.jl's Fourier (star-function) interpolation and transport.
+The baseline records σ_xx × τ at T = 300 K (τ = 10 fs) for 17
+chemical-potential offsets μ_eff in eV relative to the intrinsic Fermi
+level; the full data is shipped at `reftest/data/cosb3_fourier_baseline.toml`.
+
+This is a manual documented baseline — a frozen BoltzTraP.jl
+self-consistency record, not an automated CI regression test (unlike the
+Si Fourier and Si Wannier reftests, which run in CI) and not a
+Pizzi-conformance test. It exists so future lattice or interpolation
+regressions in the Fourier path are detectable by hand. The two anchor
+points are:
+
+| μ_eff | σ_xx × τ | reference |
+|------:|---------:|:---|
+| (eV) | (×10⁶ S/m) | (×10⁶ S/m) |
+| **−1.25** | **0.9779** | ≈ 1.0 (Pizzi 2014 valence anchor, ~3% agreement) |
+| **0.00** | **0.0394** | ≈ 0 (mid-gap, expected) |
+
+The DFTK SCF checkpoint used to produce these numbers (≈ 295 MB) is not
+shipped with the repository; the values in
+`reftest/data/cosb3_fourier_baseline.toml` stand on their own as the
+documented baseline.
+
 ## Verify It Yourself
 
 You can reproduce the validation using the tools provided in the [`reftest/`](https://github.com/hsugawa8651/BoltzTraP.jl/tree/main/reftest) and [`validation/`](https://github.com/hsugawa8651/BoltzTraP.jl/tree/main/validation) directories.
