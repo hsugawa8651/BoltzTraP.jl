@@ -162,7 +162,7 @@ function _describe_file(file::String; io::IO = stdout)
     end
 
     return nothing
-end#= Helper function to format values for display =#
+end #= Helper function to format values for display =#
 
 function _format_value(v)
     if v isa AbstractFloat
