@@ -29,6 +29,21 @@ transport = run_integrate("si_interp.jld2";
 save_integrate("si_transport.jld2", transport)
 ```
 
+### Other interpolators
+
+The same entry point takes any [`AbstractInterpolator`](@ref) together
+with the [`TransportSystem`](@ref) that supplies the Fermi energy, the
+electron count, the DOS weight and the spin type. See the
+[Wannier path](@ref) page for the Wannier interpolator.
+
+```julia
+using Wannier
+
+wi = WannierInterpolator("path/to/silicon")
+sys = TransportSystem(wi; fermi = 0.2, nelect = 8.0)
+transport = run_integrate(wi, sys; sampling = UniformMesh((8, 8, 8)))
+```
+
 ---
 
 ## Output: save/load

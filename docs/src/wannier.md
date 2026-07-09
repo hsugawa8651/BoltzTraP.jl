@@ -8,17 +8,22 @@ in scope alongside `using BoltzTraP`.
 
 The extension exposes a [`WannierInterpolator`](@ref) type that
 implements the same [`AbstractInterpolator`](@ref) interface as the
-default Fourier (Shankland) path. Once constructed, it slots into the
-existing transport pipeline through
-[`solve_transport`](@ref)`(::UniformMesh, ::WannierInterpolator, sys)`.
+default Fourier (Shankland) path. Once constructed, it goes through the
+same entry point, [`run_integrate`](@ref)`(interp, sys; sampling)`.
 
 ```julia
 using BoltzTraP
 using Wannier
 
 wi = WannierInterpolator("path/to/silicon")          # prefix entry point
-result = solve_transport(UniformMesh((8, 8, 8)), wi, sys; temperatures = [300.0])
+sys = TransportSystem(wi; fermi = 0.2, nelect = 8.0)
+result = run_integrate(wi, sys; sampling = UniformMesh((8, 8, 8)), temperatures = [300.0])
 ```
+
+Only the interpolator changes between the two paths. What the Wannier
+path additionally needs — the Fermi energy, the electron count, and an
+explicit mesh — is visible in the call: the Wannier90 files carry the
+Hamiltonian, not the state of the electron system.
 
 ## Construction
 
@@ -58,37 +63,56 @@ directly from an SCF result.
 The prefix-string constructor is itself a thin wrapper around this
 method.
 
-## Use with `solve_transport`
+## Running a transport calculation
+
+### Building the system
+
+`TransportSystem` collects the material constants that the transport
+integrals need. The lattice and the spin type come from the
+interpolator; the Fermi energy and the electron count do not exist in
+the Wannier90 files and have to be supplied:
+
+```julia
+sys = TransportSystem(wi; fermi = 0.2, nelect = 8.0)   # fermi in Hartree
+```
+
+`dosweight` defaults to the spin degeneracy implied by the spin type,
+`2.0` when unpolarized and `1.0` otherwise.
 
 ### Basic usage
 
-The Wannier path participates in the standard transport pipeline:
+The Wannier path goes through the same entry point as the Fourier path:
 
 ```julia
-result = solve_transport(mesh::UniformMesh, wi::WannierInterpolator, sys::TransportSystem;
-                         temperatures = ..., ...)
+result = run_integrate(wi, sys; sampling = UniformMesh((8, 8, 8)),
+                       temperatures = [300.0])
 ```
 
-### `UniformMesh.nk` is required
+[`solve_transport`](@ref) remains available for callers that want to
+address the three dispatch axes directly.
 
-The Fourier path can derive a natural integration mesh from the
-symmetry-equivalent points that accompany the interpolation
-coefficients. The Wannier path has no such structure — the
-`Wannier.InterpModel` carries only the real-space Hamiltonian and the
-associated R-vectors — so the caller must supply an explicit k-mesh
-through `UniformMesh.nk`.
+### An explicit mesh size is required
+
+The Fourier path derives its integration grid from the star functions
+that accompany the interpolation coefficients. The Wannier path has no
+such structure — the `Wannier.InterpModel` carries only the real-space
+Hamiltonian and the associated R-vectors — so the caller must supply an
+explicit k-mesh.
 
 In practice this means `UniformMesh((nk1, nk2, nk3))` with concrete
 integers; a `UniformMesh` constructed with `nk === nothing` is rejected
 when paired with a `WannierInterpolator`.
 
 ```julia
-mesh = UniformMesh((8, 8, 8))                            # OK
-result = solve_transport(mesh, wi, sys; temperatures = [300.0])
-
-mesh_nothing = UniformMesh(nothing)                      # Fourier-only
-solve_transport(mesh_nothing, wi, sys; ...)              # errors
+result = run_integrate(wi, sys; sampling = UniformMesh((8, 8, 8)))  # OK
+run_integrate(wi, sys)                                              # errors
 ```
+
+The grid that was used is recorded in `result.metadata["sampling_nk"]`.
+
+Passing an explicit size on the Fourier path has the opposite outcome:
+the size is ignored, with a warning, because the interpolation basis
+already fixes the grid.
 
 ## Unit conventions
 

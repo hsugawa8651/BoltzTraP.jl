@@ -28,30 +28,35 @@ See [Input Formats](@ref input-formats) for detailed format specifications.
 All workflows follow the same pattern:
 
 ```
-┌───────────────────────────────┐
-│         Data Source           │
-│ (VASP/QE/Wien2k/GENE/ABINIT/  │
-│  DFTK)                        │
-└───────────────┬───────────────┘
-                │ load_*() → DFTData
-                ▼
-┌───────────────────────────────┐
-│       run_interpolate         │
-│        (Fourier fit)          │
-└───────────────┬───────────────┘
-                │
-                ▼
-        InterpolationResult
-                │
-                ▼
-┌───────────────────────────────┐
-│        run_integrate          │
-│    (transport coefficients)   │
-└───────────────┬───────────────┘
-                │
-                ▼
-         TransportResult
+┌───────────────────────────────┐   ┌───────────────────────────────┐
+│         Data Source           │   │      Wannier90 files          │
+│ (VASP/QE/Wien2k/GENE/ABINIT/  │   │  (.chk and friends), or a     │
+│  DFTK)                        │   │  Wannier.InterpModel          │
+└───────────────┬───────────────┘   └───────────────┬───────────────┘
+                │ load_*() → DFTData                │
+                ▼                                   ▼
+┌───────────────────────────────┐   ┌───────────────────────────────┐
+│       run_interpolate         │   │      WannierInterpolator      │
+│        (Fourier fit)          │   │       (loads H(R))            │
+└───────────────┬───────────────┘   └───────────────┬───────────────┘
+                │                                   │
+                ▼                                   │
+        InterpolationResult                         │
+                │                                   │
+                ▼                                   ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                          run_integrate                          │
+│                    (transport coefficients)                     │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+                     TransportResult
 ```
+
+The Fourier path recovers the [`TransportSystem`](@ref) from the
+interpolation metadata, so `run_integrate(interp)` is enough. The Wannier
+path needs the system and an explicit mesh:
+`run_integrate(wi, sys; sampling = UniformMesh((8, 8, 8)))`.
 
 [`run_integrate`](@ref) accepts both [`InterpolationResult`](@ref) directly or a file path:
 
