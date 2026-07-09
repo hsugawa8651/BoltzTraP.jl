@@ -248,6 +248,74 @@ end
     end
 end
 
+@testset "run_integrate (interpolator + system)" begin
+    datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
+    have_data = isdir(datadir) && isfile(joinpath(datadir, "vasprun.xml"))
+
+    @testset "canonical form reproduces the wrapper" begin
+        if have_data
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            wrapped = BoltzTraP.run_integrate(ir; temperatures = [300.0])
+            canonical = BoltzTraP.run_integrate(
+                BoltzTraP.FourierInterpolator(ir),
+                BoltzTraP.TransportSystem(ir);
+                temperatures = [300.0],
+            )
+
+            @test canonical.sigma == wrapped.sigma
+            @test canonical.seebeck == wrapped.seebeck
+            @test canonical.kappa == wrapped.kappa
+            @test canonical.mu_values == wrapped.mu_values
+
+            # Only the wrapper knows the interpolation metadata, so only the
+            # wrapper can restore the source. The canonical form leaves the
+            # value stamped by solve_transport.
+            @test wrapped.metadata["source"] == ir.metadata["source"]
+            @test canonical.metadata["source"] == "solve_transport"
+        else
+            @warn "Skipping canonical run_integrate test: data not found at $datadir"
+        end
+    end
+
+    @testset "canonical form with explicit μ grid" begin
+        if have_data
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            mur_test = collect(0.0:0.05:0.5)
+            wrapped = BoltzTraP.run_integrate(ir, mur_test; temperatures = [300.0])
+            canonical = BoltzTraP.run_integrate(
+                BoltzTraP.FourierInterpolator(ir),
+                BoltzTraP.TransportSystem(ir),
+                mur_test;
+                temperatures = [300.0],
+            )
+
+            @test canonical.sigma == wrapped.sigma
+            @test canonical.mu_values == wrapped.mu_values
+        else
+            @warn "Skipping canonical run_integrate mur test: data not found at $datadir"
+        end
+    end
+
+    @testset "sampling keyword is forwarded to solve_transport" begin
+        if have_data
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            fi = BoltzTraP.FourierInterpolator(ir)
+            sys = BoltzTraP.TransportSystem(ir)
+            default_mesh = BoltzTraP.run_integrate(fi, sys; temperatures = [300.0])
+            explicit_mesh = BoltzTraP.run_integrate(
+                fi,
+                sys;
+                sampling = UniformMesh(),
+                temperatures = [300.0],
+            )
+            @test explicit_mesh.sigma == default_mesh.sigma
+            @test default_mesh.metadata["sampling"] == "UniformMesh"
+        else
+            @warn "Skipping sampling keyword test: data not found at $datadir"
+        end
+    end
+end
+
 @testset "provenance metadata" begin
     datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
     have_data = isdir(datadir) && isfile(joinpath(datadir, "vasprun.xml"))

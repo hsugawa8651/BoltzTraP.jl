@@ -458,23 +458,54 @@ function run_interpolate(
     )
 end
 
+#=
+    _save_and_report(result, output, verbose) -> TransportResult
+
+Shared tail of every `run_integrate` method: write the result when an output
+path is given, then report completion. Callers that need to fix up
+`result.metadata` must do so before calling this, otherwise the saved file and
+the returned object disagree.
+=#
+function _save_and_report(result, output, verbose)
+    if !isnothing(output)
+        verbose && println("Saving to $output...")
+        save_integrate(output, result)
+    end
+    verbose && println("Done.")
+    return result
+end
+
 """
+    run_integrate(interp::AbstractInterpolator, sys::TransportSystem; kwargs...) -> TransportResult
+    run_integrate(interp::AbstractInterpolator, sys::TransportSystem, mur; kwargs...) -> TransportResult
     run_integrate(interp::InterpolationResult; kwargs...) -> TransportResult
     run_integrate(interp::InterpolationResult, mur; kwargs...) -> TransportResult
     run_integrate(input::String; kwargs...) -> TransportResult
     run_integrate(input::String, mur; kwargs...) -> TransportResult
 
-Compute transport coefficients from interpolation result.
+Compute transport coefficients.
+
+The first form is the general entry point: it takes any
+[`AbstractInterpolator`](@ref) together with the [`TransportSystem`](@ref) that
+supplies the Fermi energy, the electron count, the DOS weight and the spin
+type. The remaining forms are conveniences for the Fourier path, which can
+recover the system from the interpolation metadata.
 
 # Arguments
 
-  - `interp`: [`InterpolationResult`](@ref) from [`run_interpolate`](@ref)
+  - `interp`: an [`AbstractInterpolator`](@ref), or an [`InterpolationResult`](@ref)
+    from [`run_interpolate`](@ref)
+  - `sys`: [`TransportSystem`](@ref) holding the system constants
   - `input`: Path to interpolation result file (.jld2) - alternative to `interp`
   - `mur`: Chemical potential values in Hartree (positional argument, optional).
     Same name as Python BoltzTraP2 for compatibility.
 
 # Keyword Arguments
 
+  - `sampling=UniformMesh()`: how the Brillouin zone is sampled. Only the
+    `(interp, sys)` forms accept it. The Wannier path needs an explicit mesh
+    size, e.g. `UniformMesh((8, 8, 8))`; the Fourier path derives its own grid
+    from the interpolation basis and ignores this argument.
   - `temperatures=[300.0]`: Vector of temperatures in K
   - `output=nothing`: Output file path (no file saved if `nothing`)
   - `bins=0`: Number of DOS histogram bins (auto if `0`)
@@ -490,7 +521,7 @@ Compute transport coefficients from interpolation result.
 # Examples
 
 ```julia
-# Direct from InterpolationResult (μ auto-generated)
+# Fourier path: the system is recovered from the interpolation metadata
 interp = run_interpolate("./Si.vasp")
 transport = run_integrate(interp; temperatures = [300.0])
 
@@ -503,10 +534,51 @@ transport = run_integrate(interp, mur; temperatures = [300.0])
 
 # With scissor correction (shift conduction bands to 1.1 eV gap)
 transport = run_integrate(interp; temperatures = [300.0], scissor = 1.1)
+
+# Wannier path: the system and the mesh have to be supplied
+using Wannier
+wi = WannierInterpolator("path/to/silicon")
+sys = TransportSystem(wi; fermi = εF, nelect = 8.0)
+transport = run_integrate(wi, sys; sampling = UniformMesh((8, 8, 8)))
 ```
 
-See also: [`run_interpolate`](@ref), [`save_integrate`](@ref), [`apply_scissor`](@ref)
+See also: [`run_interpolate`](@ref), [`solve_transport`](@ref),
+[`save_integrate`](@ref), [`apply_scissor`](@ref)
 """
+function run_integrate(
+    interp::AbstractInterpolator,
+    sys::TransportSystem;
+    sampling::AbstractBZSampling = UniformMesh(),
+    temperatures::AbstractVector{<:Real} = [300.0],
+    output::Union{String,Nothing} = nothing,
+    bins::Int = 0,
+    scissor::Union{Nothing,Real} = nothing,
+    verbose::Bool = false,
+)
+    @debug "run_integrate(interp, sys) called" sampling temperatures output bins scissor verbose
+
+    result = solve_transport(sampling, interp, sys; temperatures, bins, scissor, verbose)
+    return _save_and_report(result, output, verbose)
+end
+
+function run_integrate(
+    interp::AbstractInterpolator,
+    sys::TransportSystem,
+    mur::AbstractVector{<:Real};
+    sampling::AbstractBZSampling = UniformMesh(),
+    temperatures::AbstractVector{<:Real} = [300.0],
+    output::Union{String,Nothing} = nothing,
+    bins::Int = 0,
+    scissor::Union{Nothing,Real} = nothing,
+    verbose::Bool = false,
+)
+    @debug "run_integrate(interp, sys, mur) called" sampling temperatures output bins scissor verbose
+
+    result =
+        solve_transport(sampling, interp, sys; temperatures, mur, bins, scissor, verbose)
+    return _save_and_report(result, output, verbose)
+end
+
 function run_integrate(
     interp::InterpolationResult;
     temperatures::AbstractVector{<:Real} = [300.0],
@@ -522,16 +594,11 @@ function run_integrate(
 
     result = solve_transport(UniformMesh(), fi, sys; temperatures, bins, scissor, verbose)
 
-    # Restore source provenance from the interpolation metadata.
+    # Restore source provenance from the interpolation metadata, before the
+    # result is written out.
     result.metadata["source"] = get(interp.metadata, "source", "unknown")
 
-    if !isnothing(output)
-        verbose && println("Saving to $output...")
-        save_integrate(output, result)
-    end
-
-    verbose && println("Done.")
-    return result
+    return _save_and_report(result, output, verbose)
 end
 
 # Method with explicit μ grid (positional argument)
@@ -554,13 +621,7 @@ function run_integrate(
 
     result.metadata["source"] = get(interp.metadata, "source", "unknown")
 
-    if !isnothing(output)
-        verbose && println("Saving to $output...")
-        save_integrate(output, result)
-    end
-
-    verbose && println("Done.")
-    return result
+    return _save_and_report(result, output, verbose)
 end
 
 # File-based convenience method (μ auto-generated)

@@ -142,4 +142,22 @@ using Wannier
         @test size(result.sigma)[1:3] == (3, 3, 1)
         @test size(result.sigma, 4) > 0
     end
+
+    @testset "run_integrate (UniformMesh + WannierInterpolator)" begin
+        wi = WannierInterpolator(sifix)
+        sys = TransportSystem(wi; fermi = 0.2, nelect = 8.0)
+        mesh = UniformMesh((4, 4, 4))
+
+        hub = run_integrate(wi, sys; sampling = mesh, temperatures = [300.0])
+        direct = solve_transport(mesh, wi, sys; temperatures = [300.0])
+
+        @test hub.sigma == direct.sigma
+        @test hub.seebeck == direct.seebeck
+        @test hub.kappa == direct.kappa
+        @test hub.metadata["interpolator"] == "Wannier"
+
+        # The Wannier path cannot derive a mesh, so the default sampling is
+        # rejected rather than silently guessed.
+        @test_throws ErrorException run_integrate(wi, sys; temperatures = [300.0])
+    end
 end
