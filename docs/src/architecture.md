@@ -32,6 +32,17 @@ AbstractBZSampling
 UniformMesh
 ```
 
+## Band interpolation
+
+`WannierInterpolator` is documented on the [Wannier path](@ref) page, since it
+only becomes available once `Wannier.jl` is loaded.
+
+```@docs
+AbstractInterpolator
+FourierInterpolator
+interpolate_velocities
+```
+
 ## Material data carrier
 
 `TransportSystem` collects material-dependent data that was previously

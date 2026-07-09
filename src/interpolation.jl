@@ -9,19 +9,24 @@ using StaticArrays
 # Abstract Interpolator Interface
 # ============================================================================
 
-#=
+"""
     AbstractInterpolator
 
-Abstract type for band interpolation backends.
+Abstract type for band interpolation backends. It is the interpolator axis of
+[`solve_transport`](@ref) and of `run_integrate(interp, sys; sampling)`.
 
 Concrete implementations:
-- `FourierInterpolator`: BoltzTraP-style Fourier interpolation (eigenvalues only)
-- `WannierInterpolator`: Wannier.jl-based interpolation (provided by the Wannier.jl weakdep extension)
+
+  - [`FourierInterpolator`](@ref): BoltzTraP-style Fourier interpolation
+    (eigenvalues only)
+  - [`WannierInterpolator`](@ref): Wannier.jl-based interpolation (provided by
+    the Wannier.jl weakdep extension)
 
 Common API:
-- `interpolate_bands(interp, kpoints)` → eigenvalues
-- `interpolate_velocities(interp, kpoints)` → group velocities
-=#
+
+  - `interpolate_bands(interp, kpoints)` -> eigenvalues
+  - [`interpolate_velocities`](@ref)`(interp, kpoints)` -> group velocities
+"""
 abstract type AbstractInterpolator end
 
 #=
@@ -38,18 +43,24 @@ Interpolate band energies at given k-points.
 =#
 function interpolate_bands end
 
-#=
+"""
     interpolate_velocities(interp::AbstractInterpolator, kpoints)
 
-Interpolate group velocities at given k-points.
+Interpolate band group velocities at given k-points.
 
 # Arguments
-- `interp`: Interpolator instance
-- `kpoints`: Matrix of k-points (nk × 3) in fractional coordinates
+
+  - `interp`: an [`AbstractInterpolator`](@ref)
+  - `kpoints`: Matrix of k-points (nk × 3) in fractional coordinates
 
 # Returns
-- `vbands`: Group velocities (3 × nbands × nk)
-=#
+
+  - `vbands`: Group velocities (3 × nbands × nk), in Hartree·Bohr
+
+These are the band-diagonal group velocities. The degeneracy-aware,
+gauge-invariant velocity tensor used inside the transport pipeline is built
+separately from the full velocity matrices.
+"""
 function interpolate_velocities end
 
 #=
@@ -202,21 +213,29 @@ end
 # Fourier Interpolator (BoltzTraP method)
 # ============================================================================
 
-#=
+"""
     FourierInterpolator <: AbstractInterpolator
 
 BoltzTraP-style Fourier interpolation using star functions.
 
 # Fields
-- `coeffs`: Fourier coefficients (nbands × neq)
-- `equivalences`: Vector of equivalence class matrices
-- `lattvec`: 3×3 lattice vectors (columns)
 
-# Constructor
+  - `coeffs`: Fourier coefficients (nbands × neq)
+  - `equivalences`: Vector of equivalence class matrices
+  - `lattvec`: 3×3 lattice vectors (columns), in Bohr
+
+# Constructors
+
     FourierInterpolator(kpoints, energies, equivalences, lattvec)
+    FourierInterpolator(interp::InterpolationResult)
 
-Create interpolator by fitting band energies to Fourier series.
-=#
+The first fits band energies to a Fourier series. The second reuses the
+coefficients of an existing [`InterpolationResult`](@ref).
+
+The star functions fix the smallest grid that represents them exactly, so this
+interpolator derives its own integration grid and ignores an explicit
+[`UniformMesh`](@ref) size.
+"""
 struct FourierInterpolator <: AbstractInterpolator
     coeffs::Matrix{ComplexF64}
     equivalences::Vector{<:AbstractMatrix{<:Integer}}

@@ -47,6 +47,22 @@ struct _DummySubtypeInterp <: BoltzTraP.AbstractInterpolator end
     end
 end
 
+@testset "public API surface" begin
+    exported = names(BoltzTraP)
+
+    # The interpolator axis is part of the documented entry point
+    # run_integrate(interp, sys; sampling), so its types and the velocity
+    # accessor are public.
+    @test :AbstractInterpolator in exported
+    @test :FourierInterpolator in exported
+    @test :WannierInterpolator in exported
+    @test :interpolate_velocities in exported
+
+    # `interpolate` is exported by Wannier.jl; exporting it here would clash
+    # under `using BoltzTraP, Wannier`.
+    @test !(:interpolate in exported)
+end
+
 @testset "TransportSystem" begin
     # Synthetic InterpolationResult helpers (avoid heavy run_interpolate path)
     function _synth_interp(;
