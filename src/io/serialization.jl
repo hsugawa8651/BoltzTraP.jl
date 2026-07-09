@@ -103,6 +103,24 @@ function TransportSystem(interp::InterpolationResult)
 end
 
 """
+    FourierInterpolator(interp::InterpolationResult) -> FourierInterpolator
+
+Build a `FourierInterpolator` from an `InterpolationResult`, reusing the
+stored Fourier coefficients, equivalence classes, and lattice vectors.
+
+The inverse direction is [`InterpolationResult`](@ref)`(::FourierInterpolator)`,
+which bundles an interpolator together with atoms and metadata for
+serialization.
+"""
+function FourierInterpolator(interp::InterpolationResult)
+    return FourierInterpolator(
+        interp.coeffs,
+        interp.equivalences,
+        SMatrix{3,3,Float64}(interp.lattvec),
+    )
+end
+
+"""
     TransportResult
 
 Container for transport coefficients from [`run_integrate`](@ref).

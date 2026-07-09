@@ -104,6 +104,25 @@ end
     end
 end
 
+@testset "FourierInterpolator from InterpolationResult" begin
+    coeffs = ComplexF64[1.0+0im 2.0+0im; 3.0+0im 4.0+0im]
+    equivs = [reshape([0, 0, 0], 1, 3), reshape([1, 0, 0], 1, 3)]
+    lattvec = 5.0 * Matrix{Float64}(LinearAlgebra.I, 3, 3)
+    ir = BoltzTraP.InterpolationResult(coeffs, equivs, lattvec, nothing, Dict{String,Any}())
+
+    fi_manual = BoltzTraP.FourierInterpolator(
+        ir.coeffs,
+        ir.equivalences,
+        SMatrix{3,3,Float64}(ir.lattvec),
+    )
+    fi_conv = BoltzTraP.FourierInterpolator(ir)
+
+    @test fi_conv isa BoltzTraP.FourierInterpolator
+    @test fi_conv.coeffs == fi_manual.coeffs
+    @test fi_conv.equivalences == fi_manual.equivalences
+    @test fi_conv.lattvec == fi_manual.lattvec
+end
+
 # Helper: dummy AbstractBZSampling subtype for abstract-type fallback test
 struct _DummyBZSampling <: BoltzTraP.AbstractBZSampling end
 

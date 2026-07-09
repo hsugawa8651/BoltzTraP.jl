@@ -518,11 +518,7 @@ function run_integrate(
     @debug "run_integrate called" temperatures output bins scissor verbose
 
     sys = TransportSystem(interp)
-    fi = FourierInterpolator(
-        interp.coeffs,
-        interp.equivalences,
-        SMatrix{3,3,Float64}(interp.lattvec),
-    )
+    fi = FourierInterpolator(interp)
 
     result = solve_transport(UniformMesh(), fi, sys; temperatures, bins, scissor, verbose)
 
@@ -551,11 +547,7 @@ function run_integrate(
     @debug "run_integrate(interp, mur) called" temperatures output bins scissor verbose
 
     sys = TransportSystem(interp)
-    fi = FourierInterpolator(
-        interp.coeffs,
-        interp.equivalences,
-        SMatrix{3,3,Float64}(interp.lattvec),
-    )
+    fi = FourierInterpolator(interp)
 
     result =
         solve_transport(UniformMesh(), fi, sys; temperatures, mur, bins, scissor, verbose)
