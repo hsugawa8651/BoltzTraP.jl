@@ -88,6 +88,33 @@ struct WannierInterpolator{ST<:SpinType} <: AbstractInterpolator
     spintype::ST
 end
 
+"""
+    TransportSystem(wi::WannierInterpolator; fermi, nelect, spintype, dosweight)
+
+Build a [`TransportSystem`](@ref) from a `WannierInterpolator`.
+
+The lattice and the spin type are taken from `wi`. The Fermi energy and the
+electron count are not present in the Wannier90 files, so they have no default
+and must be supplied by the caller.
+
+# Keyword Arguments
+
+  - `fermi`: Fermi energy in Ha (required)
+  - `nelect`: number of electrons per unit cell (required)
+  - `spintype=wi.spintype`: spin type carried by the interpolator
+  - `dosweight`: DOS weight; defaults to the spin degeneracy implied by
+    `spintype`, i.e. `2.0` for `Unpolarized()` and `1.0` otherwise
+"""
+function TransportSystem(
+    wi::WannierInterpolator;
+    fermi::Real,
+    nelect::Real,
+    spintype::SpinType = wi.spintype,
+    dosweight::Real = (spintype isa Unpolarized ? 2.0 : 1.0),
+)
+    return TransportSystem(wi.lattice, fermi, nelect, dosweight, spintype)
+end
+
 # Stub: file-load constructor; the real method lives in BoltzTraPWannierExt.
 # The signature is `(args...; kwargs...)` — less specific than the extension's
 # `(prefix::String; spintype)` — so Julia dispatches to the extension method
