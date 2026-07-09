@@ -523,7 +523,7 @@ function run_integrate(
     result = solve_transport(UniformMesh(), fi, sys; temperatures, bins, scissor, verbose)
 
     # Restore source provenance from the interpolation metadata.
-    result.metadata["source"] = get(interp.metadata, "source_file", "unknown")
+    result.metadata["source"] = get(interp.metadata, "source", "unknown")
 
     if !isnothing(output)
         verbose && println("Saving to $output...")
@@ -552,7 +552,7 @@ function run_integrate(
     result =
         solve_transport(UniformMesh(), fi, sys; temperatures, mur, bins, scissor, verbose)
 
-    result.metadata["source"] = get(interp.metadata, "source_file", "unknown")
+    result.metadata["source"] = get(interp.metadata, "source", "unknown")
 
     if !isnothing(output)
         verbose && println("Saving to $output...")

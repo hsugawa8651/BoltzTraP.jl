@@ -220,6 +220,9 @@ end
             # source must come from IR metadata (wrapper restores), not the
             # solve_transport delegate's hardcoded "solve_transport".
             @test result.metadata["source"] != "solve_transport"
+            # ... and it must be the value the interpolation stage recorded,
+            # not the "unknown" fallback.
+            @test result.metadata["source"] == ir.metadata["source"]
             @test haskey(result.metadata, "fermi_Ha")
             @test haskey(result.metadata, "vuc_ang3")
         else
@@ -238,6 +241,7 @@ end
             @test length(result.mu_values) == length(mur_test)
             @test !any(isnan, result.sigma)
             @test result.metadata["source"] != "solve_transport"
+            @test result.metadata["source"] == ir.metadata["source"]
         else
             @warn "Skipping run_integrate explicit-μ wrapper test: data not found at $datadir"
         end

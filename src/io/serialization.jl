@@ -26,15 +26,15 @@ Container for interpolation results from [`run_interpolate`](@ref).
 
 # Metadata Keys
 
-  - `fermi_energy`: Fermi energy in Ha
+  - `fermi`: Fermi energy in Ha
   - `nelect`: Number of electrons
   - `dosweight`: DOS weight (2.0 for non-spin-polarized, 1.0 for collinear)
   - `spintype`: Spin type ("Unpolarized" or "Collinear")
   - `selected_bands`: Band indices used (UnitRange)
   - `spacegroup_number`: International space group number (1-230)
   - `spacegroup_symbol`: Space group symbol (e.g., "Fd-3m")
-  - `source_file`: Original DFT file path
-  - `creation_date`: ISO 8601 timestamp
+  - `source`: Original DFT file path
+  - `created`: ISO 8601 timestamp
   - `generator`: "BoltzTraP.jl"
 
 See also: [`run_interpolate`](@ref), [`run_integrate`](@ref), [`save_interpolation`](@ref), [`load_interpolation`](@ref)
@@ -139,13 +139,19 @@ Contains transport coefficients and other quantities computed by BZ integration.
 
 # Metadata Keys
 
-  - `fermi_energy`: Fermi energy in Ha
-  - `nelect`: Number of electrons
-  - `dosweight`: DOS weight (2.0 for non-spin-polarized, 1.0 for collinear)
-  - `spintype`: Spin type ("Unpolarized" or "Collinear")
-  - `source_file`: Original DFT file path
-  - `creation_date`: ISO 8601 timestamp
-  - Additional keys from interpolation step are preserved
+Stamped by [`solve_transport`](@ref):
+
+  - `interpolator`: `"Fourier"` or `"Wannier"`
+  - `sampling`: name of the BZ sampling type, e.g. `"UniformMesh"`
+  - `nelect`, `dosweight`, `spintype`: system constants used for the integration
+  - `fermi_Ha`, `fermi_eV`: Fermi energy of the interpolated bands
+  - `nbands`, `npts_fft`, `npts_dos`: grid sizes
+  - further provenance keys, and `scissor_eV` / `scissor_Ha` when a scissor
+    correction is applied
+
+Carried over from the interpolation metadata by [`run_integrate`](@ref):
+
+  - `source`: Original DFT file path
 
 See also: [`run_integrate`](@ref), [`save_integrate`](@ref), [`load_integrate`](@ref)
 """
