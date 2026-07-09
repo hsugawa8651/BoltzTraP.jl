@@ -155,6 +155,9 @@ using Wannier
         @test hub.seebeck == direct.seebeck
         @test hub.kappa == direct.kappa
         @test hub.metadata["interpolator"] == "Wannier"
+        # The Wannier path takes the grid from the sampling, so that is what
+        # gets recorded.
+        @test hub.metadata["sampling_nk"] == (4, 4, 4)
 
         # The Wannier path cannot derive a mesh, so the default sampling is
         # rejected rather than silently guessed.

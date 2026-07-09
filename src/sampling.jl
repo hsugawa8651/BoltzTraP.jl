@@ -19,12 +19,17 @@ abstract type AbstractBZSampling end
     UniformMesh(nk=nothing)
     UniformMesh((nk1, nk2, nk3))
 
-Uniform Monkhorst-Pack-style mesh. The `nk` field selects the mesh density:
+Uniform Monkhorst-Pack-style mesh. The `nk` field asks for a mesh density:
 
-  - `nk === nothing`: the interpolator decides the mesh size (matches the
-    legacy `run_integrate` behavior, which derives the mesh from the
-    interpolator's k-point density).
-  - `nk::Tuple{Int,Int,Int}`: explicit user-specified mesh dimensions.
+  - `nk === nothing`: let the interpolator choose the mesh size.
+  - `nk::Tuple{Int,Int,Int}`: an explicit mesh size.
+
+Whether an explicit size is honoured depends on the interpolator. The Wannier
+path requires one and raises an error without it. The Fourier path takes its
+grid from the interpolation basis, where the star functions fix the smallest
+grid that represents them exactly, and warns that an explicit size is ignored.
+
+The grid actually used is recorded in `TransportResult.metadata["sampling_nk"]`.
 """
 struct UniformMesh <: AbstractBZSampling
     nk::Union{Nothing,Tuple{Int,Int,Int}}

@@ -316,6 +316,54 @@ end
     end
 end
 
+@testset "integration grid on the Fourier path" begin
+    datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
+    have_data = isdir(datadir) && isfile(joinpath(datadir, "vasprun.xml"))
+
+    @testset "an explicit mesh size warns and is ignored" begin
+        if have_data
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            fi = BoltzTraP.FourierInterpolator(ir)
+            sys = BoltzTraP.TransportSystem(ir)
+
+            derived = solve_transport(UniformMesh(), fi, sys; temperatures = [300.0])
+            requested = @test_logs (:warn,) match_mode = :any solve_transport(
+                UniformMesh((8, 8, 8)),
+                fi,
+                sys;
+                temperatures = [300.0],
+            )
+            # The warning is the only effect: the grid comes from the basis.
+            @test requested.sigma == derived.sigma
+            @test requested.metadata["sampling_nk"] == derived.metadata["sampling_nk"]
+
+            # The default mesh must stay silent.
+            @test_logs solve_transport(UniformMesh(), fi, sys; temperatures = [300.0])
+        else
+            @warn "Skipping explicit mesh warning test: data not found at $datadir"
+        end
+    end
+
+    @testset "sampling_nk records the grid that was used" begin
+        if have_data
+            ir = BoltzTraP.run_interpolate(datadir; kpoints = 200, verbose = false)
+            dims = BoltzTraP.determine_fft_dims(ir.equivalences)
+            result = BoltzTraP.run_integrate(ir; temperatures = [300.0])
+
+            @test result.metadata["sampling_nk"] == dims
+            @test prod(result.metadata["sampling_nk"]) == result.metadata["npts_fft"]
+
+            mktempdir() do dir
+                path = joinpath(dir, "sampling_nk_roundtrip.jld2")
+                save_integrate(path, result)
+                @test load_integrate(path).metadata["sampling_nk"] == dims
+            end
+        else
+            @warn "Skipping sampling_nk test: data not found at $datadir"
+        end
+    end
+end
+
 @testset "provenance metadata" begin
     datadir = joinpath(@__DIR__, "..", "benchmarks", "data", "Si.vasp")
     have_data = isdir(datadir) && isfile(joinpath(datadir, "vasprun.xml"))
