@@ -6,7 +6,7 @@ These reference tests were used by the developers during implementation to ensur
 
 ## Overview
 
-Reference testing ensures BoltzTraP.jl produces results identical to the original Python implementation:
+Reference testing checks BoltzTraP.jl against the original Python implementation on a fixed set of cases:
 
 | Aspect | Description |
 |--------|-------------|

@@ -8,7 +8,7 @@ Julia implementation of [BoltzTraP2](https://www.imc.tuwien.ac.at/forschungsbere
     - **[CLI workflow](@ref "CLI Workflow")** (Command Line): Run from terminal with `boltztrap` command. No programming required.
     - **[API workflow](@ref "API Workflow")** (Julia Session): Call functions from Julia REPL or scripts. Suitable for customization and automation.
 
-    Both workflows produce identical results.
+    Both workflows call the same code paths and produce the same results.
 
 ### Available Commands
 
@@ -91,7 +91,7 @@ Then add to PATH: `export PATH="$HOME/.julia/bin:$PATH"`
 
 ## Compatibility with Python BoltzTraP2
 
-BoltzTraP.jl aims for numerical compatibility with Python BoltzTraP2. To ensure bit-for-bit compatibility with the reference implementation, BoltzTraP.jl uses explicit numerical constants for all unit conversions, avoiding potential discrepancies from unit libraries.
+BoltzTraP.jl aims for numerical compatibility with Python BoltzTraP2. To keep unit conversions from introducing discrepancies of their own, BoltzTraP.jl uses explicit numerical constants rather than a unit library.
 
 Key differences:
 
