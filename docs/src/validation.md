@@ -16,7 +16,7 @@ BoltzTraP.jl was developed using **reference testing** - a methodology where:
 2. Julia BoltzTraP.jl computes the same quantities from the same inputs
 3. Results are compared to verify numerical equivalence
 
-This approach guarantees that BoltzTraP.jl produces results identical to the original Python implementation.
+On the cases covered by these tests, the two implementations agree to within `< 10⁻⁶` relative error. That is what the tests establish; they do not prove identity in general.
 
 ### Validation Summary
 

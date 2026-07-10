@@ -102,6 +102,33 @@ using Wannier
         end
     end
 
+    @testset "TransportSystem from WannierInterpolator" begin
+        wi = WannierInterpolator(sifix)
+        sys_manual = TransportSystem(wi.lattice, 0.2, 8.0, 2.0, Unpolarized())
+        sys_conv = TransportSystem(wi; fermi = 0.2, nelect = 8.0)
+
+        @test sys_conv.lattice == sys_manual.lattice
+        @test sys_conv.fermi == sys_manual.fermi
+        @test sys_conv.nelect == sys_manual.nelect
+        # lattice and spintype come from the interpolator; fermi and nelect
+        # are not in the Wannier90 files and must be supplied by the caller.
+        @test sys_conv.spintype isa Unpolarized
+        @test sys_conv.dosweight == 2.0
+
+        # dosweight defaults to the spin degeneracy implied by spintype:
+        # 2.0 when unpolarized, 1.0 otherwise.
+        wi_collinear =
+            BoltzTraP.WannierInterpolator{Collinear}(wi.model, wi.lattice, Collinear())
+        sys_collinear = TransportSystem(wi_collinear; fermi = 0.2, nelect = 8.0)
+        @test sys_collinear.spintype isa Collinear
+        @test sys_collinear.dosweight == 1.0
+
+        # An explicit dosweight overrides the default.
+        sys_override = TransportSystem(wi; fermi = 0.2, nelect = 8.0, dosweight = 1.0)
+        @test sys_override.dosweight == 1.0
+        @test sys_override.spintype isa Unpolarized
+    end
+
     @testset "solve_transport smoke (UniformMesh + WannierInterpolator)" begin
         wi = WannierInterpolator(sifix)
         # Mock TransportSystem for Si: 8 valence electrons, dosweight 2.0,
@@ -114,5 +141,26 @@ using Wannier
         # tensor, axis 3 is temperature, axis 4 is the auto-generated μ grid.
         @test size(result.sigma)[1:3] == (3, 3, 1)
         @test size(result.sigma, 4) > 0
+    end
+
+    @testset "run_integrate (UniformMesh + WannierInterpolator)" begin
+        wi = WannierInterpolator(sifix)
+        sys = TransportSystem(wi; fermi = 0.2, nelect = 8.0)
+        mesh = UniformMesh((4, 4, 4))
+
+        hub = run_integrate(wi, sys; sampling = mesh, temperatures = [300.0])
+        direct = solve_transport(mesh, wi, sys; temperatures = [300.0])
+
+        @test hub.sigma == direct.sigma
+        @test hub.seebeck == direct.seebeck
+        @test hub.kappa == direct.kappa
+        @test hub.metadata["interpolator"] == "Wannier"
+        # The Wannier path takes the grid from the sampling, so that is what
+        # gets recorded.
+        @test hub.metadata["sampling_nk"] == (4, 4, 4)
+
+        # The Wannier path cannot derive a mesh, so the default sampling is
+        # rejected rather than silently guessed.
+        @test_throws ErrorException run_integrate(wi, sys; temperatures = [300.0])
     end
 end

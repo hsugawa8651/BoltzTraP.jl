@@ -68,6 +68,12 @@ function solve_transport(
     scissor::Union{Nothing,Real} = nothing,
     verbose::Bool = false,
 )::TransportResult
+    isnothing(sampling.nk) || @warn(
+        "solve_transport: the Fourier path takes its integration grid from the " *
+        "interpolation basis, so the requested UniformMesh size is ignored.",
+        requested = sampling.nk,
+        used = determine_fft_dims(interp.equivalences),
+    )
     eband, vvband = getBTPbands(interp.coeffs, interp.equivalences, interp.lattvec)
     return _solve_transport_from_bands(
         eband,
@@ -114,6 +120,19 @@ end
 # matching shape — `(nbands, npts)` and `(nbands, 3, 3, npts)` — into
 # this helper, so output is bit-equal to the prior monolithic Fourier
 # implementation under default kwargs.
+#=
+    integration_grid(interp, sampling) -> Union{Nothing,NTuple{3,Int}}
+
+The k-grid that the integration actually used. The Fourier path takes it from
+the interpolation basis, whose star functions fix the smallest grid that
+represents them exactly; the Wannier path takes it from the sampling, which
+must carry an explicit `nk`.
+=#
+integration_grid(::AbstractInterpolator, sampling::AbstractBZSampling) = sampling.nk
+
+integration_grid(interp::FourierInterpolator, ::UniformMesh) =
+    determine_fft_dims(interp.equivalences)
+
 function _solve_transport_from_bands(
     eband::AbstractMatrix{<:Real},
     vvband::AbstractArray{<:Real,4},
@@ -202,6 +221,7 @@ function _solve_transport_from_bands(
     result_metadata = Dict{String,Any}(
         "source" => "solve_transport",
         "sampling" => string(nameof(typeof(sampling))),
+        "sampling_nk" => integration_grid(interp, sampling),
         "interpolator" => replace(string(nameof(typeof(interp))), "Interpolator" => ""),
         "nelect" => nelect,
         "dosweight" => dosweight,
