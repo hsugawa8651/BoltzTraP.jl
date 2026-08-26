@@ -118,11 +118,11 @@ Throw an error if no compatible format is found.
 
 ```julia
 # Auto-detect format
-data = load_dft("./calculation")
+data = load_dft(\"./calculation\")
 
 # Explicit format (still works)
-data = load_vasp("./Si.vasp")
-data = load_qe("./Si.qe")
+data = load_vasp(\"./Si.vasp\")
+data = load_qe(\"./Si.qe\")
 ```
 """
 function load_dft(directory::String)

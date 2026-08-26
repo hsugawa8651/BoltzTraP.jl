@@ -17,7 +17,7 @@ Display summary of interpolation result.
 # Example
 
 ```julia
-interp = run_interpolate("./Si.vasp")
+interp = run_interpolate(\"./Si.vasp\")
 describe(interp)
 ```
 """

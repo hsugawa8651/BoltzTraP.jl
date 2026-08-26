@@ -230,16 +230,16 @@ Run interpolation workflow on pre-loaded band structure data (legacy interface).
 
 ```julia
 # From VASP
-data = load_vasp("./Si.vasp")
-result = run_interpolate(data; source = "VASP", kpoints = 5000)
+data = load_vasp(\"./Si.vasp\")
+result = run_interpolate(data; source = \"VASP\", kpoints = 5000)
 
 # From QE
-data = load_qe("./Si.qe")
-result = run_interpolate(data; source = "QE")
+data = load_qe(\"./Si.qe\")
+result = run_interpolate(data; source = \"QE\")
 
 # From DFTK (requires DFTK.jl loaded)
 data = load_dftk(scfres)
-result = run_interpolate(data; source = "DFTK")
+result = run_interpolate(data; source = \"DFTK\")
 ```
 
 See also: [`load_vasp`](@ref), [`load_qe`](@ref), [`load_dftk`](@ref)
@@ -412,7 +412,7 @@ Run the complete interpolation workflow on VASP data.
 # Example
 
 ```julia
-result = run_interpolate("./Si.vasp"; kpoints = 5000, verbose = true)
+result = run_interpolate(\"./Si.vasp\"; kpoints = 5000, verbose = true)
 ```
 
 See also: [`run_integrate`](@ref), [`save_interpolation`](@ref)
@@ -522,11 +522,11 @@ recover the system from the interpolation metadata.
 
 ```julia
 # Fourier path: the system is recovered from the interpolation metadata
-interp = run_interpolate("./Si.vasp")
+interp = run_interpolate(\"./Si.vasp\")
 transport = run_integrate(interp; temperatures = [300.0])
 
 # From file
-transport = run_integrate("si_interp.jld2"; temperatures = [200.0, 300.0, 400.0])
+transport = run_integrate(\"si_interp.jld2\"; temperatures = [200.0, 300.0, 400.0])
 
 # With explicit μ grid (positional argument, same as Python BoltzTraP2)
 mur = range(-0.5, 0.5, length = 100) .* EV_TO_HA  # eV to Ha
@@ -537,7 +537,7 @@ transport = run_integrate(interp; temperatures = [300.0], scissor = 1.1)
 
 # Wannier path: the system and the mesh have to be supplied
 using Wannier
-wi = WannierInterpolator("path/to/silicon")
+wi = WannierInterpolator(\"path/to/silicon\")
 sys = TransportSystem(wi; fermi = εF, nelect = 8.0)
 transport = run_integrate(wi, sys; sampling = UniformMesh((8, 8, 8)))
 ```
@@ -967,7 +967,7 @@ Matrix of shape (nT, nμ) with heat capacity in SI units (J/K).
 # Example
 
 ```julia
-transport = run_integrate("si_interp.jld2"; temperatures = [300.0])
+transport = run_integrate(\"si_interp.jld2\"; temperatures = [300.0])
 cv = calc_cv(transport)
 ```
 
