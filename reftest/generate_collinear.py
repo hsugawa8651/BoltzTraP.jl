@@ -88,6 +88,12 @@ def generate_collinear(material_name):
     vuc = np.abs(np.linalg.det(lattvec))
     print(f"  Unit cell volume: {vuc:.4f} Å³")
 
+    # BoltzTraP2's fite/bandlib functions expect lattvec in Bohr (atomic units);
+    # use a separate Bohr-converted copy for those calls so the Å convention above
+    # (kept for the Julia loader's explicit Å→Bohr conversion) is undisturbed.
+    lattvec_bohr = data.get_lattvec()
+    vuc_bohr = np.abs(np.linalg.det(lattvec_bohr))
+
     # Get symmetry info
     nrotations = sphere.calc_nrotations(data.atoms, data.magmom)
     print(f"  Rotations: {nrotations}")
@@ -150,7 +156,7 @@ def generate_collinear(material_name):
     Tr = config['temperatures']
 
     # Reconstruct bands via FFT
-    eband, vvband, cband = fite.getBTPbands(equivalences, coeffs, lattvec)
+    eband, vvband, cband = fite.getBTPbands(equivalences, coeffs, lattvec_bohr)
     print(f"    eband: {eband.shape}, vvband: {vvband.shape}")
 
     # Compute DOS
@@ -175,7 +181,7 @@ def generate_collinear(material_name):
 
     # Compute Onsager coefficients
     sigma, S, kappa, *_ = bandlib.calc_Onsager_coefficients(
-        L0, L1, L2, mur, Tr, vuc
+        L0, L1, L2, mur, Tr, vuc_bohr
     )
     print(f"    sigma: {sigma.shape}")
 

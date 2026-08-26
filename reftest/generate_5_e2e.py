@@ -42,8 +42,8 @@ def generate_si_interpolate(include_transport=True):
     print(f"  dosweight: {data.dosweight}")
     print(f"  nelect: {data.nelect}")
 
-    lattvec = data.atoms.get_cell().T
-    vuc = np.abs(np.linalg.det(lattvec))  # Unit cell volume in Bohr^3
+    lattvec = data.get_lattvec()
+    vuc = np.abs(np.linalg.det(lattvec))
     print(f"  Unit cell volume: {vuc:.4f} Bohr^3")
 
     # Get equivalences with target ~5000 k-points
@@ -181,7 +181,7 @@ def generate_pbte_interpolate(include_transport=True):
     print(f"  dosweight: {data.dosweight}")
     print(f"  nelect: {data.nelect}")
 
-    lattvec = data.atoms.get_cell().T
+    lattvec = data.get_lattvec()
     vuc = np.abs(np.linalg.det(lattvec))
     print(f"  Unit cell volume: {vuc:.4f} Bohr^3")
 
@@ -301,8 +301,8 @@ def generate_qe_si_interpolate(include_transport=True):
     print(f"  dosweight: {data.dosweight}")
     print(f"  nelect: {data.nelect}")
 
-    lattvec = data.atoms.get_cell().T
-    vuc = np.abs(np.linalg.det(lattvec))  # Unit cell volume in Bohr^3
+    lattvec = data.get_lattvec()
+    vuc = np.abs(np.linalg.det(lattvec))
     print(f"  Unit cell volume: {vuc:.4f} Bohr^3")
 
     # Get equivalences with target ~5000 k-points
@@ -445,8 +445,8 @@ def generate_wien2k_si_interpolate(include_transport=True):
     print(f"  dosweight: {data.dosweight}")
     print(f"  nelect: {data.nelect}")
 
-    lattvec = data.atoms.get_cell().T
-    vuc = np.abs(np.linalg.det(lattvec))  # Unit cell volume in Bohr^3
+    lattvec = data.get_lattvec()
+    vuc = np.abs(np.linalg.det(lattvec))
     print(f"  Unit cell volume: {vuc:.4f} Bohr^3")
 
     # Get equivalences with target ~5000 k-points
@@ -589,8 +589,8 @@ def generate_abinit_si_interpolate(include_transport=True):
     print(f"  dosweight: {data.dosweight}")
     print(f"  nelect: {data.nelect}")
 
-    lattvec = data.atoms.get_cell().T
-    vuc = np.abs(np.linalg.det(lattvec))  # Unit cell volume in Bohr^3
+    lattvec = data.get_lattvec()
+    vuc = np.abs(np.linalg.det(lattvec))
     print(f"  Unit cell volume: {vuc:.4f} Bohr^3")
 
     # Get equivalences with target ~5000 k-points
@@ -732,7 +732,7 @@ def generate_bi2te3_interpolate(include_transport=True):
     print(f"  dosweight: {data.dosweight}")
     print(f"  nelect: {data.nelect}")
 
-    lattvec = data.atoms.get_cell().T
+    lattvec = data.get_lattvec()
     vuc = np.abs(np.linalg.det(lattvec))
     print(f"  Unit cell volume: {vuc:.4f} Bohr^3")
 
@@ -851,7 +851,7 @@ def generate_cosb3_interpolate(include_transport=True):
     print(f"  dosweight: {data.dosweight}")
     print(f"  nelect: {data.nelect}")
 
-    lattvec = data.atoms.get_cell().T
+    lattvec = data.get_lattvec()
     vuc = np.abs(np.linalg.det(lattvec))
     print(f"  Unit cell volume: {vuc:.4f} Bohr^3")
 

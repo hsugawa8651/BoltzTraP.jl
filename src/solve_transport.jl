@@ -199,9 +199,8 @@ function _solve_transport_from_bands(
     # Step 5: Fermi integrals
     N, L0, L1, L2 = fermi_integrals(epsilon, dos, vvdos, μ_range, Tr; dosweight)
 
-    # Step 6: Onsager coefficients (volume in Å³ matches Python BoltzTraP2)
-    lattvec_ang = sys.lattice * BOHR_TO_ANG
-    vuc = abs(det(lattvec_ang))
+    # Step 6: Onsager coefficients (volume in Bohr³, atomic-units convention)
+    vuc = abs(det(sys.lattice))
     σ, S, κ = calc_onsager_coefficients(L0, L1, L2, Tr, vuc)
 
     # Step 7: μ to eV for output
@@ -232,7 +231,7 @@ function _solve_transport_from_bands(
         "fermi_dft_eV" => fermi_dft * HA_TO_EV,
         "mu0_Ha" => μ0,
         "mu0_eV" => μ0 .* HA_TO_EV,
-        "vuc_ang3" => vuc,
+        "vuc_bohr3" => vuc,
         "nbands" => nbands,
         "npts_fft" => npts,
         "npts_dos" => npts_dos,

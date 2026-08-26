@@ -83,6 +83,9 @@ end
         @test all(phase[:, 1] .≈ 1.0)
     end
 
+    # Absolute-value unit regression (no NPZ / DFT / BoltzTraP2 dependency)
+    include("test_absolute_units.jl")
+
     # I/O tests (no NPZ dependency)
     include("test_io_vasp.jl")
     include("test_io_qe.jl")
