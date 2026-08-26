@@ -3,9 +3,7 @@
 # Copyright (C) 2026 Hiroharu Sugawara (Julia port)
 # Part of BoltzTraP.jl - Port of BoltzTraP2/fite.py
 
-# Note: BOHR_TO_ANG is defined in units.jl
-# Python BoltzTraP2 uses Ångström for lattvec in velocity calculation
-# We must match this for σ and κ to be consistent
+# Note: lattvec is atomic units (Bohr) throughout; velocities are Ha·Bohr.
 
 #=
     determine_fft_dims(equivalences)
@@ -150,8 +148,8 @@ Uses function barrier pattern for performance optimization:
 - `eband`: Band energies (nbands × npts)
 - `vvband`: Velocity outer products (nbands × 3 × 3 × npts) if compute_velocity=true
 
-Note: lattvec is expected in Bohr (atomic units) and is converted to Ångström
-internally to match Python BoltzTraP2's velocity calculation conventions.
+Note: lattvec is expected in Bohr (atomic units). Velocities are returned in
+Ha·Bohr, consistent with the atomic-units convention used throughout BT.jl.
 =#
 function getBTPbands(coeffs, equivalences, lattvec; compute_velocity = true)
     dims = determine_fft_dims(equivalences)
@@ -162,12 +160,9 @@ function getBTPbands(coeffs, equivalences, lattvec; compute_velocity = true)
     # Pre-computation (amortized cost)
     plan = plan_ifft(zeros(ComplexF64, dims))
 
-    # Convert lattvec from Bohr to Ångström to match Python BoltzTraP2
-    lattvec_ang = lattvec * BOHR_TO_ANG
-
     # Pre-compute Cartesian coordinates: allvec_t[i, k] = (equiv * lattvec)[k, i]
     all_equiv_mat = vcat([Matrix(equiv) for equiv in equivalences]...)
-    allvec_t = Matrix{Float64}(permutedims(all_equiv_mat * lattvec_ang))
+    allvec_t = Matrix{Float64}(permutedims(all_equiv_mat * lattvec))
 
     # Pre-compute CartesianIndex array for grid filling
     total_pts = sum(size(e, 1) for e in equivalences)
@@ -222,9 +217,8 @@ function getBTPbands_parallel(coeffs, equivalences, lattvec; compute_velocity = 
 
     # Pre-computation (amortized cost, shared across threads)
     plan = plan_ifft(zeros(ComplexF64, dims))
-    lattvec_ang = lattvec * BOHR_TO_ANG
     all_equiv_mat = vcat([Matrix(equiv) for equiv in equivalences]...)
-    allvec_t = Matrix{Float64}(permutedims(all_equiv_mat * lattvec_ang))
+    allvec_t = Matrix{Float64}(permutedims(all_equiv_mat * lattvec))
 
     total_pts = sum(size(e, 1) for e in equivalences)
     all_indices = Vector{CartesianIndex{3}}(undef, total_pts)

@@ -240,7 +240,7 @@ end
             # not the "unknown" fallback.
             @test result.metadata["source"] == ir.metadata["source"]
             @test haskey(result.metadata, "fermi_Ha")
-            @test haskey(result.metadata, "vuc_ang3")
+            @test haskey(result.metadata, "vuc_bohr3")
         else
             @warn "Skipping run_integrate auto-μ wrapper test: data not found at $datadir"
         end
@@ -400,7 +400,8 @@ end
             @test result.metadata["interpolator"] == "Fourier"
 
             # Legacy metadata keys must remain (regression: stamping is additive).
-            for key in ("nelect", "dosweight", "fermi_Ha", "vuc_ang3", "nbands", "npts_dos")
+            for key in
+                ("nelect", "dosweight", "fermi_Ha", "vuc_bohr3", "nbands", "npts_dos")
                 @test haskey(result.metadata, key)
             end
         else
