@@ -100,8 +100,8 @@ When `kpath` is provided, the spacegroup metadata is not required. Format:
 
 ```julia
 kpath = (
-    points = Dict("Γ" => [0, 0, 0], "X" => [0.5, 0, 0.5], "L" => [0.5, 0.5, 0.5]),
-    paths = [["Γ", "X", "L", "Γ"]],
+    points = Dict(\"Γ\" => [0, 0, 0], \"X\" => [0.5, 0, 0.5], \"L\" => [0.5, 0.5, 0.5]),
+    paths = [[\"Γ\", \"X\", \"L\", \"Γ\"]],
 )
 ```
 
@@ -115,14 +115,14 @@ kpath = (
 using BoltzTraP
 
 # Auto k-path from spacegroup (requires spacegroup in metadata)
-result = load_interpolation("si_interp.jld2")
-plot_bands(result; emin = -5.0, emax = 5.0, output = "bands.png")
+result = load_interpolation(\"si_interp.jld2\")
+plot_bands(result; emin = -5.0, emax = 5.0, output = \"bands.png\")
 
 # Manual k-path (for .bt2 files without spacegroup)
-result = load_interpolation("si_interp.bt2")
+result = load_interpolation(\"si_interp.bt2\")
 kpath = (
-    points = Dict("Γ" => [0, 0, 0], "X" => [0.5, 0, 0.5], "L" => [0.5, 0.5, 0.5]),
-    paths = [["Γ", "X", "L", "Γ"]],
+    points = Dict(\"Γ\" => [0, 0, 0], \"X\" => [0.5, 0, 0.5], \"L\" => [0.5, 0.5, 0.5]),
+    paths = [[\"Γ\", \"X\", \"L\", \"Γ\"]],
 )
 plot_bands(result; kpath = kpath, emin = -5.0, emax = 5.0)
 ```
@@ -304,14 +304,14 @@ Same as `plot_bands(result::InterpolationResult; ...)`.
 
 ```julia
 # From .jld2 (auto k-path from spacegroup)
-plot_bands("si_interp.jld2"; emin = -5.0, emax = 5.0)
+plot_bands(\"si_interp.jld2\"; emin = -5.0, emax = 5.0)
 
 # From .bt2 (manual k-path required)
 kpath = (
-    points = Dict("Γ" => [0, 0, 0], "X" => [0.5, 0, 0.5], "L" => [0.5, 0.5, 0.5]),
-    paths = [["Γ", "X", "L", "Γ"]],
+    points = Dict(\"Γ\" => [0, 0, 0], \"X\" => [0.5, 0, 0.5], \"L\" => [0.5, 0.5, 0.5]),
+    paths = [[\"Γ\", \"X\", \"L\", \"Γ\"]],
 )
-plot_bands("si_interp.bt2"; kpath = kpath, emin = -5.0, emax = 5.0)
+plot_bands(\"si_interp.bt2\"; kpath = kpath, emin = -5.0, emax = 5.0)
 ```
 """
 function BoltzTraP.plot_bands(
@@ -403,8 +403,8 @@ Same as `plot_transport(result::TransportResult; ...)`.
 # Example
 
 ```julia
-plot_transport("si_transport.jld2"; quantity = "seebeck", component = "xx")
-plot_transport("si_transport.jld2"; quantity = "sigma", abscissa = "T")
+plot_transport(\"si_transport.jld2\"; quantity = \"seebeck\", component = \"xx\")
+plot_transport(\"si_transport.jld2\"; quantity = \"sigma\", abscissa = \"T\")
 ```
 """
 function BoltzTraP.plot_transport(
