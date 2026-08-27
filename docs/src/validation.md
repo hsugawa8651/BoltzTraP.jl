@@ -126,13 +126,25 @@ points are:
 | μ_eff | σ_xx × τ | reference |
 |------:|---------:|:---|
 | (eV) | (×10⁶ S/m) | (×10⁶ S/m) |
-| **−1.25** | **0.9779** | ≈ 1.0 (Pizzi 2014 valence anchor, ~3% agreement) |
+| **−1.25** | **0.9779** | Pizzi 2014 valence anchor ≈ 1.0 (see caveat below) |
 | **0.00** | **0.0394** | ≈ 0 (mid-gap, expected) |
 
 The DFTK SCF checkpoint used to produce these numbers (≈ 295 MB) is not
 shipped with the repository; the values in
 `reftest/data/cosb3_fourier_baseline.toml` stand on their own as the
 documented baseline.
+
+The numeric proximity between the −1.25 eV anchor and the Pizzi 2014
+reference above is not a validated agreement. The value predates two
+issues: a σ/κ_el unit-conversion bug that affected all pre-v0.4.2
+releases, and a cell-volume error in the reference geometry
+(`reftest/data/geometries/cosb3.jl` combines conventional-cell lattice
+vectors with a primitive-cell atom count, giving half the correct
+density). These two errors happened to partially cancel here.
+Furthermore, plane-wave cutoff (Ecut) convergence for the underlying
+DFT input has not been established for this system. This baseline is
+retained as a self-consistency regression record for the Fourier path
+only, not as evidence of agreement with the Pizzi 2014 reference.
 
 ## Verify It Yourself
 
