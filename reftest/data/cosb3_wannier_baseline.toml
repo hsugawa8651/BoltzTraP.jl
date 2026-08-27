@@ -7,7 +7,18 @@
 # test suite; the values below are the canonical numerical record.
 #
 # Lattice: reftest/data/geometries/cosb3.jl (a = 17.080296 Bohr ≈ 9.04 Å,
-# space group 204 Im-3, conventional cubic 16-atom cell).
+# space group 204 Im-3). NOTE: this file uses conventional-cell lattice
+# vectors with a 16-atom count, which is a known cell-volume error (the
+# correct conventional cell holds 32 atoms; 16 is the primitive-cell count
+# for this body-centered lattice) — not yet fixed as of this baseline.
+#
+# NOTE: this baseline predates two unrelated errors: a since-fixed
+# sigma/kappa_el unit-conversion bug in BT.jl itself (inflated the Wannier
+# path by a factor of ~6.75), and the cell-volume error described above.
+# The valence anchor value below happened to land close to the Pizzi 2014
+# reference as a result of these two errors partially cancelling; it is not
+# a validated agreement. Plane-wave cutoff (Ecut) convergence for the DFT
+# input has not been established either. See docs/src/wannier.md for details.
 #
 # Units:
 #   sigma_xx_tau in 10^6 S/m
@@ -22,11 +33,10 @@ tau_fs        = 10
 generator     = "DFTK + wannier90.x external + BoltzTraP.jl WannierInterpolator"
 
 [anchors]
-# Valence anchor (Pizzi 2014 BoltzWann reference: ~1.0 × 10^6 S/m at this mu)
+# Valence anchor. Not a validated Pizzi-2014 comparison — see file header.
 valence_mu_eff_eV       = -1.25
 valence_sigma_xx_tau    = 1.0481
 valence_pizzi_2014_ref  = 1.0
-valence_agreement_rtol  = 0.05
 
 # Mid-gap point (expected to be ≈ 0 due to gap, not a Pizzi-specific comparison)
 mid_gap_mu_eff_eV       = 0.00

@@ -198,15 +198,18 @@ The two anchor points are:
 | μ_eff | σ_xx × τ | reference |
 |------:|---------:|:---|
 | (eV) | (×10⁶ S/m) | (×10⁶ S/m) |
-| **−1.25** | **1.0481** | ≈ 1.0 (Pizzi 2014 valence anchor, ~5% agreement) |
+| **−1.25** | **1.0481** | Pizzi 2014 valence anchor ≈ 1.0 (see caveat below) |
 | **0.00** | **0.0208** | ≈ 0 (mid-gap, expected) |
 
 Conduction-side σ_xx deviates from the Pizzi reference by roughly a
-factor of two due to the default `HydrogenicWannierProjection` setup
-(random initial centers, generic s-like Gaussians), which under-
-represents the Co d / Sb p character of the conduction manifold. The
-remaining 15 baseline values document the current state of the Wannier
-path output, not a regression target.
+factor of two. Part of this has been attributed to the default
+`HydrogenicWannierProjection` setup (random initial centers, generic
+s-like Gaussians), which under-represents the Co d / Sb p character of
+the conduction manifold — but see the caveat below regarding the two
+additional errors affecting these numbers; how much of the
+factor-of-two deviation is attributable to projection quality alone
+has not been separated out. The remaining 15 baseline values document
+the current state of the Wannier path output, not a regression target.
 
 The frozen Wannier model files used to produce these numbers
 (`cosb3.win`, `cosb3.chk`, `cosb3.eig`, `cosb3.mmn`, total ≈ 209 MB)
@@ -214,6 +217,19 @@ come from a fixed random-projection realization that is not reproduced
 as part of the test suite. They are therefore not shipped with the
 repository; the values in `reftest/data/cosb3_wannier_baseline.toml`
 stand on their own as the documented baseline.
+
+The numeric proximity between the −1.25 eV anchor and the Pizzi 2014
+reference above is not a validated agreement. The value predates two
+issues: a σ/κ_el unit-conversion bug that affected all pre-v0.4.2
+releases (inflating the Wannier path by a factor of ~6.75), and a
+cell-volume error in the reference geometry
+(`reftest/data/geometries/cosb3.jl` combines conventional-cell lattice
+vectors with a primitive-cell atom count, giving half the correct
+density). These two errors happened to partially cancel here.
+Furthermore, plane-wave cutoff (Ecut) convergence for the underlying
+DFT input has not been established for this system. This baseline is
+retained as a self-consistency regression record for the Wannier path
+only, not as evidence of agreement with the Pizzi 2014 reference.
 
 ### External QE + BoltzWann cross-check
 
@@ -226,7 +242,10 @@ isotropic σ(μ) curve for the Wannier path, computed using the
 BoltzWann methodology
 ([Pizzi et al. 2014](https://doi.org/10.1016/j.cpc.2013.09.015)), and
 is recorded as an additional cross-check, not as a primary regression
-target. Quantitative agreement with Pizzi et al. (2014) is limited to
-the valence plateau under the projection choices available today; the
-external reference is included for the reader who wants an alternative
-Wannierization perspective on the same material.
+target. This pipeline is independent of the two errors described in
+the anchor-table caveat above (it does not go through BT.jl's own
+Fourier or Wannier lattice/volume handling), but plane-wave cutoff
+convergence for the underlying DFT input has not been independently
+verified for this pipeline either. The external reference is included
+for the reader who wants an alternative Wannierization perspective on
+the same material, not as a validated agreement claim.
